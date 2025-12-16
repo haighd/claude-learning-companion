@@ -95,6 +95,50 @@ Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "  Emergent Learning Framework Installer" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
+
+# Check for existing installation
+$ExistingVersionFile = Join-Path $env:USERPROFILE ".claude\emergent-learning\VERSION"
+if (Test-Path $ExistingVersionFile) {
+    $InstalledVersion = (Get-Content $ExistingVersionFile -Raw).Trim()
+    Write-Host "[!] ELF is already installed (version $InstalledVersion)" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Running install.ps1 again will overwrite your existing installation,"
+    Write-Host "including any customizations you've made."
+    Write-Host ""
+    Write-Host "To safely update, use: " -NoNewline
+    Write-Host ".\update.ps1" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "+---------------------------------------------------------+" -ForegroundColor Yellow
+    Write-Host "| [U] Use update.ps1 instead (recommended)" -ForegroundColor Yellow
+    Write-Host "| [R] Reinstall anyway (will overwrite customizations)" -ForegroundColor Yellow
+    Write-Host "| [Q] Quit" -ForegroundColor Yellow
+    Write-Host "+---------------------------------------------------------+" -ForegroundColor Yellow
+
+    $choice = Read-Host "Choice [U/R/Q]"
+
+    switch ($choice.ToUpper()) {
+        "U" {
+            $UpdateScript = Join-Path $ScriptDir "update.ps1"
+            if (Test-Path $UpdateScript) {
+                & $UpdateScript
+                exit $LASTEXITCODE
+            } else {
+                Write-Host "update.ps1 not found. Please download it or run update manually." -ForegroundColor Red
+                exit 1
+            }
+        }
+        "R" {
+            Write-Host ""
+            Write-Host "Proceeding with reinstall..." -ForegroundColor Yellow
+            Write-Host ""
+        }
+        default {
+            Write-Host "Aborted."
+            exit 0
+        }
+    }
+}
+
 Write-Host "Estimated installation time: ~2 minutes" -ForegroundColor Cyan
 Write-Host ""
 
@@ -536,6 +580,14 @@ $elfContent
             }
         }
     }
+}
+
+# === VERSION FILE ===
+# Create VERSION file for update tracking
+$VersionFilePath = Join-Path $EmergentLearningDir "VERSION"
+if (-not (Test-Path $VersionFilePath)) {
+    Set-Content -Path $VersionFilePath -Value "1.0.0" -NoNewline
+    Write-Host "  [+] Created VERSION file (1.0.0)" -ForegroundColor Green
 }
 
 # === DONE ===
