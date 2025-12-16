@@ -1,53 +1,67 @@
 # Changelog
 
-All notable changes to the Emergent Learning Framework will be documented in this file.
+All notable changes to claude-learning-companion (formerly Emergent Learning Framework) will be documented in this file.
 
-Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
-This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2025-12-16
+## [1.0.0] - 2025-12-16
+
+### Fork Independence Release
+
+This release marks the transition from upstream contribution to an independent project.
 
 ### Added
-- **Async Query Engine** - Complete migration to async architecture using peewee-aio
-- **ELF MCP Server** - Native MCP integration for claude-flow
-- **Step-file Workflows** - Resumable task architecture with frontmatter state
-- **Party Definitions** - Agent team compositions for complex tasks
-- **Golden Rule Categories** - Filter rules by domain/category
-- **Customization Layer** - User-specific config overrides
-- **Update System** - Simple update.sh/update.ps1 with database migrations
+- **Comprehensive Update System** (`update.sh` / `update.ps1`)
+  - Hybrid git/standalone support
+  - Interactive conflict resolution (Update/Keep/Diff/Backup options)
+  - Customization detection via SHA256 file hashes
+  - Automatic backup and rollback on failure
+  - Database migration integration
+  - Version checking against GitHub releases
+- **Database Migrations** (`scripts/migrate_db.py`)
+  - Sequential SQL migration runner
+  - Schema version tracking
+- **Customization Detection** (`.stock-hashes`)
+  - SHA256 hashes of stock files
+  - Warns before overwriting customized files
+- Async Query Engine (from upstream 0.2.0)
+- ELF MCP Server (from upstream 0.2.0)
+- Step-file Workflows (from upstream 0.2.0)
 
 ### Changed
-- Cosmic view now default (persisted to localStorage)
-- Modular query system architecture (Phase 1-6 refactor)
-- Zustand store with persistence middleware
+- Project renamed to `claude-learning-companion`
+- VERSION set to 1.0.0 for fresh start as independent project
 
-### Fixed
-- Windows compatibility (ASCII-only CLI output)
-- Clean exit when dashboard servers already running
-- Workflow engine import handling
-- Hook directory structure
-
-## [0.1.2] - 2025-12-14
-
-### Added
-- Dashboard UI overhaul with cosmic theme
-- Learning pipeline automation
-- File operations tracking for hotspot analysis
-
-## [0.1.1] - 2025-12-13
-
-### Added
-- Initial dashboard application
+### Inherited from Upstream
+- Dashboard UI with cosmic theme
 - Golden rules and heuristics system
 - CEO escalation workflow
+- Agent personas (Architect, Creative, Researcher, Skeptic)
+- Learning pipeline automation
+- File operations tracking
 
-## [0.1.0] - 2025-12-12
+---
 
-### Added
+## Pre-Fork History (Upstream)
+
+### [0.2.0] - 2025-12-16 (Upstream)
+- Async Query Engine migration
+- ELF MCP Server for claude-flow
+- Step-file Workflows
+- Party Definitions
+- Simple update system
+
+### [0.1.2] - 2025-12-14 (Upstream)
+- Dashboard UI overhaul
+- Learning pipeline automation
+
+### [0.1.1] - 2025-12-13 (Upstream)
+- Initial dashboard application
+- Golden rules system
+
+### [0.1.0] - 2025-12-12 (Upstream)
 - Initial release
-- Core ELF framework
-- Installation scripts
-- Basic query system
 
 ---
 
