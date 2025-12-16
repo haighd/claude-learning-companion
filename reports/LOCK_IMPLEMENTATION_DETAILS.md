@@ -2,7 +2,7 @@
 
 ## Lock Mechanism Code Review
 
-### Source: ~/.claude/emergent-learning/scripts/record-failure.sh
+### Source: ~/.claude/clc/scripts/record-failure.sh
 
 #### Acquire Lock Function
 ```bash

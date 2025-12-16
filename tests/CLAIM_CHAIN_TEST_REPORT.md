@@ -2,7 +2,7 @@
 
 **Date:** 2025-12-08
 **System:** blackboard.py claim chain functionality
-**Test Script:** `C:~/.claude/emergent-learning/tests/test_claim_chains_comprehensive.py`
+**Test Script:** `C:~/.claude/clc/tests/test_claim_chains_comprehensive.py`
 
 ## Executive Summary
 

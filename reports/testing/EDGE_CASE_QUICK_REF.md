@@ -100,7 +100,7 @@ Skipped (Expected):    1
 
 ```bash
 # Run full test suite
-cd ~/.claude/emergent-learning
+cd ~/.claude/clc
 python tests/test_edge_cases.py
 
 # Run with debug output

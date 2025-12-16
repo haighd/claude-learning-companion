@@ -6,7 +6,7 @@
 
 **Deliverable**: Test harness for the tiered watcher system
 
-**Location**: `~/.claude/emergent-learning/watcher/test_watcher.py`
+**Location**: `~/.claude/clc/watcher/test_watcher.py`
 
 ---
 
@@ -68,7 +68,7 @@ Complete documentation including:
 
 ### Run All Tests
 ```bash
-cd ~/.claude/emergent-learning/watcher
+cd ~/.claude/clc/watcher
 python test_watcher.py --all
 ```
 

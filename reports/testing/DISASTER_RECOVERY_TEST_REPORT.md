@@ -38,7 +38,7 @@ chmod 000 memory/index.db
 FAILURE_TITLE="Test DB Failure" FAILURE_DOMAIN="testing" ./scripts/record-failure.sh
 
 # Output:
-Created: /c~/.claude/emergent-learning/memory/failures/20251201_test-db-failure.md
+Created: /c~/.claude/clc/memory/failures/20251201_test-db-failure.md
 Database record created (ID: 0)  # <- ID: 0 indicates FAILURE
 Git commit created
 Failure recorded successfully!    # <- FALSE SUCCESS MESSAGE
@@ -64,7 +64,7 @@ ls memory/failures/20251201_test-db-failure.md
 - Users may believe data was saved when it wasn't
 
 #### Code Location
-**File**: `~/.claude/emergent-learning/scripts/record-failure.sh`
+**File**: `~/.claude/clc/scripts/record-failure.sh`
 **Lines**: 250-267
 
 ```bash
@@ -139,7 +139,7 @@ git status
 - Recovery requires manual intervention
 
 #### Code Location
-**File**: `~/.claude/emergent-learning/scripts/record-failure.sh`
+**File**: `~/.claude/clc/scripts/record-failure.sh`
 **Lines**: 270-285
 
 ```bash
@@ -202,7 +202,7 @@ Failure recorded successfully!
 - Manual restoration from git history required
 
 #### Code Location
-**File**: `~/.claude/emergent-learning/scripts/record-failure.sh`
+**File**: `~/.claude/clc/scripts/record-failure.sh`
 **Lines**: 110-131 (preflight_check function)
 
 ```bash
@@ -272,7 +272,7 @@ No automated backup mechanism exists:
 #### Evidence
 ```bash
 # Check for backups:
-find ~/.claude/emergent-learning -name "*.backup" -o -name "*.bak"
+find ~/.claude/clc -name "*.backup" -o -name "*.bak"
 # Returns: NOTHING
 
 # Check journal mode:

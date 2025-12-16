@@ -31,10 +31,10 @@ The Emergent Learning Framework backup and recovery system has been comprehensiv
 **Configuration:**
 ```bash
 # SSH/rsync
-export REMOTE_BACKUP_DEST="user@backup-server:/backups/emergent-learning"
+export REMOTE_BACKUP_DEST="user@backup-server:/backups/clc"
 
 # Cloud storage (rclone)
-export REMOTE_BACKUP_DEST="myremote:emergent-learning-backups"
+export REMOTE_BACKUP_DEST="myremote:clc-backups"
 ```
 
 **Verification:**
@@ -60,10 +60,10 @@ export REMOTE_BACKUP_DEST="myremote:emergent-learning-backups"
 **Schedule Configuration:**
 ```cron
 # Daily backup at midnight
-0 0 * * * ~/.claude/emergent-learning/scripts/backup.sh
+0 0 * * * ~/.claude/clc/scripts/backup.sh
 
 # Weekly verification on Sunday at 3 AM
-0 3 * * 0 ~/.claude/emergent-learning/scripts/verify-backup.sh --alert-on-fail
+0 3 * * 0 ~/.claude/clc/scripts/verify-backup.sh --alert-on-fail
 
 # Monthly archives automatically retained by rotation policy
 ```
@@ -468,7 +468,7 @@ gpg --decrypt backup.tar.gz.gpg > backup.tar.gz
 
 1. **Set Up Automated Backups**
    ```bash
-   cd ~/.claude/emergent-learning
+   cd ~/.claude/clc
    ./scripts/setup-automated-backups.sh
    ```
 

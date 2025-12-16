@@ -1052,7 +1052,7 @@ Please review the evidence and choose:
 """
 
     # Write to ceo-inbox
-    inbox_path = Path.home() / ".claude/emergent-learning/ceo-inbox"
+    inbox_path = Path.home() / ".claude/clc/ceo-inbox"
     filename = f"{datetime.now().strftime('%Y-%m-%d')}-fraud-alert-h{h.id}.md"
 
     with open(inbox_path / filename, 'w') as f:

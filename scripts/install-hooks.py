@@ -19,7 +19,7 @@ from pathlib import Path
 # Paths
 HOME = Path.home()
 CLAUDE_DIR = HOME / ".claude"
-ELF_DIR = CLAUDE_DIR / "emergent-learning"
+ELF_DIR = CLAUDE_DIR / "clc"
 SOURCE_HOOKS = ELF_DIR / "hooks" / "learning-loop"
 TARGET_HOOKS = CLAUDE_DIR / "hooks" / "learning-loop"
 SETTINGS_FILE = CLAUDE_DIR / "settings.json"

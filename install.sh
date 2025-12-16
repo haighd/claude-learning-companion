@@ -17,7 +17,7 @@ echo -e "${CYAN}============================================${NC}"
 echo ""
 
 # Check for existing installation
-EXISTING_VERSION_FILE="$HOME/.claude/emergent-learning/VERSION"
+EXISTING_VERSION_FILE="$HOME/.claude/clc/VERSION"
 if [ -f "$EXISTING_VERSION_FILE" ]; then
     INSTALLED_VERSION=$(cat "$EXISTING_VERSION_FILE")
     echo -e "${YELLOW}⚠️  ELF is already installed (version $INSTALLED_VERSION)${NC}"
@@ -60,7 +60,7 @@ echo ""
 # Get paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
-EMERGENT_LEARNING_DIR="$CLAUDE_DIR/emergent-learning"
+EMERGENT_LEARNING_DIR="$CLAUDE_DIR/clc"
 HOOKS_DIR="$CLAUDE_DIR/hooks"
 SETTINGS_FILE="$CLAUDE_DIR/settings.json"
 
@@ -192,7 +192,7 @@ pip install -q peewee 2>&1 || pip3 install -q peewee 2>&1
 echo -e "  ${GREEN}Installed Python dependencies (peewee)${NC}"
 
 # Copy hooks
-# Hooks stay in emergent-learning directory (not copied to ~/.claude/hooks/)
+# Hooks stay in clc directory (not copied to ~/.claude/hooks/)
 echo -e "  ${GREEN}Copied learning hooks${NC}"
 
 # Copy scripts
@@ -474,11 +474,11 @@ echo "  cat ~/.claude/CLAUDE.md"
 echo ""
 if [ "$INSTALL_DASHBOARD" = true ]; then
     echo "  # 2. Start the dashboard:"
-    echo "  cd ~/.claude/emergent-learning/dashboard-app && ./run-dashboard.sh"
+    echo "  cd ~/.claude/clc/dashboard-app && ./run-dashboard.sh"
     echo ""
 fi
 echo "  # 3. Test the query system:"
-echo "  $PYTHON_CMD ~/.claude/emergent-learning/query/query.py --context"
+echo "  $PYTHON_CMD ~/.claude/clc/query/query.py --context"
 echo ""
 echo "  # 4. Start using Claude Code (it will now query the building automatically!)"
 echo "  claude"

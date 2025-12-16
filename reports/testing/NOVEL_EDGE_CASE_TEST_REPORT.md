@@ -582,7 +582,7 @@ The Emergent Learning Framework has good database fundamentals but **critical is
 
 ## Appendix: Test Evidence Files
 
-- Test script: `/c~/.claude/emergent-learning/test-edge-cases-simple.sh`
+- Test script: `/c~/.claude/clc/test-edge-cases-simple.sh`
 - Full output: See test run output above
 - Database state: `memory/index.db` (17 test records created)
 - Markdown files: `memory/failures/20251201_edgetest*.md`
@@ -592,7 +592,7 @@ The Emergent Learning Framework has good database fundamentals but **critical is
 
 To reproduce Test 1 (rapid sequential calls):
 ```bash
-cd ~/.claude/emergent-learning
+cd ~/.claude/clc
 
 # Launch 10 parallel calls
 for i in {1..10}; do

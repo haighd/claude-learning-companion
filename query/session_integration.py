@@ -31,7 +31,7 @@ except ImportError:
     WINDOWS = False
 
 # Paths
-EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "emergent-learning"
+EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "clc"
 SESSIONS_PATH = EMERGENT_LEARNING_PATH / "sessions"
 LOGS_PATH = SESSIONS_PATH / "logs"
 PROCESSED_MARKER = SESSIONS_PATH / ".processed"

@@ -161,12 +161,12 @@ Key architectural decisions made during ELF development.
 **Status:** Accepted  
 **Context:** Where to install ELF components
 
-**Decision:** Install to ~/.claude/emergent-learning/
+**Decision:** Install to ~/.claude/clc/
 
 **Rationale:**
 - Standard hidden directory convention
 - Grouped with Claude Code config (~/.claude/)
-- Namespace emergent-learning prevents conflicts
+- Namespace clc prevents conflicts
 
 **Consequences:**
 - **Positive:** Discoverable, standard location

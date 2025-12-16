@@ -67,7 +67,7 @@ class CLIExecutor:
         self.coordination_dir.mkdir(parents=True, exist_ok=True)
 
         # SQLite for result checking
-        self.db_path = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
+        self.db_path = Path.home() / ".claude" / "clc" / "memory" / "index.db"
 
     def execute(self, node, context: Dict) -> Tuple[str, Dict]:
         """
@@ -488,7 +488,7 @@ class HookSignalExecutor:
         self.project_root = Path(project_root).resolve()
         self.coordination_dir = self.project_root / ".coordination"
         self.coordination_dir.mkdir(parents=True, exist_ok=True)
-        self.db_path = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
+        self.db_path = Path.home() / ".claude" / "clc" / "memory" / "index.db"
 
     def execute(self, node, context: Dict) -> Tuple[str, Dict]:
         """

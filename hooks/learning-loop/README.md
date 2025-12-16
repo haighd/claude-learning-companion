@@ -99,7 +99,7 @@ Mixed lines (code + comment) ARE still scanned.
 ### Running Tests
 
 ```bash
-cd ~/.claude/emergent-learning/hooks/learning-loop
+cd ~/.claude/clc/hooks/learning-loop
 
 # Run all tests
 python test_advisory.py
@@ -120,7 +120,7 @@ The hooks are configured in `.claude/settings.json`:
   "hooks": {
     "PostToolUse": [
       {
-        "command": "python ~/.claude/emergent-learning/hooks/learning-loop/post_tool_learning.py"
+        "command": "python ~/.claude/clc/hooks/learning-loop/post_tool_learning.py"
       }
     ]
   }

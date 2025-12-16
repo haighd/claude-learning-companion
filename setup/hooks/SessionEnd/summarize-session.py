@@ -13,7 +13,7 @@ import os
 from pathlib import Path
 
 # Script location
-SUMMARIZER = Path.home() / ".claude" / "emergent-learning" / "scripts" / "summarize-session.py"
+SUMMARIZER = Path.home() / ".claude" / "clc" / "scripts" / "summarize-session.py"
 
 
 def get_current_session_id():

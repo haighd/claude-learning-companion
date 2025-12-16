@@ -165,7 +165,7 @@ bash record-failure.sh --title "$LONG_TITLE"
 **Result:** FAIL - Filesystem error
 ```
 ERROR: Script failed at line 202
-/c~/.claude/emergent-learning/memory/failures/20251201_aaaaaa[...]aaaa.md: File name too long
+/c~/.claude/clc/memory/failures/20251201_aaaaaa[...]aaaa.md: File name too long
 ```
 **Root Cause:** Line 202 in record-failure.sh:
 ```bash
@@ -185,7 +185,7 @@ filename_title="${filename_title:0:200}"
 filename="${date_prefix}_${filename_title}.md"
 ```
 
-**File:** `/c~/.claude/emergent-learning/scripts/record-failure.sh`
+**File:** `/c~/.claude/clc/scripts/record-failure.sh`
 **Line:** 196-198
 
 #### Test 4.2: Title with Only Special Characters ❌
@@ -215,7 +215,7 @@ if [ -z "$filename_title" ]; then
 fi
 ```
 
-**File:** `/c~/.claude/emergent-learning/scripts/record-failure.sh`
+**File:** `/c~/.claude/clc/scripts/record-failure.sh`
 **Line:** 196-198
 
 #### Test 4.3: Embedded Newlines ❌
@@ -249,7 +249,7 @@ cat > "$filepath" <<EOF
 EOF
 ```
 
-**File:** `/c~/.claude/emergent-learning/scripts/record-failure.sh`
+**File:** `/c~/.claude/clc/scripts/record-failure.sh`
 **Lines:** 202-210
 
 ---
@@ -303,7 +303,7 @@ bash record-failure.sh --title "../../etc/passwd test"
 
 **Verification:**
 ```bash
-ls ~/.claude/emergent-learning/ | grep passwd  # (empty)
+ls ~/.claude/clc/ | grep passwd  # (empty)
 ls ~/.claude/ | grep passwd                     # (empty)
 ```
 
@@ -364,24 +364,24 @@ bash record-heuristic.sh --domain "unicode-test" --rule "测试规则 🔥 with 
 ### Critical Issues (Must Fix)
 
 1. **Filename Length Overflow**
-   - File: `/c~/.claude/emergent-learning/scripts/record-failure.sh`
+   - File: `/c~/.claude/clc/scripts/record-failure.sh`
    - Line: 196-198
    - Fix: Add filename truncation to 200 chars max
 
 2. **Empty Filenames from Special-Char-Only Titles**
-   - File: `/c~/.claude/emergent-learning/scripts/record-failure.sh`
+   - File: `/c~/.claude/clc/scripts/record-failure.sh`
    - Line: 196-198
    - Fix: Add fallback to hash-based filename if title becomes empty
 
 3. **Newlines Break Markdown Headers**
-   - File: `/c~/.claude/emergent-learning/scripts/record-failure.sh`
+   - File: `/c~/.claude/clc/scripts/record-failure.sh`
    - Lines: 202-210
    - Fix: Sanitize `$title` by converting newlines to spaces before writing
 
 ### Identical Issue in record-heuristic.sh
 
 All three filename issues also exist in:
-- File: `/c~/.claude/emergent-learning/scripts/record-heuristic.sh`
+- File: `/c~/.claude/clc/scripts/record-heuristic.sh`
 - Similar lines (filename generation logic)
 
 ---

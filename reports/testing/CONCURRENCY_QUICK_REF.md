@@ -157,10 +157,10 @@ release_git_lock "$LOCK_FILE"
 ### Lock is Stuck
 ```bash
 # Check for lock directories
-ls -la ~/.claude/emergent-learning/.git/*.dir
+ls -la ~/.claude/clc/.git/*.dir
 
 # Manually clean (if confirmed stale)
-rmdir ~/.claude/emergent-learning/.git/claude-lock.dir
+rmdir ~/.claude/clc/.git/claude-lock.dir
 ```
 
 ### Database Locked Errors

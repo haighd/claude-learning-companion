@@ -10,16 +10,16 @@ Retrieves user prompts from previous Claude Code sessions.
 
 ```bash
 # Last 5 prompts from most recent session
-python ~/.claude/emergent-learning/sessions/get_last_prompts.py
+python ~/.claude/clc/sessions/get_last_prompts.py
 
 # Last 10 prompts
-python ~/.claude/emergent-learning/sessions/get_last_prompts.py --limit 10
+python ~/.claude/clc/sessions/get_last_prompts.py --limit 10
 
 # Search across multiple recent sessions
-python ~/.claude/emergent-learning/sessions/get_last_prompts.py --all-sessions
+python ~/.claude/clc/sessions/get_last_prompts.py --all-sessions
 
 # JSON output for scripting
-python ~/.claude/emergent-learning/sessions/get_last_prompts.py --json
+python ~/.claude/clc/sessions/get_last_prompts.py --json
 ```
 
 ### Options
@@ -58,16 +58,16 @@ Natural language search across session logs (tool usage history).
 
 ```bash
 # Search for specific work
-python ~/.claude/emergent-learning/sessions/search.py "auth bug we fixed"
+python ~/.claude/clc/sessions/search.py "auth bug we fixed"
 
 # Search recent history
-python ~/.claude/emergent-learning/sessions/search.py "what failed yesterday" --days 1
+python ~/.claude/clc/sessions/search.py "what failed yesterday" --days 1
 
 # Limit results
-python ~/.claude/emergent-learning/sessions/search.py "database migrations" --limit 5
+python ~/.claude/clc/sessions/search.py "database migrations" --limit 5
 
 # JSON output
-python ~/.claude/emergent-learning/sessions/search.py "grep searches" --json
+python ~/.claude/clc/sessions/search.py "grep searches" --json
 ```
 
 ### Options
@@ -103,7 +103,7 @@ Session data comes from two sources:
    - Contains full conversation: user prompts and assistant responses
    - Used by `get_last_prompts.py`
 
-2. **Framework session logs** (`~/.claude/emergent-learning/sessions/logs/`)
+2. **Framework session logs** (`~/.claude/clc/sessions/logs/`)
    - Contains tool usage summaries
    - Used by `search.py`
    - Lighter weight, designed for searchability

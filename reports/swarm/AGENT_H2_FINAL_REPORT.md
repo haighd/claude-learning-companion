@@ -361,7 +361,7 @@ Duration: 7 seconds
 ### Step 1: Verify Installation
 
 ```bash
-cd ~/.claude/emergent-learning
+cd ~/.claude/clc
 
 # Check all scripts are present
 ls -la scripts/backup*.sh
@@ -375,10 +375,10 @@ ls -la scripts/test*.sh
 
 ```bash
 # Add to ~/.bashrc or ~/.profile
-export REMOTE_BACKUP_DEST="user@server:/backups/emergent-learning"
+export REMOTE_BACKUP_DEST="user@server:/backups/clc"
 
 # Or for cloud storage
-export REMOTE_BACKUP_DEST="myremote:backups/emergent-learning"
+export REMOTE_BACKUP_DEST="myremote:backups/clc"
 ```
 
 ### Step 3: Set Up Automated Backups

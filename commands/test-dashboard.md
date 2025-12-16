@@ -14,8 +14,8 @@ Run browser automation tests against the ELF dashboard with visual evidence capt
 ## Prerequisites
 
 - dev-browser server running: `~/.claude/skills/dev-browser/server.sh`
-- Dashboard backend: `cd ~/.claude/emergent-learning/dashboard-app/backend && python -m uvicorn main:app --port 8888`
-- Dashboard frontend: `cd ~/.claude/emergent-learning/dashboard-app/frontend && bun run dev`
+- Dashboard backend: `cd ~/.claude/clc/dashboard-app/backend && python -m uvicorn main:app --port 8888`
+- Dashboard frontend: `cd ~/.claude/clc/dashboard-app/frontend && bun run dev`
 
 ---
 
@@ -166,7 +166,7 @@ await page.waitForLoadState("networkidle");
 
 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
 await page.screenshot({
-  path: `~/.claude/emergent-learning/memory/screenshots/dashboard-${timestamp}.png`,
+  path: `~/.claude/clc/memory/screenshots/dashboard-${timestamp}.png`,
   fullPage: true
 });
 
@@ -182,7 +182,7 @@ EOF
 When tests **FAIL**:
 1. Screenshot automatically captured to `tmp/`
 2. Copy evidence to `memory/screenshots/` with dated filename
-3. Record failure: `bash ~/.claude/emergent-learning/scripts/record-failure.sh`
+3. Record failure: `bash ~/.claude/clc/scripts/record-failure.sh`
 4. Attach screenshot path in the `## Visual Evidence` section
 
 When tests **PASS**:

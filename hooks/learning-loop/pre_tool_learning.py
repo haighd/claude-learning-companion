@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import List, Dict, Optional
 
 # Paths - using Path.home() for portability
-EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "emergent-learning"
+EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "clc"
 DB_PATH = EMERGENT_LEARNING_PATH / "memory" / "index.db"
 STATE_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
 

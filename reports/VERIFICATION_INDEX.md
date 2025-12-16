@@ -25,7 +25,7 @@
 - Key metrics and findings
 - Recommendations
 
-**Location:** `~/.claude/emergent-learning/VERIFICATION_SUMMARY.txt`
+**Location:** `~/.claude/clc/VERIFICATION_SUMMARY.txt`
 
 ---
 
@@ -37,7 +37,7 @@
 - Technical implementation details
 - Evidence and conclusions
 
-**Location:** `~/.claude/emergent-learning/LOCK_CONTENTION_FIX_VERIFICATION.md`
+**Location:** `~/.claude/clc/LOCK_CONTENTION_FIX_VERIFICATION.md`
 
 ---
 
@@ -49,14 +49,14 @@
 - Edge case handling
 - Performance and security implications
 
-**Location:** `~/.claude/emergent-learning/LOCK_IMPLEMENTATION_DETAILS.md`
+**Location:** `~/.claude/clc/LOCK_IMPLEMENTATION_DETAILS.md`
 
 ---
 
 ## Test Data Location
 
 All raw test outputs and intermediate results are in:
-`~/.claude/emergent-learning/test-run/`
+`~/.claude/clc/test-run/`
 
 ### Files in test-run/:
 - `stress-test-results.txt` - Raw stress test output
@@ -211,7 +211,7 @@ The git lock contention fix has been **VERIFIED WORKING CORRECTLY**.
 
 ## Files Modified
 
-**Primary Script:** `~/.claude/emergent-learning/scripts/record-failure.sh`
+**Primary Script:** `~/.claude/clc/scripts/record-failure.sh`
 
 **Lock Functions:**
 - `acquire_git_lock()` - Atomic lock acquisition
@@ -228,9 +228,9 @@ The git lock contention fix has been **VERIFIED WORKING CORRECTLY**.
 No further action required. The fix is working as intended.
 
 For future reference:
-1. Lock status can be monitored with: `ls ~/.claude/emergent-learning/.git/*.lock.dir 2>/dev/null`
-2. Performance can be monitored in logs: `~/.claude/emergent-learning/logs/`
-3. Database integrity can be checked: `sqlite3 ~/.claude/emergent-learning/memory/index.db "PRAGMA integrity_check"`
+1. Lock status can be monitored with: `ls ~/.claude/clc/.git/*.lock.dir 2>/dev/null`
+2. Performance can be monitored in logs: `~/.claude/clc/logs/`
+3. Database integrity can be checked: `sqlite3 ~/.claude/clc/memory/index.db "PRAGMA integrity_check"`
 
 ---
 

@@ -159,7 +159,7 @@ RISKY_PATTERNS = {
 Run all test suites:
 
 ```bash
-cd ~/.claude/emergent-learning/hooks/learning-loop
+cd ~/.claude/clc/hooks/learning-loop
 
 # Core advisory tests (8 tests)
 python test_advisory.py

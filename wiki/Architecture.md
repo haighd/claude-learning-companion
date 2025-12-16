@@ -57,12 +57,12 @@ The framework uses **Peewee ORM** for all database operations, providing:
 |------|---------|
 | `~/.claude/CLAUDE.md` | Agent instructions |
 | `~/.claude/settings.json` | Hook configurations |
-| `~/.claude/emergent-learning/memory/index.db` | SQLite database |
-| `~/.claude/emergent-learning/query/query.py` | Query system |
+| `~/.claude/clc/memory/index.db` | SQLite database |
+| `~/.claude/clc/query/query.py` | Query system |
 | `~/.claude/hooks/learning-loop/` | Hook scripts |
-| `~/.claude/emergent-learning/dashboard-app/` | React dashboard |
-| `~/.claude/emergent-learning/conductor/` | Swarm orchestration |
-| `~/.claude/emergent-learning/agents/` | Agent personalities |
+| `~/.claude/clc/dashboard-app/` | React dashboard |
+| `~/.claude/clc/conductor/` | Swarm orchestration |
+| `~/.claude/clc/agents/` | Agent personalities |
 
 ## Hooks System
 

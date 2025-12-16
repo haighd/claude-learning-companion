@@ -42,7 +42,7 @@ def start_server_unix(cmd, cwd):
 
 
 def main():
-    dashboard_dir = Path.home() / ".claude" / "emergent-learning" / "dashboard-app"
+    dashboard_dir = Path.home() / ".claude" / "clc" / "dashboard-app"
     if not dashboard_dir.exists():
         return
 

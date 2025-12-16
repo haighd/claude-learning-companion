@@ -28,7 +28,7 @@ Added conductor integration to `post_tool_learning.py` (lines 397-446) that:
 
 ## Code Changes
 
-**File:** `~/.claude\emergent-learning\hooks\learning-loop\post_tool_learning.py`
+**File:** `~/.claude\clc\hooks\learning-loop\post_tool_learning.py`
 
 **Lines 397-446:** Added conductor integration block after outcome determination
 
@@ -57,7 +57,7 @@ else:
 
 ### Direct Conductor Test
 
-**Test file:** `~/.claude\emergent-learning\test-conductor-direct.py`
+**Test file:** `~/.claude\clc\test-conductor-direct.py`
 
 **Results:**
 - ✅ Successfully created workflow run (ID: 45)
@@ -110,18 +110,18 @@ Once the dashboard is properly running:
 
 ## Files Modified
 
-1. **~/.claude\emergent-learning\hooks\learning-loop\post_tool_learning.py**
+1. **~/.claude\clc\hooks\learning-loop\post_tool_learning.py**
    - Added conductor integration (lines 397-446)
    - No changes to existing functionality
    - Non-fatal error handling (conductor failures don't break the hook)
 
 ## Files Created (Testing)
 
-1. **~/.claude\emergent-learning\test-conductor-direct.py**
+1. **~/.claude\clc\test-conductor-direct.py**
    - Direct test of conductor API
    - Verifies database records are created correctly
 
-2. **~/.claude\emergent-learning\test-conductor-integration.py**
+2. **~/.claude\clc\test-conductor-integration.py**
    - Integration test that simulates hook execution
    - Tests full subprocess flow
 
@@ -143,7 +143,7 @@ Once the dashboard is properly running:
    ```
    # In Claude Code, trigger any Task
    # Then verify it appears in the database:
-   sqlite3 ~/.claude/emergent-learning/memory/index.db \
+   sqlite3 ~/.claude/clc/memory/index.db \
      "SELECT * FROM workflow_runs ORDER BY created_at DESC LIMIT 1;"
    ```
 

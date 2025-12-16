@@ -114,7 +114,7 @@ Levels: INFO, WARN, ERROR, FATAL, SUCCESS
 
 ## New Error Handling Library
 
-**File**: `~/.claude/emergent-learning/scripts/lib/error-handling.sh`
+**File**: `~/.claude/clc/scripts/lib/error-handling.sh`
 **Size**: 23KB (600+ lines)
 **Functions**: 40+ reusable error handling functions
 

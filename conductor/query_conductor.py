@@ -40,7 +40,7 @@ class ConductorQuery:
     def __init__(self, base_path: Optional[str] = None):
         if base_path is None:
             home = Path.home()
-            self.base_path = home / ".claude" / "emergent-learning"
+            self.base_path = home / ".claude" / "clc"
         else:
             self.base_path = Path(base_path)
 

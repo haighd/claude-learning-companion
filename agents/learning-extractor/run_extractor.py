@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import List, Dict, Optional
 
 # Paths
-EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "emergent-learning"
+EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "clc"
 PROMPT_PATH = EMERGENT_LEARNING_PATH / "agents" / "learning-extractor" / "PROMPT.md"
 MEMORY_DB = EMERGENT_LEARNING_PATH / "memory" / "learnings.db"
 PROPOSALS_PENDING = EMERGENT_LEARNING_PATH / "proposals" / "pending"

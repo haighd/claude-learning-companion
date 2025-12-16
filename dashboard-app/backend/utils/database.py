@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 # Database path
-EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "emergent-learning"
+EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "clc"
 DB_PATH = EMERGENT_LEARNING_PATH / "memory" / "index.db"
 
 

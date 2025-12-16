@@ -261,7 +261,7 @@ Multiple domains drifting simultaneously may indicate coordinated multi-agent ma
 
 ```bash
 # Verify migration applied
-sqlite3 ~/.claude/emergent-learning/memory/index.db \
+sqlite3 ~/.claude/clc/memory/index.db \
   "SELECT name FROM sqlite_master WHERE name LIKE '%baseline%';"
 
 # Run tests

@@ -401,19 +401,19 @@ After integrating observability:
 ./my-updated-script.sh
 
 # 2. Check logs were created
-ls -l ~/.claude/emergent-learning/logs/$(date +%Y%m%d).log
-tail -20 ~/.claude/emergent-learning/logs/$(date +%Y%m%d).log
+ls -l ~/.claude/clc/logs/$(date +%Y%m%d).log
+tail -20 ~/.claude/clc/logs/$(date +%Y%m%d).log
 
 # 3. Verify metrics were recorded
-sqlite3 ~/.claude/emergent-learning/memory/index.db \
+sqlite3 ~/.claude/clc/memory/index.db \
   "SELECT * FROM metrics ORDER BY timestamp DESC LIMIT 10;"
 
 # 4. Check dashboard
-python ~/.claude/emergent-learning/query/dashboard.py
+python ~/.claude/clc/query/dashboard.py
 
 # 5. View specific metrics
-~/.claude/emergent-learning/scripts/query-metrics.sh recent operation_count 20
-~/.claude/emergent-learning/scripts/query-metrics.sh summary
+~/.claude/clc/scripts/query-metrics.sh recent operation_count 20
+~/.claude/clc/scripts/query-metrics.sh summary
 ```
 
 ## Common Pitfalls

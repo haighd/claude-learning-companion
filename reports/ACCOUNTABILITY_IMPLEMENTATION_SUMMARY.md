@@ -304,22 +304,22 @@ Created comprehensive documentation:
 
 ```bash
 # Check table exists
-sqlite3 ~/.claude/emergent-learning/memory/index.db ".schema violations"
+sqlite3 ~/.claude/clc/memory/index.db ".schema violations"
 
 # Record test violation
-bash ~/.claude/emergent-learning/scripts/record-violation.sh 1 "Test violation"
+bash ~/.claude/clc/scripts/record-violation.sh 1 "Test violation"
 
 # View banner
-python ~/.claude/emergent-learning/query/query.py --accountability-banner
+python ~/.claude/clc/query/query.py --accountability-banner
 
 # View statistics
-python ~/.claude/emergent-learning/query/query.py --stats
+python ~/.claude/clc/query/query.py --stats
 
 # Run test suite
-bash ~/.claude/emergent-learning/test-accountability.sh
+bash ~/.claude/clc/test-accountability.sh
 
 # Clean up test data
-sqlite3 ~/.claude/emergent-learning/memory/index.db \
+sqlite3 ~/.claude/clc/memory/index.db \
   "DELETE FROM violations WHERE description LIKE 'TEST:%';"
 ```
 

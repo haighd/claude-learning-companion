@@ -11,7 +11,7 @@ like claude-flow, enabling them to:
 
 Usage:
     python elf_server.py                    # Run with stdio transport (default)
-    claude mcp add elf python ~/.claude/emergent-learning/mcp/elf_server.py
+    claude mcp add elf python ~/.claude/clc/mcp/elf_server.py
 """
 
 import json

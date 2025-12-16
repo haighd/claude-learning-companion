@@ -31,17 +31,17 @@ Platform: darwin → macOS behavior
 ## Quick Reference
 
 ```
-~/.claude/emergent-learning/references/windows-tool-guide.md
+~/.claude/clc/references/windows-tool-guide.md
 ```
 
 ## Anti-Pattern
 
 ```
 # BAD: Using Glob with tilde on Windows
-Glob pattern="~/.claude/emergent-learning/ceo-inbox/*"
+Glob pattern="~/.claude/clc/ceo-inbox/*"
 Result: "No files found" (tilde not expanded)
 
 # GOOD: Using Bash instead
-ls ~/.claude/emergent-learning/ceo-inbox/
+ls ~/.claude/clc/ceo-inbox/
 Result: Lists files correctly
 ```

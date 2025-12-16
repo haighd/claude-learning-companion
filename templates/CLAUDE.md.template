@@ -18,11 +18,11 @@ Before starting ANY investigation, debugging, research, or problem-solving task:
 
 1. **QUERY THE BUILDING:**
    ```bash
-   python ~/.claude/emergent-learning/query/query.py --context
+   python ~/.claude/clc/query/query.py --context
    ```
    For domain-specific work:
    ```bash
-   python ~/.claude/emergent-learning/query/query.py --domain [domain]
+   python ~/.claude/clc/query/query.py --domain [domain]
    ```
 
 2. **VERIFY YOU HAVE QUERIED:**
@@ -43,7 +43,7 @@ Before starting ANY investigation, debugging, research, or problem-solving task:
 
    Start command (handles port detection, skips if already running):
    ```bash
-   bash ~/.claude/emergent-learning/dashboard-app/run-dashboard.sh
+   bash ~/.claude/clc/dashboard-app/run-dashboard.sh
    ```
 
 **This protocol is MANDATORY. Query before acting. Every single time.**
@@ -80,12 +80,12 @@ Before starting ANY investigation, debugging, research, or problem-solving task:
 
 **Standard query (REQUIRED for most tasks):**
 ```bash
-python ~/.claude/emergent-learning/query/query.py --context
+python ~/.claude/clc/query/query.py --context
 ```
 
 **Domain-specific query:**
 ```bash
-python ~/.claude/emergent-learning/query/query.py --domain [domain]
+python ~/.claude/clc/query/query.py --domain [domain]
 ```
 
 **After querying, you MUST:**
@@ -107,10 +107,10 @@ This is a REMINDER to query, but you should have already done so automatically.
 
 ### Recording to the Building
 
-- **Failure:** `~/.claude/emergent-learning/scripts/record-failure.sh`
+- **Failure:** `~/.claude/clc/scripts/record-failure.sh`
 - **Success:** Create file in `memory/successes/` following template
-- **Heuristic:** `~/.claude/emergent-learning/scripts/record-heuristic.sh`
-- **Experiment:** `~/.claude/emergent-learning/scripts/start-experiment.sh`
+- **Heuristic:** `~/.claude/clc/scripts/record-heuristic.sh`
+- **Experiment:** `~/.claude/clc/scripts/start-experiment.sh`
 - **CEO Decision:** Create file in `ceo-inbox/` following template
 
 ### Golden Rules (Always Follow)
@@ -142,7 +142,7 @@ For Claude Code subagents, you can optionally use Basic Memory coordination (req
 
 ## Agent Personas (for complex problems)
 
-Read personality files at `~/.claude/emergent-learning/agents/` when needed:
+Read personality files at `~/.claude/clc/agents/` when needed:
 
 | Agent | Role | Trigger |
 |-------|------|---------|
@@ -177,7 +177,7 @@ Escalate to human (create file in ceo-inbox/) when:
 If you realize mid-task that you did NOT query the building:
 
 1. **STOP immediately**
-2. **Query now:** `python ~/.claude/emergent-learning/query/query.py --context`
+2. **Query now:** `python ~/.claude/clc/query/query.py --context`
 3. **Review the results** - adjust your approach based on learnings
 4. **Continue with corrected approach**
 

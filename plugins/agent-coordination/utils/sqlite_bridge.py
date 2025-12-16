@@ -24,7 +24,7 @@ class SQLiteBridge:
 
     def __init__(self):
         home = Path.home()
-        self.db_path = home / ".claude" / "emergent-learning" / "memory" / "index.db"
+        self.db_path = home / ".claude" / "clc" / "memory" / "index.db"
         self._connection = None
 
     def _get_connection(self):

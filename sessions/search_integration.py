@@ -71,7 +71,7 @@ def search_sessions(query: str, days: int = 7, limit: int = 10,
         days: Number of days to search back (default: 7)
         limit: Maximum number of results to return (default: 10)
         max_chars: Maximum total characters in output for token efficiency (default: 2000)
-        base_path: Base path to emergent-learning directory (default: ~/.claude/emergent-learning)
+        base_path: Base path to clc directory (default: ~/.claude/clc)
 
     Returns:
         Formatted string ready to include in check-in output.
@@ -91,7 +91,7 @@ def search_sessions(query: str, days: int = 7, limit: int = 10,
         ========================================
     """
     if base_path is None:
-        base_path = Path.home() / ".claude" / "emergent-learning"
+        base_path = Path.home() / ".claude" / "clc"
 
     # Check if logs directory exists
     logs_dir = base_path / "sessions" / "logs"
@@ -175,7 +175,7 @@ def get_recent_failures(days: int = 3, limit: int = 5,
     Args:
         days: Number of days to search back (default: 3)
         limit: Maximum number of results (default: 5)
-        base_path: Base path to emergent-learning directory
+        base_path: Base path to clc directory
 
     Returns:
         Formatted string of recent failures, or empty string if none found.
@@ -197,7 +197,7 @@ def get_recent_tool_usage(tool_name: str, days: int = 7, limit: int = 10,
         tool_name: Name of the tool to search for (e.g., "Edit", "Grep")
         days: Number of days to search back (default: 7)
         limit: Maximum number of results (default: 10)
-        base_path: Base path to emergent-learning directory
+        base_path: Base path to clc directory
 
     Returns:
         Formatted string of tool usage, or empty string if none found.
@@ -229,6 +229,6 @@ if __name__ == '__main__':
         print(result)
     else:
         print("No results found (this is normal if no session logs exist yet)")
-        print("\nSession logs should be at: ~/.claude/emergent-learning/sessions/logs/*.jsonl")
+        print("\nSession logs should be at: ~/.claude/clc/sessions/logs/*.jsonl")
 
     print("\nIntegration test complete.")

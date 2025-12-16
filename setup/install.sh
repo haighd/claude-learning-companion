@@ -10,7 +10,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
-ELF_DIR="$CLAUDE_DIR/emergent-learning"
+ELF_DIR="$CLAUDE_DIR/clc"
 MODE="${1#--mode=}"
 MODE="${MODE:-interactive}"
 
@@ -33,7 +33,7 @@ install_commands() {
 }
 
 install_settings() {
-    # Generate settings.json with hooks pointing to emergent-learning directory
+    # Generate settings.json with hooks pointing to clc directory
     # Uses Python for cross-platform path handling
     python3 << 'PYTHON_SCRIPT'
 import json
@@ -42,7 +42,7 @@ import sys
 from pathlib import Path
 
 claude_dir = Path.home() / ".claude"
-elf_hooks = claude_dir / "emergent-learning" / "hooks" / "learning-loop"
+elf_hooks = claude_dir / "clc" / "hooks" / "learning-loop"
 settings_file = claude_dir / "settings.json"
 
 # Detect platform and format paths appropriately

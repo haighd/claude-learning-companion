@@ -48,7 +48,7 @@ from routers.fraud import set_paths as set_fraud_paths
 from routers.workflows import set_paths as set_workflows_paths
 
 # Paths
-EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "emergent-learning"
+EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "clc"
 FRONTEND_PATH = Path(__file__).parent.parent / "frontend" / "dist"
 
 # Import session indexing

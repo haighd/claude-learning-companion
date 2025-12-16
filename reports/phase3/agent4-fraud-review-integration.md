@@ -18,7 +18,7 @@ Successfully integrated fraud review functionality into the Emergent Learning Fr
 
 ### 1. Backend Python Module: `fraud_review.py`
 
-**Location:** `~/.claude/emergent-learning/query/fraud_review.py`
+**Location:** `~/.claude/clc/query/fraud_review.py`
 
 **Purpose:** Provides programmatic interface for fraud review operations.
 
@@ -219,7 +219,7 @@ import FraudReviewPanel from './components/FraudReviewPanel'
 
 ### 5. CLI Script: `review-fraud.sh`
 
-**Location:** `~/.claude/emergent-learning/scripts/review-fraud.sh`
+**Location:** `~/.claude/clc/scripts/review-fraud.sh`
 
 **Usage:**
 ```bash
@@ -388,7 +388,7 @@ CREATE TABLE fraud_responses (
 
 ```bash
 # See what's pending
-cd ~/.claude/emergent-learning
+cd ~/.claude/clc
 ./scripts/review-fraud.sh list
 
 # Output:
@@ -439,7 +439,7 @@ cd ~/.claude/emergent-learning
 ### Unit Tests
 ```bash
 # Test fraud_review.py module
-cd ~/.claude/emergent-learning
+cd ~/.claude/clc
 python -m pytest tests/test_fraud_review.py -v
 ```
 
@@ -686,12 +686,12 @@ System is ready for end-to-end testing:
 
 1. **Add to PATH** (optional):
    ```bash
-   echo 'export PATH="$PATH:$HOME/.claude/emergent-learning/scripts"' >> ~/.bashrc
+   echo 'export PATH="$PATH:$HOME/.claude/clc/scripts"' >> ~/.bashrc
    ```
 
 2. **Create alias** (optional):
    ```bash
-   alias review-fraud='~/.claude/emergent-learning/scripts/review-fraud.sh'
+   alias review-fraud='~/.claude/clc/scripts/review-fraud.sh'
    ```
 
 ---

@@ -112,7 +112,7 @@ test_filename_length() {
     export FAILURE_SEVERITY="3"
     export FAILURE_SUMMARY="Testing filename length limit"
 
-    if ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1 | grep -q "exceeds maximum length"; then
+    if ~/.claude/clc/scripts/record-failure.sh 2>&1 | grep -q "exceeds maximum length"; then
         log_test "PASS" "300-char title rejected" "System properly rejects titles exceeding length limit"
     else
         # Check if filename was truncated
@@ -130,7 +130,7 @@ test_filename_length() {
     local title_255=$(printf 'B%.0s' {1..255})
     export FAILURE_TITLE="$title_255"
 
-    if ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1 | grep -q "exceeds maximum length\|Created:"; then
+    if ~/.claude/clc/scripts/record-failure.sh 2>&1 | grep -q "exceeds maximum length\|Created:"; then
         log_test "PASS" "255-char title handling" "System handles 255-char titles"
     else
         log_test "FAIL" "255-char title crashed" "System crashed on 255-char title"
@@ -166,7 +166,7 @@ test_reserved_names() {
         export FAILURE_SEVERITY="3"
         export FAILURE_SUMMARY="Testing reserved filename: $name"
 
-        if ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1; then
+        if ~/.claude/clc/scripts/record-failure.sh 2>&1; then
             # Check if file was created
             local created_file=$(ls -t "$MEMORY_DIR/failures/" | head -1)
 
@@ -215,7 +215,7 @@ test_dot_names() {
         export FAILURE_SEVERITY="3"
         export FAILURE_SUMMARY="Testing dot filename: $name"
 
-        if ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1; then
+        if ~/.claude/clc/scripts/record-failure.sh 2>&1; then
             local created_file=$(ls -t "$MEMORY_DIR/failures/" | head -1)
 
             # Check if filename has problematic dots
@@ -261,14 +261,14 @@ test_unicode_normalization() {
     export FAILURE_SEVERITY="3"
     export FAILURE_SUMMARY="Testing composed unicode"
 
-    ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1 > /dev/null || true
+    ~/.claude/clc/scripts/record-failure.sh 2>&1 > /dev/null || true
     local file1=$(ls -t "$MEMORY_DIR/failures/" | head -1)
 
     # Then create with decomposed (simulation - bash may normalize)
     export FAILURE_TITLE="café2"  # Different to avoid timing collision
     export FAILURE_SUMMARY="Testing decomposed unicode"
 
-    ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1 > /dev/null || true
+    ~/.claude/clc/scripts/record-failure.sh 2>&1 > /dev/null || true
     local file2=$(ls -t "$MEMORY_DIR/failures/" | head -1)
 
     if [ "$file1" != "$file2" ]; then
@@ -282,7 +282,7 @@ test_unicode_normalization() {
     export FAILURE_TITLE="Test 🚀 Rocket"
     export FAILURE_SUMMARY="Testing emoji in title"
 
-    if ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1; then
+    if ~/.claude/clc/scripts/record-failure.sh 2>&1; then
         local emoji_file=$(ls -t "$MEMORY_DIR/failures/" | head -1)
         if [[ "$emoji_file" == *"🚀"* ]]; then
             log_test "WARN" "Emoji preserved in filename" "File: $emoji_file (may cause cross-platform issues)"
@@ -322,21 +322,21 @@ test_case_sensitivity() {
     echo "Creating 'Test${timestamp}'..."
     export FAILURE_TITLE="Test${timestamp}"
     export FAILURE_SUMMARY="Testing case sensitivity - Test"
-    ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1 > /dev/null || true
+    ~/.claude/clc/scripts/record-failure.sh 2>&1 > /dev/null || true
 
     sleep 1
 
     echo "Creating 'TEST${timestamp}'..."
     export FAILURE_TITLE="TEST${timestamp}"
     export FAILURE_SUMMARY="Testing case sensitivity - TEST"
-    ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1 > /dev/null || true
+    ~/.claude/clc/scripts/record-failure.sh 2>&1 > /dev/null || true
 
     sleep 1
 
     echo "Creating 'test${timestamp}'..."
     export FAILURE_TITLE="test${timestamp}"
     export FAILURE_SUMMARY="Testing case sensitivity - test"
-    ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1 > /dev/null || true
+    ~/.claude/clc/scripts/record-failure.sh 2>&1 > /dev/null || true
 
     # Count how many files were created
     local count=$(ls -1 "$MEMORY_DIR/failures/" | grep -i "test${timestamp}" | wc -l)
@@ -380,7 +380,7 @@ test_special_chars() {
         export FAILURE_SEVERITY="3"
         export FAILURE_SUMMARY="Testing special char: $char"
 
-        if ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1; then
+        if ~/.claude/clc/scripts/record-failure.sh 2>&1; then
             local created_file=$(ls -t "$MEMORY_DIR/failures/" | head -1)
 
             # Check if file was created in wrong directory (path traversal)
@@ -402,7 +402,7 @@ test_special_chars() {
     export FAILURE_DOMAIN="testing"
     export FAILURE_SUMMARY="Testing path traversal"
 
-    if ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1; then
+    if ~/.claude/clc/scripts/record-failure.sh 2>&1; then
         # Check if file was created in /etc/ (CRITICAL)
         if [ -f "/etc/passwd.md" ] || [ -f "$BASE_DIR/../../../etc/passwd.md" ]; then
             log_test "FAIL" "Path traversal CRITICAL vulnerability" "SECURITY: File created outside memory directory!"
@@ -447,7 +447,7 @@ test_disk_quota() {
 
     local before_count=$(ls -1 "$MEMORY_DIR/failures/" | wc -l)
 
-    if ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1 | grep -q "exceeds maximum length\|too long"; then
+    if ~/.claude/clc/scripts/record-failure.sh 2>&1 | grep -q "exceeds maximum length\|too long"; then
         log_test "PASS" "Huge summary rejected" "System properly rejects oversized content"
     else
         local after_count=$(ls -1 "$MEMORY_DIR/failures/" | wc -l)
@@ -507,7 +507,7 @@ test_readonly_filesystem() {
 
     local db_before=$(sqlite3 "$MEMORY_DIR/index.db" "SELECT COUNT(*) FROM learnings")
 
-    if ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1 | grep -q "Permission denied\|Read-only\|cannot create"; then
+    if ~/.claude/clc/scripts/record-failure.sh 2>&1 | grep -q "Permission denied\|Read-only\|cannot create"; then
         # Check database wasn't corrupted
         local db_after=$(sqlite3 "$MEMORY_DIR/index.db" "SELECT COUNT(*) FROM learnings" 2>/dev/null || echo "ERROR")
 
@@ -554,7 +554,7 @@ test_null_bytes() {
     export FAILURE_SEVERITY="3"
     export FAILURE_SUMMARY="Testing null byte injection"
 
-    if ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1; then
+    if ~/.claude/clc/scripts/record-failure.sh 2>&1; then
         local created_file=$(ls -t "$MEMORY_DIR/failures/" | head -1)
 
         # Check if filename contains "Hidden" (null byte didn't truncate)
@@ -602,7 +602,7 @@ test_control_chars() {
         export FAILURE_SEVERITY="3"
         export FAILURE_SUMMARY="Testing control characters"
 
-        if ~/.claude/emergent-learning/scripts/record-failure.sh 2>&1; then
+        if ~/.claude/clc/scripts/record-failure.sh 2>&1; then
             local created_file=$(ls -t "$MEMORY_DIR/failures/" | head -1)
 
             # Check if control chars were sanitized

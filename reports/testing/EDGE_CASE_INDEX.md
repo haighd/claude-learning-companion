@@ -151,7 +151,7 @@
 
 ### Run All Tests
 ```bash
-cd ~/.claude/emergent-learning
+cd ~/.claude/clc
 python tests/test_edge_cases.py
 ```
 
@@ -177,10 +177,10 @@ python tests/test_edge_cases.py 2>&1 | tee edge_case_debug.log
 
 ## File Locations
 
-All files in: `~/.claude/emergent-learning/`
+All files in: `~/.claude/clc/`
 
 ```
-emergent-learning/
+clc/
 ├── tests/
 │   └── test_edge_cases.py          # Test suite
 ├── EDGE_CASE_INDEX.md              # This file

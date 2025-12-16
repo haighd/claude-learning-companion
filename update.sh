@@ -24,7 +24,7 @@ NC='\033[0m' # No Color
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
-EMERGENT_LEARNING_DIR="$CLAUDE_DIR/emergent-learning"
+EMERGENT_LEARNING_DIR="$CLAUDE_DIR/clc"
 VERSION_FILE="$EMERGENT_LEARNING_DIR/VERSION"
 DB_PATH="$EMERGENT_LEARNING_DIR/memory/index.db"
 STOCK_HASHES_FILE="$SCRIPT_DIR/.stock-hashes"
@@ -137,7 +137,7 @@ is_file_modified() {
 
 # Create backup of critical files
 create_backup() {
-    BACKUP_DIR="$HOME/.claude/emergent-learning-backup-$(date +%Y%m%d-%H%M%S)"
+    BACKUP_DIR="$HOME/.claude/clc-backup-$(date +%Y%m%d-%H%M%S)"
     mkdir -p "$BACKUP_DIR"
 
     echo -e "${YELLOW}[Backup]${NC} Creating backup at $BACKUP_DIR"
@@ -629,5 +629,5 @@ fi
 
 echo "Next steps:"
 echo "  # Restart the dashboard to see changes:"
-echo "  cd ~/.claude/emergent-learning/dashboard-app && ./run-dashboard.sh"
+echo "  cd ~/.claude/clc/dashboard-app && ./run-dashboard.sh"
 echo ""

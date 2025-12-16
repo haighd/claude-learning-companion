@@ -4,7 +4,7 @@
 Fixed comment false positives in AdvisoryVerifier where lines like `# eval() is dangerous` were triggering security warnings.
 
 ## File Modified
-**`C:~/.claude/emergent-learning/hooks/learning-loop/post_tool_learning.py`**
+**`C:~/.claude/clc/hooks/learning-loop/post_tool_learning.py`**
 
 ## Changes Made
 
