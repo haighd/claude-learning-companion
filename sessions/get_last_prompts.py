@@ -35,7 +35,7 @@ def get_current_project_dir() -> Optional[Path]:
     projects_dir = get_claude_projects_dir()
 
     # Look for clc project
-    for pattern in ["*clc*", "*claude-emergent*"]:
+    for pattern in ["*clc*"]:
         matches = list(projects_dir.glob(pattern))
         if matches:
             return matches[0]

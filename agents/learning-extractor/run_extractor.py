@@ -20,11 +20,11 @@ from pathlib import Path
 from typing import List, Dict, Optional
 
 # Paths
-EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "clc"
-PROMPT_PATH = EMERGENT_LEARNING_PATH / "agents" / "learning-extractor" / "PROMPT.md"
-MEMORY_DB = EMERGENT_LEARNING_PATH / "memory" / "learnings.db"
-PROPOSALS_PENDING = EMERGENT_LEARNING_PATH / "proposals" / "pending"
-PROCESSED_MARKER = EMERGENT_LEARNING_PATH / "sessions" / ".processed"
+CLC_PATH = Path.home() / ".claude" / "clc"
+PROMPT_PATH = CLC_PATH / "agents" / "learning-extractor" / "PROMPT.md"
+MEMORY_DB = CLC_PATH / "memory" / "learnings.db"
+PROPOSALS_PENDING = CLC_PATH / "proposals" / "pending"
+PROCESSED_MARKER = CLC_PATH / "sessions" / ".processed"
 
 
 def load_prompt() -> str:

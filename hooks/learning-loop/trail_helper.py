@@ -25,11 +25,11 @@ def extract_file_paths(content):
         # file_path parameter
         (r'file_path["\']?\s*[:=]\s*[`"\']?([^\s`"\']+\.\w{1,10})[`"\']?', 'file_path_param'),
         # Windows absolute paths (capture full relative path from common dirs)
-        (r'[A-Za-z]:\\(?:[^\\]+\\)*?\.claude\\clc\\([^\s`"\'\\]+(?:\\[^\s`"\'\\]+)*\.\w{1,10})', 'win_emergent'),
+        (r'[A-Za-z]:\\(?:[^\\]+\\)*?\.claude\\clc\\([^\s`"\'\\]+(?:\\[^\s`"\'\\]+)*\.\w{1,10})', 'win_clc'),
         (r'[A-Za-z]:\\(?:[^\\]+\\)*?(dashboard-app[^\s`"\'\\]+(?:\\[^\s`"\'\\]+)*\.\w{1,10})', 'win_dashboard'),
         (r'[A-Za-z]:\\(?:[^\\]+\\)*?((?:src|lib|app|components|hooks|memory|frontend|backend)[^\s`"\'\\]+(?:\\[^\s`"\'\\]+)*\.\w{1,10})', 'win_common'),
         # Unix absolute paths (capture relative path from common dirs)
-        (r'/(?:[^/]+/)*?\.claude/clc/([^\s`"\'/]+(?:/[^\s`"\'/]+)*\.\w{1,10})', 'unix_emergent'),
+        (r'/(?:[^/]+/)*?\.claude/clc/([^\s`"\'/]+(?:/[^\s`"\'/]+)*\.\w{1,10})', 'unix_clc'),
         (r'/(?:[^/]+/)*?(dashboard-app[^\s`"\'/]+(?:/[^\s`"\'/]+)*\.\w{1,10})', 'unix_dashboard'),
         (r'/(?:[^/]+/)*?((?:src|lib|app|components|hooks|memory|frontend|backend)[^\s`"\'/]+(?:/[^\s`"\'/]+)*\.\w{1,10})', 'unix_common'),
         # Relative paths with common prefixes (capture full path)
