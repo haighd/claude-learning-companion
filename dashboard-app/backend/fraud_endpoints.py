@@ -89,7 +89,7 @@ async def review_fraud_report(report_id: int, review: FraudReviewRequest) -> Act
 
 # Instructions for adding to main.py:
 # 1. Add import at top:
-#    sys.path.insert(0, str(EMERGENT_LEARNING_PATH / "query"))
+#    sys.path.insert(0, str(CLC_PATH / "query"))
 #    from fraud_review import FraudReviewer
 #
 # 2. Add FraudReviewRequest model to Pydantic models section

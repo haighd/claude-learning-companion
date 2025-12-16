@@ -32,8 +32,8 @@ except ImportError:
     def lay_trails(*args, **kwargs): pass
 
 # Paths - using Path.home() for portability
-EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "clc"
-DB_PATH = EMERGENT_LEARNING_PATH / "memory" / "index.db"
+CLC_PATH = Path.home() / ".claude" / "clc"
+DB_PATH = CLC_PATH / "memory" / "index.db"
 STATE_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
 PENDING_TASKS_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "pending-tasks.json"
 
