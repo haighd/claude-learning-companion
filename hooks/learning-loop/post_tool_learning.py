@@ -51,6 +51,28 @@ except ImportError:
     }
 
 
+def get_conductor_and_node():
+    """Initialize and return a Conductor instance and Node class.
+
+    Centralizes conductor initialization to avoid code duplication.
+    Returns (None, None) if conductor module is not available.
+    """
+    try:
+        conductor_path = CLC_PATH / 'conductor'
+        if str(conductor_path) not in sys.path:
+            sys.path.insert(0, str(conductor_path))
+
+        from conductor import Conductor, Node
+        conductor = Conductor(
+            base_path=str(CLC_PATH),
+            project_root=str(CLC_PATH)
+        )
+        return conductor, Node
+    except ImportError:
+        sys.stderr.write("[LEARNING_LOOP] Conductor module not found. Skipping conductor integration.\n")
+        return None, None
+
+
 class AdvisoryVerifier:
     """
     Post-action verification that warns but NEVER blocks.
@@ -701,13 +723,9 @@ def main():
         if pending and pending.get('run_id') and pending.get('exec_id'):
             # Complete the existing workflow run
             try:
-                sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
-                from conductor import Conductor
-
-                conductor = Conductor(
-                    base_path=str(Path.home() / '.claude' / 'clc'),
-                    project_root=str(Path.home() / '.claude' / 'clc')
-                )
+                conductor, _ = get_conductor_and_node()
+                if conductor is None:
+                    raise ImportError("Conductor not available")
 
                 run_id = pending['run_id']
                 exec_id = pending['exec_id']
@@ -735,13 +753,9 @@ def main():
             # No pending task found - create new workflow record
             sys.stderr.write(f"[LEARNING_LOOP] No pending task for {task_id}, creating new workflow record\n")
             try:
-                sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
-                from conductor import Conductor, Node
-
-                conductor = Conductor(
-                    base_path=str(Path.home() / '.claude' / 'clc'),
-                    project_root=str(Path.home() / '.claude' / 'clc')
-                )
+                conductor, Node = get_conductor_and_node()
+                if conductor is None:
+                    raise ImportError("Conductor not available")
 
                 run_id = conductor.start_run(
                     workflow_name=f"taskoutput-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
@@ -800,13 +814,9 @@ def main():
 
             # Create workflow run and record as pending
             try:
-                sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
-                from conductor import Conductor, Node
-
-                conductor = Conductor(
-                    base_path=str(Path.home() / '.claude' / 'clc'),
-                    project_root=str(Path.home() / '.claude' / 'clc')
-                )
+                conductor, Node = get_conductor_and_node()
+                if conductor is None:
+                    raise ImportError("Conductor not available")
 
                 description = tool_input.get('description', 'Background task')
                 run_id = conductor.start_run(
@@ -852,13 +862,9 @@ def main():
             outcome, reason = determine_outcome(tool_output)
 
             try:
-                sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
-                from conductor import Conductor, Node
-
-                conductor = Conductor(
-                    base_path=str(Path.home() / '.claude' / 'clc'),
-                    project_root=str(Path.home() / '.claude' / 'clc')
-                )
+                conductor, Node = get_conductor_and_node()
+                if conductor is None:
+                    raise ImportError("Conductor not available")
 
                 description = tool_input.get('description', 'Unknown task')
                 run_id = conductor.start_run(
