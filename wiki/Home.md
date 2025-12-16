@@ -1,6 +1,6 @@
-# Emergent Learning Framework Wiki
+# Claude Learning Companion (CLC) Wiki
 
-Welcome to the ELF documentation. This wiki contains detailed guides for all features.
+Welcome to the CLC documentation. This wiki contains detailed guides for all features.
 
 ## Quick Links
 
@@ -20,14 +20,14 @@ Welcome to the ELF documentation. This wiki contains detailed guides for all fea
 
 Claude Code is stateless - every session starts from zero. This framework bridges that gap by giving Claude access to your project's history:
 
-- **Before each task:** Query the building for relevant knowledge
+- **Before each task:** Query CLC for relevant knowledge
 - **After each task:** Record outcomes automatically
 - **Over time:** Patterns strengthen, mistakes don't repeat
 
 ## The Learning Loop
 
-```
-QUERY   ->  Check building for knowledge
+```bash
+QUERY   ->  Check CLC for knowledge
 APPLY   ->  Use heuristics during task
 RECORD  ->  Capture outcome (success/failure)
 PERSIST ->  Update confidence scores

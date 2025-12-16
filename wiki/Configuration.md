@@ -4,11 +4,11 @@
 
 The `~/.claude/CLAUDE.md` file contains instructions Claude follows. The framework installs a template that:
 
-- Requires querying the building before tasks
+- Requires querying CLC before tasks
 - Lists the golden rules
 - Explains how to record learnings
 
-You can add your own instructions below the ELF section.
+You can add your own instructions below the CLC section.
 
 ## settings.json
 
@@ -41,9 +41,9 @@ The CLAUDE.md template teaches Claude to respond to:
 
 | Phrase | What It Does |
 |--------|--------------|
-| `check in` | Queries building, reports context |
-| `query the building` | Same as check in |
-| `what does the building know about X` | Searches for topic X |
+| `check in` | Queries CLC, reports context |
+| `query CLC` | Same as check in |
+| `what does CLC know about X` | Searches for topic X |
 | `record this failure: [lesson]` | Creates failure log |
 | `record this success: [pattern]` | Documents success |
 | `start experiment: [hypothesis]` | Tracks hypothesis |

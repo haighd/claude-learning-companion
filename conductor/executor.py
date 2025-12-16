@@ -10,7 +10,8 @@ This module provides actual execution of workflow nodes by:
 INTEGRATION:
 - Works with existing hooks (pre_task.py, post_task.py)
 - Uses SQLite bridge for result capture
-- Supports both synchronous and async execution patterns
+- SYNCHRONOUS execution only (subprocess.run blocks until completion)
+- For background task support, use Task tool with run_in_background=True
 
 USAGE:
     from executor import CLIExecutor

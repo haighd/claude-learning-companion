@@ -30,6 +30,10 @@ import os
 # Global manager - initialized at runtime via initialize_database()
 manager: Optional[Manager] = None
 
+# Alias for backward compatibility with query.py imports
+# This will be set after initialize_database_sync is called
+db = None
+
 
 async def initialize_database(db_path: Optional[str] = None) -> Manager:
     """
@@ -143,19 +147,28 @@ def initialize_database_sync(db_path: Optional[str] = None) -> Manager:
     Returns:
         Configured Manager instance
     """
-    global manager
+    global manager, db
 
     if db_path is None:
         db_path = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
     else:
-        db_path = Path(db_path).expanduser()
+        db_path = Path(db_path).expanduser().resolve()
 
     db_path.parent.mkdir(parents=True, exist_ok=True)
 
-    manager = Manager(f'aiosqlite:///{db_path}')
+    # aiosqlite:// URLs don't handle absolute paths well
+    # Use the absolute path string directly for proper SQLite access
+    manager = Manager(f'aiosqlite:///{db_path}', pragmas={'foreign_keys': 1})
+
+    # Patch the underlying peewee database to use the correct absolute path
+    # The URL parsing strips the leading / from absolute paths
+    manager.pw_database.database = str(db_path)
 
     # Register all models with the manager
     _register_all_models(manager)
+
+    # Set db alias for backward compatibility
+    db = manager
 
     return manager
 
@@ -764,6 +777,7 @@ async def increment_operation_count() -> int:
 
 __all__ = [
     # Database
+    'db',  # Backward compatibility alias for manager
     'manager',
     'get_manager',
     'initialize_database',

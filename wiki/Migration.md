@@ -67,7 +67,7 @@ cp ~/.claude/settings.json ~/.claude/settings.json.backup
 ```
 
 **Step 3: Merge custom instructions**
-Add your custom CLAUDE.md content AFTER the ELF section.
+Add your custom CLAUDE.md content AFTER the CLC section.
 
 **Step 4: Test**
 ```bash
@@ -80,10 +80,10 @@ python ~/.claude/emergent-learning/query/query.py --stats
 
 ```bash
 # 1. Backup
-cp ~/.claude/emergent-learning/memory/index.db ~/elf-backup.db
+cp ~/.claude/emergent-learning/memory/index.db ~/clc-backup.db
 
 # 2. Pull latest
-cd /path/to/ELF-repo && git pull
+cd ~/.claude/emergent-learning && git pull
 
 # 3. Reinstall
 ./install.sh

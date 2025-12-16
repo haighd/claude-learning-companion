@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/header.gif" alt="Emergent Learning Framework" width="100%">
+  <img src="assets/header.gif" alt="Claude Learning Companion" width="100%">
 </p>
 
-# Emergent Learning Framework
+# Claude Learning Companion (CLC)
 
 > Persistent memory and pattern tracking for Claude Code sessions.
 
@@ -15,16 +15,16 @@ Claude Code learns from your failures and successes, building institutional know
 ./install.ps1             # Windows
 ```
 
-**New to ELF?** See the [Getting Started Guide](GETTING_STARTED.md) for detailed step-by-step instructions including prerequisites and troubleshooting.
+**New to CLC?** See the [Getting Started Guide](GETTING_STARTED.md) for detailed step-by-step instructions including prerequisites and troubleshooting.
 
 ## First Use: Say "check in"
 
 **Every session, start with `check in`.** This is the most important habit:
 
-```
+```bash
 You: check in
 
-Claude: [Queries building, starts dashboard, returns golden rules + heuristics]
+Claude: [Queries CLC, starts dashboard, returns golden rules + heuristics]
 ```
 
 **Auto-Setup on First Check-In:**
@@ -42,7 +42,7 @@ Claude: [Queries building, starts dashboard, returns golden rules + heuristics]
 | Moment | Why |
 |--------|-----|
 | Start of every session | Load context, start dashboard, prevent repeating mistakes |
-| When you hit a problem | See if building knows about this issue |
+| When you hit a problem | See if CLC knows about this issue |
 | Before closing session | Ensure learnings are captured |
 
 ## Core Features
@@ -75,7 +75,7 @@ Track learning velocity, success rates, and confidence trends over time.
 
 Ever close a session and forget what you were working on? Use `/search` with natural language:
 
-```
+```bash
 /search what was my last prompt?
 /search what was I working on yesterday?
 /search find prompts about git
@@ -102,7 +102,7 @@ No tokens consumed - reads directly from `~/.claude/projects/` JSONL files.
 
 A background Haiku agent monitors coordination state every 30 seconds. When it detects something that needs attention, it escalates to Opus automatically.
 
-```
+```text
 ┌─────────────────┐     exit 1      ┌─────────────────┐
 │  Haiku (Tier 1) │ ──────────────► │  Opus (Tier 2)  │
 │  Fast checks    │   "need help"   │  Deep analysis  │
@@ -114,11 +114,11 @@ Runs automatically - no user interaction required. See [watcher/README.md](watch
 
 ## How It Works
 
-```
+```bash
 +---------------------------------------------------+
 |              The Learning Loop                    |
 +---------------------------------------------------+
-|  QUERY   ->  Check building for knowledge         |
+|  QUERY   ->  Check CLC for knowledge              |
 |  APPLY   ->  Use heuristics during task           |
 |  RECORD  ->  Capture outcome (success/failure)    |
 |  PERSIST ->  Update confidence scores             |
@@ -131,9 +131,9 @@ Runs automatically - no user interaction required. See [watcher/README.md](watch
 
 | Say This | What Happens |
 |----------|--------------|
-| `check in` | Start dashboard, query building, show golden rules + heuristics |
-| `query the building` | Same as check in |
-| `what does the building know about X` | Search for topic X |
+| `check in` | Start dashboard, query CLC, show golden rules + heuristics |
+| `query CLC` | Same as check in |
+| `what does CLC know about X` | Search for topic X |
 | `record this failure: [lesson]` | Create failure log |
 | `record this success: [pattern]` | Document what worked |
 | `/search [question]` | Search session history with natural language |
@@ -265,4 +265,4 @@ MIT License
 
 ## Development Status
 
-ELF is under heavy active development. Rapid commits reflect live experimentation, architectural refinement, and real-world usage. The main branch represents active research and may change frequently. Stable checkpoints will be published as versioned GitHub releases; users who prefer stability should rely on tagged releases rather than the latest commit.
+CLC (Claude Learning Companion) is under active development. Rapid commits reflect live experimentation, architectural refinement, and real-world usage. The main branch represents active research and may change frequently. Stable checkpoints will be published as versioned GitHub releases; users who prefer stability should rely on tagged releases rather than the latest commit.

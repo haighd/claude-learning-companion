@@ -17,9 +17,22 @@ from typing import Dict, Any, Optional
 from dataclasses import dataclass
 
 # Add coordinator to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "coordinator"))
+coordinator_path = str(Path(__file__).parent.parent / "coordinator")
+sys.path.insert(0, coordinator_path)
 
-from blackboard import Blackboard, ClaimChain
+# Import ClaimChain FIRST from coordinator/blackboard.py (before blackboard_v2 adds plugins path)
+import importlib.util
+spec = importlib.util.spec_from_file_location("coordinator_blackboard", Path(coordinator_path) / "blackboard.py")
+coordinator_blackboard = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(coordinator_blackboard)
+ClaimChain = coordinator_blackboard.ClaimChain
+
+# Use Phase 2 blackboard (reads from event_log) with fallback
+try:
+    from blackboard_v2 import BlackboardV2 as Blackboard
+except ImportError:
+    # Fallback: use original from coordinator
+    Blackboard = coordinator_blackboard.Blackboard
 
 
 @dataclass

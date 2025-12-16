@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Post-Tool Learning Hook: Validate heuristics and close the learning loop.
+CLC Post-Tool Hook - Validate heuristics and close the learning loop.
 
 This hook completes the learning loop by:
 1. Checking task outcomes (success/failure)
@@ -26,29 +26,34 @@ from typing import List, Dict, Optional, Tuple
 
 # Import trail helper
 try:
-    from trail_helper import extract_file_paths, lay_trails
+    from ..trails.trail_helper import extract_file_paths, lay_trails
 except ImportError:
-    def extract_file_paths(content): return []
-    def lay_trails(*args, **kwargs): pass
+    try:
+        from hooks.clc.trails.trail_helper import extract_file_paths, lay_trails
+    except ImportError:
+        def extract_file_paths(content): return []
+        def lay_trails(*args, **kwargs): return 0
 
 # Paths - using Path.home() for portability
 EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "emergent-learning"
 DB_PATH = EMERGENT_LEARNING_PATH / "memory" / "index.db"
 STATE_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
-PENDING_TASKS_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "pending-tasks.json"
 
 # Import security patterns
 try:
-    from security_patterns import RISKY_PATTERNS
+    from ..security.patterns import RISKY_PATTERNS
 except ImportError:
-    # Fallback to basic patterns if import fails
-    RISKY_PATTERNS = {
-        'code': [
-            (r'eval\s*\(', 'eval() detected - potential code injection risk'),
-            (r'exec\s*\(', 'exec() detected - potential code injection risk'),
-        ],
-        'file_operations': []
-    }
+    try:
+        from hooks.clc.security.patterns import RISKY_PATTERNS
+    except ImportError:
+        # Fallback to basic patterns if import fails
+        RISKY_PATTERNS = {
+            'code': [
+                (r'eval\s*\(', 'eval() detected - potential code injection risk'),
+                (r'exec\s*\(', 'exec() detected - potential code injection risk'),
+            ],
+            'file_operations': []
+        }
 
 
 class AdvisoryVerifier:
@@ -60,8 +65,7 @@ class AdvisoryVerifier:
     def __init__(self):
         self.warnings = []
 
-    def analyze_edit(self, file_path: str, old_content: str,
-                     new_content: str) -> Dict:
+    def analyze_edit(self, file_path: str, old_content: str, new_content: str) -> Dict:
         """Analyze a file edit for risky patterns."""
         warnings = []
 
@@ -85,19 +89,7 @@ class AdvisoryVerifier:
         }
 
     def _is_comment_line(self, line: str) -> bool:
-        """Check if a line is entirely a comment (not code with comment).
-
-        Returns True for:
-        - Python comments: starts with #
-        - JS/C/Go single-line comments: starts with //
-        - C-style multi-line comment start: starts with /*
-        - Multi-line comment bodies: starts with *
-        - Docstrings: starts with triple quotes
-
-        Returns False for:
-        - Mixed lines like: x = eval(y)  # comment
-        - Code before comment: foo()  // comment
-        """
+        """Check if a line is entirely a comment (not code with comment)."""
         stripped = line.strip()
         if not stripped:
             return False
@@ -159,54 +151,6 @@ def save_session_state(state: dict):
     STATE_FILE.write_text(json.dumps(state, indent=2))
 
 
-def load_pending_tasks() -> dict:
-    """Load pending background tasks awaiting completion."""
-    if PENDING_TASKS_FILE.exists():
-        try:
-            return json.loads(PENDING_TASKS_FILE.read_text())
-        except (json.JSONDecodeError, IOError, ValueError):
-            pass
-    return {}
-
-
-def save_pending_tasks(tasks: dict):
-    """Save pending background tasks."""
-    PENDING_TASKS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    PENDING_TASKS_FILE.write_text(json.dumps(tasks, indent=2))
-
-
-def record_pending_task(task_id: str, metadata: dict):
-    """Record a background task spawn as pending completion."""
-    tasks = load_pending_tasks()
-    tasks[task_id] = {
-        "spawned_at": datetime.now().isoformat(),
-        "description": metadata.get("description", "Unknown task"),
-        "prompt": metadata.get("prompt", "")[:500],
-        "run_id": metadata.get("run_id"),
-        "exec_id": metadata.get("exec_id"),
-        "heuristics_consulted": metadata.get("heuristics_consulted", []),
-        "domains_queried": metadata.get("domains_queried", [])
-    }
-    save_pending_tasks(tasks)
-    sys.stderr.write(f"[LEARNING_LOOP] Recorded pending task: {task_id}\n")
-
-
-def complete_pending_task(task_id: str, outcome: str, reason: str, tool_output: dict) -> Optional[dict]:
-    """Complete a pending background task with actual outcome.
-
-    Returns the pending task metadata if found, None otherwise.
-    """
-    tasks = load_pending_tasks()
-    if task_id not in tasks:
-        sys.stderr.write(f"[LEARNING_LOOP] No pending task found for: {task_id}\n")
-        return None
-
-    pending = tasks.pop(task_id)
-    save_pending_tasks(tasks)
-    sys.stderr.write(f"[LEARNING_LOOP] Completing pending task: {task_id} with outcome: {outcome}\n")
-    return pending
-
-
 def get_db_connection():
     """Get SQLite connection."""
     if not DB_PATH.exists():
@@ -217,7 +161,8 @@ def get_db_connection():
 
 
 def determine_outcome(tool_output: dict) -> Tuple[str, str]:
-    """Determine if the task succeeded or failed.
+    """
+    Determine if the task succeeded or failed.
 
     Returns: (outcome, reason)
     - outcome: 'success', 'failure', 'unknown'
@@ -243,7 +188,7 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
 
     content_lower = content.lower()
 
-    # Strong failure indicators (case-insensitive with word boundaries)
+    # Strong failure indicators
     failure_patterns = [
         (r'(?i)\berror\b[:\s]', "Error detected"),
         (r'(?i)\bexception\b[:\s]', "Exception raised"),
@@ -253,43 +198,40 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
         (r'\[BLOCKER\]', "Blocker encountered"),
         (r'(?i)\btraceback\b', "Exception traceback"),
         (r'(?i)\bpermission denied\b', "Permission denied"),
-        (r'(?i)\btimed?\s+out\b', "Timeout occurred"),  # Match "timeout" or "timed out"
-        (r'(?i)^.*\bnot found\s*$', "Resource not found"),  # Only at end of line
+        (r'(?i)\btimed?\s+out\b', "Timeout occurred"),
+        (r'(?i)^.*\bnot found\s*$', "Resource not found"),
     ]
 
     # Patterns to exclude false positives
-    # These indicate discussion of errors/failures, not actual errors
     false_positive_patterns = [
         r'(?i)was not found to be',
         r'(?i)\berror handling\b',
         r'(?i)\bno errors?\b',
         r'(?i)\bwithout errors?\b',
         r'(?i)\berror.?free\b',
-        r'(?i)\b(fixed|resolved|corrected|repaired)\b.*\b(error|failure|bug|issue|exception)',  # "fixed the error"
-        r'(?i)\b(error|failure|bug|issue|exception)\b.*(fixed|resolved|corrected|repaired)',   # "error was fixed"
-        r'(?i)\binvestigated.*\b(failed|error|failure)',  # "investigated the failure"
-        r'(?i)\banalyzed.*\b(error|failure|failed)',      # "analyzed the error"
-        r'(?i)\bhandl(e|es|ed|ing).*\b(error|failure|exception)',  # "handles errors"
-        r'(?i)\b(error|failure|exception)\s+handl',  # "exception handling"
-        r'(?i)resolved.*\b(error|failure|exception)',  # "resolved the exception"
+        r'(?i)\b(fixed|resolved|corrected|repaired)\b.*\b(error|failure|bug|issue|exception)',
+        r'(?i)\b(error|failure|bug|issue|exception)\b.*(fixed|resolved|corrected|repaired)',
+        r'(?i)\binvestigated.*\b(failed|error|failure)',
+        r'(?i)\banalyzed.*\b(error|failure|failed)',
+        r'(?i)\bhandl(e|es|ed|ing).*\b(error|failure|exception)',
+        r'(?i)\b(error|failure|exception)\s+handl',
+        r'(?i)resolved.*\b(error|failure|exception)',
     ]
 
     for pattern, reason in failure_patterns:
         match = re.search(pattern, content, re.MULTILINE)
         if match:
-            # Verify this isn't a false positive by checking surrounding context
             match_start = max(0, match.start() - 30)
             match_end = min(len(content), match.end() + 30)
             context = content[match_start:match_end]
 
-            # Skip if this match is part of a false positive pattern
             is_false_positive = any(
                 re.search(fp, context) for fp in false_positive_patterns
             )
             if not is_false_positive:
                 return "failure", reason
 
-    # Strong success indicators - explicit completion phrases
+    # Strong success indicators
     explicit_success_patterns = [
         (r'\bsuccessfully\s+\w+', "Successfully completed action"),
         (r'\btask\s+complete', "Task completed"),
@@ -304,8 +246,7 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
         if re.search(pattern, content_lower):
             return "success", reason
 
-    # Action verbs that indicate work was done (past tense)
-    # These are strong indicators that a task was completed
+    # Action verbs indicating work was done
     action_verb_patterns = [
         (r'\b(created|generated|built|made)\b\s+\w+', "Created something"),
         (r'\b(fixed|resolved|corrected|repaired)\b\s+\w+', "Fixed something"),
@@ -323,12 +264,12 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
         if re.search(pattern, content_lower):
             return "success", reason
 
-    # Reporting patterns - agent is presenting findings/results
+    # Reporting patterns
     reporting_patterns = [
         (r'\bhere (is|are) (the |my )?(\w+\s+)?(findings|results|analysis|summary)', "Presented findings"),
         (r'\bi (have |\'ve )?(completed|finished|done)', "Agent reported completion"),
         (r'\bthe (task|work|analysis|fix|implementation) is (complete|done|finished)', "Work is complete"),
-        (r'^\s*(finished|completed|done)\s+\w+', "Started with completion verb"),  # "Finished the X", "Completed the Y"
+        (r'^\s*(finished|completed|done)\s+\w+', "Started with completion verb"),
         (r'\b(summary|conclusion):', "Provided summary"),
         (r'\brecommend(ations|s)?:', "Provided recommendations"),
     ]
@@ -337,8 +278,7 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
         if re.search(pattern, content_lower):
             return "success", reason
 
-    # If we got substantial output without errors, probably success
-    # Lowered threshold from 100 to 50 chars since short completions are valid
+    # Substantial output without errors = probably success
     if len(content) > 50:
         return "success", "Substantial output without errors"
 
@@ -355,7 +295,6 @@ def validate_heuristics(heuristic_ids: List[int], outcome: str):
         cursor = conn.cursor()
 
         if outcome == "success":
-            # Increment times_validated for consulted heuristics
             placeholders = ",".join("?" * len(heuristic_ids))
             cursor.execute(f"""
                 UPDATE heuristics
@@ -365,7 +304,6 @@ def validate_heuristics(heuristic_ids: List[int], outcome: str):
                 WHERE id IN ({placeholders})
             """, (datetime.now().isoformat(), *heuristic_ids))
 
-            # Log the validation
             for hid in heuristic_ids:
                 cursor.execute("""
                     INSERT INTO metrics (metric_type, metric_name, metric_value, tags, context)
@@ -373,7 +311,6 @@ def validate_heuristics(heuristic_ids: List[int], outcome: str):
                 """, (f"heuristic_id:{hid}", "success"))
 
         elif outcome == "failure":
-            # Increment times_violated - heuristic might not be reliable
             placeholders = ",".join("?" * len(heuristic_ids))
             cursor.execute(f"""
                 UPDATE heuristics
@@ -383,7 +320,6 @@ def validate_heuristics(heuristic_ids: List[int], outcome: str):
                 WHERE id IN ({placeholders})
             """, (datetime.now().isoformat(), *heuristic_ids))
 
-            # Log the violation
             for hid in heuristic_ids:
                 cursor.execute("""
                     INSERT INTO metrics (metric_type, metric_name, metric_value, tags, context)
@@ -403,7 +339,6 @@ def check_golden_rule_promotion(conn):
     try:
         cursor = conn.cursor()
 
-        # Find heuristics with high confidence and many validations
         cursor.execute("""
             SELECT id, domain, rule, confidence, times_validated, times_violated
             FROM heuristics
@@ -416,14 +351,12 @@ def check_golden_rule_promotion(conn):
         candidates = cursor.fetchall()
 
         for c in candidates:
-            # Promote to golden
             cursor.execute("""
                 UPDATE heuristics
                 SET is_golden = 1, updated_at = ?
                 WHERE id = ?
             """, (datetime.now().isoformat(), c['id']))
 
-            # Log the promotion
             cursor.execute("""
                 INSERT INTO metrics (metric_type, metric_name, metric_value, tags, context)
                 VALUES ('golden_rule_promotion', 'promotion', ?, ?, ?)
@@ -446,18 +379,15 @@ def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str
     try:
         cursor = conn.cursor()
 
-        # Extract details
         prompt = tool_input.get("prompt", "")[:500]
         description = tool_input.get("description", "unknown task")
 
-        # Get output content
         output_content = ""
         if isinstance(tool_output, dict):
             output_content = str(tool_output.get("content", ""))[:1000]
         elif isinstance(tool_output, str):
             output_content = tool_output[:1000]
 
-        # Create failure record
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filepath = f"auto-failures/failure_{timestamp}.md"
         title = f"Auto-captured: {description[:50]}"
@@ -469,7 +399,6 @@ def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str
             VALUES ('failure', ?, ?, ?, ?, 3, ?)
         """, (filepath, title, summary, domain, datetime.now().isoformat()))
 
-        # Log the auto-capture
         cursor.execute("""
             INSERT INTO metrics (metric_type, metric_name, metric_value, context)
             VALUES ('auto_failure_capture', 'capture', 1, ?)
@@ -485,7 +414,7 @@ def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str
 
 
 def log_advisory_warning(file_path: str, advisory_result: Dict):
-    """Log advisory warnings to the building (non-blocking)."""
+    """Log advisory warnings to CLC (non-blocking)."""
     conn = get_db_connection()
     if not conn:
         return
@@ -493,7 +422,6 @@ def log_advisory_warning(file_path: str, advisory_result: Dict):
     try:
         cursor = conn.cursor()
 
-        # Log each warning
         for warning in advisory_result.get('warnings', []):
             cursor.execute("""
                 INSERT INTO metrics (metric_type, metric_name, metric_value, tags, context)
@@ -504,13 +432,11 @@ def log_advisory_warning(file_path: str, advisory_result: Dict):
                 warning['message']
             ))
 
-            # Write to stderr for visibility
             sys.stderr.write(
                 f"[ADVISORY] {warning['category']}: {warning['message']}\n"
                 f"           Line: {warning['line_preview']}\n"
             )
 
-        # If multiple warnings, log the escalation recommendation
         if len(advisory_result.get('warnings', [])) >= 3:
             sys.stderr.write(
                 f"\n[ADVISORY] {advisory_result['recommendation']}\n"
@@ -531,7 +457,6 @@ def extract_and_record_learnings(tool_output: dict, domains: List[str]):
     if not conn:
         return
 
-    # Get content
     content = ""
     if isinstance(tool_output, dict):
         content = tool_output.get("content", "")
@@ -542,7 +467,6 @@ def extract_and_record_learnings(tool_output: dict, domains: List[str]):
             )
 
     # Look for explicit learning markers
-    # Format: [LEARNED:domain] description
     learning_pattern = r'\[LEARN(?:ED|ING)?:?([^\]]*)\]\s*([^\n]+)'
     matches = re.findall(learning_pattern, content, re.IGNORECASE)
 
@@ -555,12 +479,10 @@ def extract_and_record_learnings(tool_output: dict, domains: List[str]):
         for domain_hint, learning in matches:
             domain = domain_hint.strip() if domain_hint.strip() else (domains[0] if domains else "general")
 
-            # Check if this might be a heuristic (contains "always", "never", "should", etc.)
             is_heuristic = any(word in learning.lower() for word in
                               ["always", "never", "should", "must", "don't", "avoid", "prefer"])
 
             if is_heuristic:
-                # Record as heuristic
                 cursor.execute("""
                     INSERT INTO heuristics (domain, rule, explanation, confidence, source_type, created_at)
                     VALUES (?, ?, 'Auto-extracted from task output', 0.5, 'auto', ?)
@@ -568,7 +490,6 @@ def extract_and_record_learnings(tool_output: dict, domains: List[str]):
 
                 sys.stderr.write(f"AUTO-EXTRACTED HEURISTIC: {learning[:50]}...\n")
             else:
-                # Record as observation
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 cursor.execute("""
                     INSERT INTO learnings (type, filepath, title, summary, domain, severity, created_at)
@@ -590,7 +511,7 @@ def extract_and_record_learnings(tool_output: dict, domains: List[str]):
 
 
 def main():
-    """Main hook logic."""
+    """Main post-hook logic."""
     hook_input = get_hook_input()
 
     tool_name = hook_input.get("tool_name", hook_input.get("tool"))
@@ -606,57 +527,46 @@ def main():
         verifier = AdvisoryVerifier()
         file_path = tool_input.get('file_path', '')
 
-        # Get old and new content for comparison
         old_content = ""
         new_content = ""
 
         if tool_name == 'Edit':
-            # For Edit: old_string is the old content, new_string is the new content
-            # But we need full file context - check if tool_output contains it
             old_content = tool_output.get('old_content', tool_input.get('old_string', ''))
             new_content = tool_input.get('new_string', '')
         elif tool_name == 'Write':
-            # For Write: content is the new content, old content might be in output
             old_content = tool_output.get('old_content', '')
             new_content = tool_input.get('content', '')
 
-        # Run analysis
         result = verifier.analyze_edit(
             file_path=file_path,
             old_content=old_content,
             new_content=new_content
         )
 
-        # Log warnings if any (non-blocking)
         if result['has_warnings']:
             log_advisory_warning(file_path, result)
 
-        # Always approve, just attach advisory info
         output_result({
             "decision": "approve",
             "advisory": result if result['has_warnings'] else None
         })
         return
 
-    # Track file operations (Read/Edit/Write/Glob/Grep) for hotspot trails
+    # Track file operations for hotspot trails
     file_operation_tools = {'Read', 'Edit', 'Write', 'Glob', 'Grep'}
     if tool_name in file_operation_tools:
         try:
             file_path = tool_input.get('file_path') or tool_input.get('path', '')
             if file_path:
-                # Normalize path
                 file_path = file_path.replace('\\', '/')
-                # Extract relative path from common markers
                 for marker in ['.claude/emergent-learning/', 'emergent-learning/', 'dashboard-app/']:
                     if marker in file_path:
                         file_path = file_path[file_path.index(marker):]
                         break
 
-                # Determine scent based on operation type
                 scent = 'read' if tool_name in ('Read', 'Glob', 'Grep') else 'write'
-                strength = 0.5 if tool_name == 'Read' else 0.9  # Writes are more significant
+                strength = 0.5 if tool_name == 'Read' else 0.9
 
-                # Record trail
                 conn = get_db_connection()
                 if conn:
                     cursor = conn.cursor()
@@ -674,231 +584,73 @@ def main():
         return
 
     # Process Task and TaskOutput tools for learning loop
-    # Task: handles synchronous tasks and background task spawns
-    # TaskOutput: handles background task completions (the actual results)
     if tool_name not in ("Task", "TaskOutput"):
         output_result({})
         return
+
+    if tool_name == "TaskOutput":
+        sys.stderr.write(f"[LEARNING_LOOP] Processing TaskOutput for task_id: {tool_input.get('task_id', 'unknown')}\n")
+
+    # Skip background task spawns
+    if tool_input.get('run_in_background', False):
+        if not tool_output or (isinstance(tool_output, dict) and not tool_output.get('content')):
+            sys.stderr.write("[LEARNING_LOOP] Skipping background task spawn - will capture on TaskOutput\n")
+            output_result({})
+            return
 
     # Load session state
     state = load_session_state()
     heuristics_consulted = state.get("heuristics_consulted", [])
     domains_queried = state.get("domains_queried", [])
 
-    # =========================================================================
-    # HANDLE TaskOutput - Complete pending background task
-    # =========================================================================
-    if tool_name == "TaskOutput":
-        task_id = tool_input.get('task_id', 'unknown')
-        sys.stderr.write(f"[LEARNING_LOOP] Processing TaskOutput for task_id: {task_id}\n")
+    # Determine outcome
+    outcome, reason = determine_outcome(tool_output)
 
-        # Determine outcome from actual result
-        outcome, reason = determine_outcome(tool_output)
+    # Record to conductor for dashboard visibility
+    try:
+        sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
+        from conductor import Conductor, Node
 
-        # Try to complete pending task
-        pending = complete_pending_task(task_id, outcome, reason, tool_output)
+        conductor = Conductor(
+            base_path=str(Path.home() / '.claude' / 'emergent-learning'),
+            project_root=str(Path.home() / '.claude' / 'emergent-learning')
+        )
 
-        if pending and pending.get('run_id') and pending.get('exec_id'):
-            # Complete the existing workflow run
-            try:
-                sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
-                from conductor import Conductor
+        description = tool_input.get('description', 'Unknown task')
+        run_id = conductor.start_run(
+            workflow_name=f"task-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+            input_data={
+                'description': description,
+                'prompt': tool_input.get('prompt', '')[:500]
+            }
+        )
 
-                conductor = Conductor(
-                    base_path=str(Path.home() / '.claude' / 'emergent-learning'),
-                    project_root=str(Path.home() / '.claude' / 'emergent-learning')
+        if run_id:
+            node = Node(
+                id=f"task-{datetime.now().timestamp()}",
+                name=description[:100],
+                node_type='single',
+                prompt_template=tool_input.get('prompt', '')[:500],
+                config={'model': 'claude'}
+            )
+            exec_id = conductor.record_node_start(run_id, node, tool_input.get('prompt', ''))
+
+            if outcome == 'failure':
+                conductor.record_node_failure(
+                    exec_id=exec_id,
+                    error_message=reason,
+                    error_type='task_failure'
                 )
-
-                run_id = pending['run_id']
-                exec_id = pending['exec_id']
-
-                if outcome == 'failure':
-                    conductor.record_node_failure(
-                        exec_id=exec_id,
-                        error_message=reason,
-                        error_type='task_failure'
-                    )
-                    conductor.update_run_status(run_id, 'failed', error_message=reason)
-                else:
-                    result_text = str(tool_output.get('content', '') if isinstance(tool_output, dict) else tool_output)[:1000]
-                    conductor.record_node_completion(
-                        exec_id=exec_id,
-                        result_text=result_text,
-                        result_dict={'outcome': outcome, 'reason': reason}
-                    )
-                    conductor.update_run_status(run_id, 'completed', output={'outcome': outcome, 'reason': reason})
-
-                sys.stderr.write(f"[LEARNING_LOOP] Completed pending workflow run_id={run_id} with outcome={outcome}\n")
-            except Exception as e:
-                sys.stderr.write(f"Conductor integration error (non-fatal): {e}\n")
-        else:
-            # No pending task found - create new workflow record
-            sys.stderr.write(f"[LEARNING_LOOP] No pending task for {task_id}, creating new workflow record\n")
-            try:
-                sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
-                from conductor import Conductor, Node
-
-                conductor = Conductor(
-                    base_path=str(Path.home() / '.claude' / 'emergent-learning'),
-                    project_root=str(Path.home() / '.claude' / 'emergent-learning')
+                conductor.update_run_status(run_id, 'failed', error_message=reason)
+            else:
+                conductor.record_node_completion(
+                    exec_id=exec_id,
+                    result_text=str(tool_output.get('content', '') if isinstance(tool_output, dict) else tool_output)[:1000],
+                    result_dict={'outcome': outcome, 'reason': reason}
                 )
-
-                run_id = conductor.start_run(
-                    workflow_name=f"taskoutput-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
-                    input_data={'task_id': task_id}
-                )
-
-                if run_id:
-                    node = Node(
-                        id=f"taskoutput-{task_id}",
-                        name=f"TaskOutput: {task_id}",
-                        node_type='single',
-                        prompt_template='',
-                        config={'model': 'claude'}
-                    )
-                    exec_id = conductor.record_node_start(run_id, node, '')
-
-                    if outcome == 'failure':
-                        conductor.record_node_failure(exec_id=exec_id, error_message=reason, error_type='task_failure')
-                        conductor.update_run_status(run_id, 'failed', error_message=reason)
-                    else:
-                        result_text = str(tool_output.get('content', '') if isinstance(tool_output, dict) else tool_output)[:1000]
-                        conductor.record_node_completion(exec_id=exec_id, result_text=result_text, result_dict={'outcome': outcome, 'reason': reason})
-                        conductor.update_run_status(run_id, 'completed', output={'outcome': outcome, 'reason': reason})
-            except Exception as e:
-                sys.stderr.write(f"Conductor integration error (non-fatal): {e}\n")
-
-        # Continue to trail laying (below)
-        outcome_for_trails = outcome
-        tool_output_for_trails = tool_output
-
-    # =========================================================================
-    # HANDLE Task - Background spawn or synchronous completion
-    # =========================================================================
-    elif tool_name == "Task":
-        is_background = tool_input.get('run_in_background', False)
-
-        if is_background:
-            # Background task spawn - record as pending, don't complete yet
-            # Extract agent_id from tool_output (Claude returns it when spawning)
-            agent_id = None
-            if isinstance(tool_output, dict):
-                agent_id = tool_output.get('agentId') or tool_output.get('agent_id')
-                # Also check content for agent ID pattern
-                content = tool_output.get('content', '')
-                if isinstance(content, str) and 'agentId:' in content:
-                    import re
-                    match = re.search(r'agentId:\s*([a-f0-9]+)', content)
-                    if match:
-                        agent_id = match.group(1)
-
-            if not agent_id:
-                # Generate a fallback ID based on timestamp
-                agent_id = f"bg-{datetime.now().strftime('%H%M%S')}-{hash(str(tool_input.get('prompt', '')))%10000:04d}"
-
-            sys.stderr.write(f"[LEARNING_LOOP] Background task spawn detected, agent_id: {agent_id}\n")
-
-            # Create workflow run and record as pending
-            try:
-                sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
-                from conductor import Conductor, Node
-
-                conductor = Conductor(
-                    base_path=str(Path.home() / '.claude' / 'emergent-learning'),
-                    project_root=str(Path.home() / '.claude' / 'emergent-learning')
-                )
-
-                description = tool_input.get('description', 'Background task')
-                run_id = conductor.start_run(
-                    workflow_name=f"task-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
-                    input_data={
-                        'description': description,
-                        'prompt': tool_input.get('prompt', '')[:500],
-                        'background': True,
-                        'agent_id': agent_id
-                    }
-                )
-
-                exec_id = None
-                if run_id:
-                    node = Node(
-                        id=f"task-{agent_id}",
-                        name=description[:100],
-                        node_type='single',
-                        prompt_template=tool_input.get('prompt', '')[:500],
-                        config={'model': 'claude', 'background': True}
-                    )
-                    exec_id = conductor.record_node_start(run_id, node, tool_input.get('prompt', ''))
-
-                # Record as pending for later completion
-                record_pending_task(agent_id, {
-                    'description': description,
-                    'prompt': tool_input.get('prompt', ''),
-                    'run_id': run_id,
-                    'exec_id': exec_id,
-                    'heuristics_consulted': heuristics_consulted,
-                    'domains_queried': domains_queried
-                })
-
-            except Exception as e:
-                sys.stderr.write(f"Conductor integration error (non-fatal): {e}\n")
-
-            # Don't do trail laying for spawn - wait for completion
-            output_result({})
-            return
-
-        else:
-            # Synchronous task - process immediately
-            outcome, reason = determine_outcome(tool_output)
-
-            try:
-                sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
-                from conductor import Conductor, Node
-
-                conductor = Conductor(
-                    base_path=str(Path.home() / '.claude' / 'emergent-learning'),
-                    project_root=str(Path.home() / '.claude' / 'emergent-learning')
-                )
-
-                description = tool_input.get('description', 'Unknown task')
-                run_id = conductor.start_run(
-                    workflow_name=f"task-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
-                    input_data={
-                        'description': description,
-                        'prompt': tool_input.get('prompt', '')[:500]
-                    }
-                )
-
-                if run_id:
-                    node = Node(
-                        id=f"task-{datetime.now().timestamp()}",
-                        name=description[:100],
-                        node_type='single',
-                        prompt_template=tool_input.get('prompt', '')[:500],
-                        config={'model': 'claude'}
-                    )
-                    exec_id = conductor.record_node_start(run_id, node, tool_input.get('prompt', ''))
-
-                    if outcome == 'failure':
-                        conductor.record_node_failure(
-                            exec_id=exec_id,
-                            error_message=reason,
-                            error_type='task_failure'
-                        )
-                        conductor.update_run_status(run_id, 'failed', error_message=reason)
-                    else:
-                        conductor.record_node_completion(
-                            exec_id=exec_id,
-                            result_text=str(tool_output.get('content', '') if isinstance(tool_output, dict) else tool_output)[:1000],
-                            result_dict={'outcome': outcome, 'reason': reason}
-                        )
-                        conductor.update_run_status(run_id, 'completed', output={'outcome': outcome, 'reason': reason})
-            except Exception as e:
-                sys.stderr.write(f"Conductor integration error (non-fatal): {e}\n")
-
-            # Continue to trail laying
-            outcome_for_trails = outcome
-            tool_output_for_trails = tool_output
+                conductor.update_run_status(run_id, 'completed', output={'outcome': outcome, 'reason': reason})
+    except Exception as e:
+        sys.stderr.write(f"Conductor integration error (non-fatal): {e}\n")
 
     # Lay trails for files mentioned in output
     try:
@@ -964,7 +716,6 @@ def main():
         finally:
             conn.close()
 
-    # Output (no modification to tool output)
     output_result({})
 
 

@@ -4,7 +4,7 @@ Golden Rules are constitutional principles all agents follow.
 
 ## Built-in Rules
 
-1. **Query Before Acting** - Always check the building first
+1. **Query Before Acting** - Always check CLC first
 2. **Document Failures Immediately** - Record while context is fresh
 3. **Extract Heuristics** - Document the WHY, not just outcomes
 4. **Break It Before Shipping** - Test destructively before release

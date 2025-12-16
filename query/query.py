@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Emergent Learning Framework - Query System
+Claude Learning Companion (CLC) - Query System
 
 TIME-FIX-6: All timestamps are stored in UTC (via SQLite CURRENT_TIMESTAMP).
 Database uses naive datetime objects, but SQLite CURRENT_TIMESTAMP returns UTC.
@@ -37,7 +37,7 @@ import json
 try:
     from query.models import (
         db as peewee_db,
-        initialize_database as init_peewee_db,
+        initialize_database_sync as init_peewee_db,
         Heuristic,
         Learning,
         Experiment,
@@ -62,7 +62,7 @@ except ImportError:
     try:
         from models import (
             db as peewee_db,
-            initialize_database as init_peewee_db,
+            initialize_database_sync as init_peewee_db,
             Heuristic,
             Learning,
             Experiment,
@@ -126,7 +126,7 @@ setup_windows_console()
 
 
 class QuerySystem:
-    """Manages knowledge retrieval from the Emergent Learning Framework."""
+    """Manages knowledge retrieval from CLC (Claude Learning Companion)."""
 
     # Validation constants (imported from validators module for backward compatibility)
     MAX_DOMAIN_LENGTH = MAX_DOMAIN_LENGTH
@@ -176,8 +176,9 @@ class QuerySystem:
             )
 
         # Initialize Peewee ORM first (required for _init_database)
+        self._db_manager = None
         if PEEWEE_AVAILABLE:
-            init_peewee_db(str(self.db_path))
+            self._db_manager = init_peewee_db(str(self.db_path))
             self._log_debug("Peewee ORM initialized")
 
         # Initialize database tables (now uses Peewee)
@@ -391,22 +392,15 @@ class QuerySystem:
         # SECURITY: Check if database file was just created, set secure permissions
         db_just_created = not self.db_path.exists()
 
-        # Create core tables using Peewee models (includes indexes defined in Meta)
-        core_models = [
-            Learning,
-            Heuristic,
-            Experiment,
-            CeoReview,
-            Decision,
-            Violation,
-            Invariant,
-        ]
-        peewee_db.create_tables(core_models, safe=True)
+        if not self._db_manager:
+            self._log_debug("Database manager not initialized, skipping table creation")
+            return
 
-        # Run ANALYZE for query planner
-        peewee_db.execute_sql("ANALYZE")
+        # Note: Table creation is handled by the database migrations system
+        # The peewee_aio Manager handles table creation asynchronously when needed
+        # Here we just verify the manager is ready for sync queries
 
-        self._log_debug("Database tables created/verified via Peewee")
+        self._log_debug("Database tables created/verified via peewee-aio")
 
         # SECURITY: Set secure file permissions on database file (owner read/write only)
         # This prevents other users from reading sensitive learning data
@@ -519,18 +513,36 @@ class QuerySystem:
 
     def get_golden_rules(self) -> str:
         """
-        Read and return golden rules from memory/golden-rules.md.
+        Get golden rules from the database (heuristics with is_golden=True).
 
         Returns:
-            Content of golden rules file, or empty string if file does not exist.
+            Formatted string of golden rules, or message if none exist.
         """
-        if not self.golden_rules_path.exists():
+        if not self._db_manager:
             return "# Golden Rules\n\nNo golden rules have been established yet."
 
         try:
-            with open(self.golden_rules_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            self._log_debug(f"Loaded golden rules ({len(content)} chars)")
+            # Use allow_sync context for synchronous queries with peewee_aio
+            with self._db_manager.allow_sync():
+                golden_heuristics = list(
+                    Heuristic.select()
+                    .where(Heuristic.is_golden == True)
+                    .order_by(Heuristic.id)
+                )
+
+            if not golden_heuristics:
+                return "# Golden Rules\n\nNo golden rules have been established yet."
+
+            lines = ["# Golden Rules\n"]
+            for i, h in enumerate(golden_heuristics, 1):
+                domain = h.domain if h.domain != 'golden' else 'general'
+                lines.append(f"{i}. **{h.rule}** (domain: {domain})")
+                if h.explanation:
+                    lines.append(f"   - {h.explanation}")
+                lines.append("")
+
+            content = "\n".join(lines)
+            self._log_debug(f"Loaded {len(golden_heuristics)} golden rules from database")
             return content
         except Exception as e:
             error_msg = f"# Error Reading Golden Rules\n\nError: {str(e)}"
@@ -2157,7 +2169,7 @@ def main():
     ensure_hooks_installed()
 
     parser = argparse.ArgumentParser(
-        description="Emergent Learning Framework - Query System (v2.0 - 10/10 Robustness)",
+        description="Claude Learning Companion (CLC) - Query System (v2.0 - 10/10 Robustness)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

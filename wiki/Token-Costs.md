@@ -27,8 +27,8 @@ This adds tokens to usage. Here's the breakdown:
 **The tradeoff:** Higher tokens per task, but fewer wasted attempts.
 
 **Example:**
-- Without ELF: Repeat bug 5 times = 50 wasted messages
-- With ELF: 500 extra tokens, avoid those 50 messages
+- Without CLC: Repeat bug 5 times = 50 wasted messages
+- With CLC: 500 extra tokens, avoid those 50 messages
 - Break-even: Avoid 1-2 repeated bugs
 
 ## Reducing Costs

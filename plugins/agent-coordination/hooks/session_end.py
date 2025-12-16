@@ -13,9 +13,15 @@ import os
 import sys
 from pathlib import Path
 
-# Add utils to path for blackboard import (required for standalone hook execution)
+# Add paths for blackboard import (required for standalone hook execution)
 sys.path.insert(0, str(Path(__file__).parent.parent / "utils"))
-from blackboard import Blackboard
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "coordinator"))
+
+# Use Phase 2 blackboard (reads from event_log) with fallback
+try:
+    from blackboard_v2 import BlackboardV2 as Blackboard
+except ImportError:
+    from blackboard import Blackboard
 
 
 def get_hook_input() -> dict:

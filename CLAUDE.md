@@ -1,4 +1,4 @@
-# Emergent Learning Framework - Integration Guide
+# Claude Learning Companion (CLC) - Integration Guide
 
 **Location:** `~/.claude/emergent-learning/`
 
@@ -6,29 +6,29 @@
 
 ## FIRST-TIME SETUP (Auto-Bootstrap)
 
-**Setup happens automatically when you query the building.**
+**Setup happens automatically when you query CLC.**
 
 When `query.py` runs, it checks setup status and returns one of:
 - `ok` - Already configured, proceed normally
 - `fresh_install` - New user, auto-installed successfully
 - `needs_user_choice` - Has existing CLAUDE.md, need user input
 
-### If You See `[ELF_NEEDS_USER_CHOICE]`
+### If You See `[CLC_NEEDS_USER_CHOICE]`
 
-The user has an existing `~/.claude/CLAUDE.md` that doesn't include ELF instructions.
+The user has an existing `~/.claude/CLAUDE.md` that doesn't include CLC instructions.
 **You MUST use the AskUserQuestion tool** to let them choose:
 
-```
+```text
 Use AskUserQuestion with:
-- question: "You have an existing Claude configuration. How should I add the Emergent Learning Framework?"
-- header: "ELF Setup"
+- question: "You have an existing Claude configuration. How should I add Claude Learning Companion?"
+- header: "CLC Setup"
 - options:
   1. label: "Merge (Recommended)"
-     description: "Keep your existing config, add ELF instructions below. Your settings preserved."
+     description: "Keep your existing config, add CLC instructions below. Your settings preserved."
   2. label: "Replace"
-     description: "Use ELF config only. Your existing config backed up to CLAUDE.md.backup"
+     description: "Use CLC config only. Your existing config backed up to CLAUDE.md.backup"
   3. label: "Skip"
-     description: "Don't modify CLAUDE.md. Warning: ELF features won't work correctly."
+     description: "Don't modify CLAUDE.md. Warning: CLC features won't work correctly."
 ```
 
 **After user selects**, run:
@@ -37,7 +37,7 @@ Use AskUserQuestion with:
 - Skip: `bash ~/.claude/emergent-learning/setup/install.sh --mode skip`
 
 ### What Gets Installed
-- Global CLAUDE.md (tells you to query the building)
+- Global CLAUDE.md (tells you to query CLC)
 - Slash commands (`/search`, `/checkin`, `/swarm`)
 - Enforcement hooks (ensures you follow the rules)
 
@@ -60,7 +60,7 @@ Think of it as institutional memory. You build it, break it, analyze failures, e
 
 ### Core Philosophy: The Learning Cycle
 
-```
+```text
 TRY → BREAK → ANALYZE → LEARN → NEXT
 ```
 
@@ -320,7 +320,7 @@ If a rule seems wrong:
 
 ## File Structure Quick Reference
 
-```
+```text
 emergent-learning/
 ├── CLAUDE.md              ← You are here
 ├── README.md              ← Framework overview

@@ -2,14 +2,19 @@
 """
 Blackboard V2: Dual-write adapter for safe migration to event log.
 
-PHASE 1 (current): Write to BOTH old blackboard.json AND new event log.
-                   Read from OLD blackboard.json (source of truth).
+PHASE 2 (current): Write to BOTH old blackboard.json AND new event log.
+                   Read from NEW event log (source of truth).
+
+Migration History:
+- Phase 1: Dual-write, read from blackboard.json
+- Phase 2 (now): Dual-write, read from event_log
+- Phase 3 (next): Remove dual-write, event_log only
 
 This allows:
 - Zero API changes for existing code
 - Validation that event log produces same state
-- Rollback by just removing this adapter
-- Gradual confidence building before cutover
+- Rollback by switching back to Phase 1 if issues
+- Safe path to Phase 3 (event_log only)
 
 Usage:
     # Drop-in replacement - same interface as Blackboard
@@ -119,12 +124,15 @@ class BlackboardV2:
         return self.blackboard.update_agent_status(agent_id, status, result)
 
     def get_active_agents(self) -> Dict:
-        """Get active agents - reads from original blackboard."""
-        return self.blackboard.get_active_agents()
+        """Get active agents - reads from event log (Phase 2)."""
+        state = self.event_log.get_current_state()
+        return {k: v for k, v in state.get("agents", {}).items()
+                if v.get("status") == "active"}
 
     def get_all_agents(self) -> Dict:
-        """Get all agents - reads from original blackboard."""
-        return self.blackboard.get_all_agents()
+        """Get all agents - reads from event log (Phase 2)."""
+        state = self.event_log.get_current_state()
+        return state.get("agents", {})
 
     # =========================================================================
     # Findings (dual-write)
@@ -152,24 +160,45 @@ class BlackboardV2:
 
     def get_findings(self, since: str = None, finding_type: str = None,
                      importance: str = None) -> List[Dict]:
-        """Get findings - reads from original blackboard."""
-        return self.blackboard.get_findings(since, finding_type, importance)
+        """Get findings - reads from event log (Phase 2)."""
+        state = self.event_log.get_current_state()
+        findings = state.get("findings", [])
+
+        # Apply filters
+        if since:
+            findings = [f for f in findings if f.get("timestamp", "") > since]
+        if finding_type:
+            findings = [f for f in findings if f.get("type") == finding_type]
+        if importance:
+            findings = [f for f in findings if f.get("importance") == importance]
+
+        return findings
 
     def get_findings_since_cursor(self, cursor: int) -> List[Dict]:
-        """Get findings since cursor - reads from original blackboard."""
-        return self.blackboard.get_findings_since_cursor(cursor)
+        """Get findings since cursor - reads from event log (Phase 2)."""
+        state = self.event_log.get_current_state()
+        findings = state.get("findings", [])
+        return [f for f in findings if f.get("seq", 0) > cursor]
 
     def get_critical_findings(self) -> List[Dict]:
-        """Get critical findings - reads from original blackboard."""
-        return self.blackboard.get_critical_findings()
+        """Get critical findings - reads from event log (Phase 2)."""
+        return self.get_findings(importance="critical")
 
     def get_findings_for_interests(self, interests: List[str]) -> List[Dict]:
-        """Get findings matching interests - reads from original blackboard."""
-        return self.blackboard.get_findings_for_interests(interests)
+        """Get findings matching interests - reads from event log (Phase 2)."""
+        state = self.event_log.get_current_state()
+        findings = state.get("findings", [])
+        if not interests:
+            return findings
+        return [f for f in findings if any(tag in interests for tag in f.get("tags", []))]
 
     def search_findings(self, query: str, limit: int = 10) -> List[Dict]:
-        """Search findings - reads from original blackboard."""
-        return self.blackboard.search_findings(query, limit)
+        """Search findings - reads from event log (Phase 2)."""
+        state = self.event_log.get_current_state()
+        findings = state.get("findings", [])
+        query_lower = query.lower()
+        matched = [f for f in findings if query_lower in f.get("content", "").lower()]
+        return matched[:limit]
 
     def update_agent_cursor(self, agent_id: str) -> int:
         """Update cursor - writes to both systems."""
@@ -179,12 +208,16 @@ class BlackboardV2:
         return self.blackboard.update_agent_cursor(agent_id)
 
     def get_agent_cursor(self, agent_id: str) -> int:
-        """Get cursor - reads from original blackboard."""
-        return self.blackboard.get_agent_cursor(agent_id)
+        """Get cursor - reads from event log (Phase 2)."""
+        state = self.event_log.get_current_state()
+        agent = state.get("agents", {}).get(agent_id, {})
+        return agent.get("context_cursor", 0)
 
     def get_agent_interests(self, agent_id: str) -> List[str]:
-        """Get interests - reads from original blackboard."""
-        return self.blackboard.get_agent_interests(agent_id)
+        """Get interests - reads from event log (Phase 2)."""
+        state = self.event_log.get_current_state()
+        agent = state.get("agents", {}).get(agent_id, {})
+        return agent.get("interests", [])
 
     # =========================================================================
     # Messages (dual-write)
@@ -202,8 +235,17 @@ class BlackboardV2:
         return self.blackboard.send_message(from_agent, to_agent, content, msg_type)
 
     def get_messages(self, agent_id: str, unread_only: bool = False) -> List[Dict]:
-        """Get messages - reads from original blackboard."""
-        return self.blackboard.get_messages(agent_id, unread_only)
+        """Get messages - reads from event log (Phase 2)."""
+        state = self.event_log.get_current_state()
+        messages = state.get("messages", [])
+
+        # Filter by recipient
+        messages = [m for m in messages if m.get("to") in (agent_id, "*")]
+
+        if unread_only:
+            messages = [m for m in messages if not m.get("read", False)]
+
+        return messages
 
     def mark_message_read(self, message_id: str) -> bool:
         """Mark read - writes to both systems."""
@@ -244,8 +286,10 @@ class BlackboardV2:
         return self.blackboard.complete_task(task_id, result)
 
     def get_pending_tasks(self) -> List[Dict]:
-        """Get pending tasks - reads from original blackboard."""
-        return self.blackboard.get_pending_tasks()
+        """Get pending tasks - reads from event log (Phase 2)."""
+        state = self.event_log.get_current_state()
+        tasks = state.get("task_queue", [])
+        return [t for t in tasks if t.get("status") in (None, "pending")]
 
     # =========================================================================
     # Questions (dual-write)
@@ -272,8 +316,10 @@ class BlackboardV2:
         return self.blackboard.answer_question(question_id, answer, answered_by)
 
     def get_open_questions(self) -> List[Dict]:
-        """Get open questions - reads from original blackboard."""
-        return self.blackboard.get_open_questions()
+        """Get open questions - reads from event log (Phase 2)."""
+        state = self.event_log.get_current_state()
+        questions = state.get("questions", [])
+        return [q for q in questions if not q.get("answered", False)]
 
     # =========================================================================
     # Context (dual-write)
@@ -288,20 +334,34 @@ class BlackboardV2:
         self.blackboard.set_context(key, value)
 
     def get_context(self, key: str = None) -> Any:
-        """Get context - reads from original blackboard."""
-        return self.blackboard.get_context(key)
+        """Get context - reads from event log (Phase 2)."""
+        state = self.event_log.get_current_state()
+        context = state.get("context", {})
+        if key is None:
+            return context
+        return context.get(key)
 
     # =========================================================================
     # Utilities
     # =========================================================================
 
     def get_full_state(self) -> Dict:
-        """Get full state - reads from original blackboard."""
-        return self.blackboard.get_full_state()
+        """Get full state - reads from event log (Phase 2)."""
+        return self.event_log.get_current_state()
 
     def get_summary(self) -> str:
-        """Get summary - reads from original blackboard."""
-        return self.blackboard.get_summary()
+        """Get summary - reads from event log (Phase 2)."""
+        state = self.event_log.get_current_state()
+        agents = state.get("agents", {})
+        findings = state.get("findings", [])
+        questions = state.get("questions", [])
+        tasks = state.get("task_queue", [])
+
+        active = sum(1 for a in agents.values() if a.get("status") == "active")
+        open_q = sum(1 for q in questions if not q.get("answered", False))
+        pending_t = sum(1 for t in tasks if t.get("status") in (None, "pending"))
+
+        return f"Agents: {active} active / {len(agents)} total | Findings: {len(findings)} | Questions: {open_q} open | Tasks: {pending_t} pending"
 
     def reset(self) -> None:
         """Reset both systems."""

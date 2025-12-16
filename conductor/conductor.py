@@ -75,13 +75,18 @@ def safe_eval_condition(condition: str, context: dict) -> bool:
     return False
 
 
-# Add parent utils to path for blackboard access
+# Add parent paths for blackboard access
+sys.path.insert(0, str(Path(__file__).parent.parent / "coordinator"))
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "plugins" / "agent-coordination" / "utils"))
 
 try:
-    from blackboard import Blackboard
+    # Use Phase 2 blackboard (reads from event_log)
+    from blackboard_v2 import BlackboardV2 as Blackboard
 except ImportError:
-    Blackboard = None  # Will run without blackboard if not available
+    try:
+        from blackboard import Blackboard
+    except ImportError:
+        Blackboard = None  # Will run without blackboard if not available
 
 
 class NodeType(Enum):
