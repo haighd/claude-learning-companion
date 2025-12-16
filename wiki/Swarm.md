@@ -59,7 +59,7 @@ Agents coordinate through shared SQLite database:
 
 ## Agent Personalities
 
-Defined in `~/.claude/emergent-learning/agents/`:
+Defined in `~/.claude/clc/agents/`:
 
 **Researcher:** Thorough, methodical, breadth-first
 **Architect:** Top-down, structural, considers extensions
@@ -69,10 +69,10 @@ Defined in `~/.claude/emergent-learning/agents/`:
 ## Query Conductor
 
 ```bash
-python ~/.claude/emergent-learning/conductor/query_conductor.py --workflows
-python ~/.claude/emergent-learning/conductor/query_conductor.py --failures
-python ~/.claude/emergent-learning/conductor/query_conductor.py --hotspots
-python ~/.claude/emergent-learning/conductor/query_conductor.py --trails --scent blocker
+python ~/.claude/clc/conductor/query_conductor.py --workflows
+python ~/.claude/clc/conductor/query_conductor.py --failures
+python ~/.claude/clc/conductor/query_conductor.py --hotspots
+python ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
 ```
 
 ## When to Use Swarm

@@ -10,7 +10,7 @@ Exposes the Emergent Learning Framework to external tools via Model Context Prot
 ## Registration
 
 ```bash
-claude mcp add ELF_FLOW_MCP python3.13 ~/.claude/emergent-learning/mcp/elf_server.py
+claude mcp add ELF_FLOW_MCP python3.13 ~/.claude/clc/mcp/elf_server.py
 ```
 
 **Note:** Use Python 3.13 (not 3.14) - the MCP SDK has compatibility issues with Python 3.14.
@@ -22,7 +22,7 @@ Or add to your Claude configuration:
   "mcpServers": {
     "ELF_FLOW_MCP": {
       "command": "python3.13",
-      "args": ["~/.claude/emergent-learning/mcp/elf_server.py"]
+      "args": ["~/.claude/clc/mcp/elf_server.py"]
     }
   }
 }

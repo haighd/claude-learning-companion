@@ -18,22 +18,22 @@ router = APIRouter(prefix="/api", tags=["admin"])
 logger = logging.getLogger(__name__)
 
 # Path will be set from main.py
-EMERGENT_LEARNING_PATH = None
+CLC_PATH = None
 
 
 def set_paths(elf_path: Path):
     """Set the paths for admin operations."""
-    global EMERGENT_LEARNING_PATH
-    EMERGENT_LEARNING_PATH = elf_path
+    global CLC_PATH
+    CLC_PATH = elf_path
 
 
 @router.get("/ceo-inbox")
 async def get_ceo_inbox():
     """Get CEO inbox items (pending decisions)."""
-    if EMERGENT_LEARNING_PATH is None:
+    if CLC_PATH is None:
         raise HTTPException(status_code=500, detail="Paths not configured")
 
-    ceo_inbox_path = EMERGENT_LEARNING_PATH / "ceo-inbox"
+    ceo_inbox_path = CLC_PATH / "ceo-inbox"
     items = []
 
     if not ceo_inbox_path.exists():
@@ -79,14 +79,14 @@ async def get_ceo_inbox():
 @router.get("/ceo-inbox/{filename}")
 async def get_ceo_inbox_item(filename: str):
     """Get full content of a CEO inbox item."""
-    if EMERGENT_LEARNING_PATH is None:
+    if CLC_PATH is None:
         raise HTTPException(status_code=500, detail="Paths not configured")
 
     # Security: validate filename
     if not re.match(r'^[\w\-]+\.md$', filename):
         raise HTTPException(status_code=400, detail="Invalid filename")
 
-    file_path = EMERGENT_LEARNING_PATH / "ceo-inbox" / filename
+    file_path = CLC_PATH / "ceo-inbox" / filename
 
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Item not found")

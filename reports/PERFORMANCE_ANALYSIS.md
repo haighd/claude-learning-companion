@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-The query.py module in `~/.claude/emergent-learning/query/` has **EXCELLENT current performance** with all queries executing well under the 1-second slow threshold. However, the system will face scaling challenges at 100k+ rows without proactive index optimizations.
+The query.py module in `~/.claude/clc/query/` has **EXCELLENT current performance** with all queries executing well under the 1-second slow threshold. However, the system will face scaling challenges at 100k+ rows without proactive index optimizations.
 
 ---
 
@@ -274,6 +274,6 @@ CREATE INDEX idx_learnings_tags_json ON learnings USING json_extract(tags_json, 
 ---
 
 ## File Locations
-- **Query Script:** `~/.claude\emergent-learning\query\query.py`
-- **Database:** `~/.claude\emergent-learning\memory\index.db`
-- **Golden Rules:** `~/.claude\emergent-learning\memory\golden-rules.md`
+- **Query Script:** `~/.claude/clc/query/query.py`
+- **Database:** `~/.claude/clc/memory/index.db`
+- **Golden Rules:** `~/.claude/clc/memory/golden-rules.md`

@@ -31,11 +31,11 @@ def get_claude_projects_dir() -> Path:
 
 
 def get_current_project_dir() -> Optional[Path]:
-    """Get the project directory for emergent-learning."""
+    """Get the project directory for clc."""
     projects_dir = get_claude_projects_dir()
 
-    # Look for emergent-learning project
-    for pattern in ["*emergent-learning*", "*claude-emergent*"]:
+    # Look for clc project
+    for pattern in ["*clc*"]:
         matches = list(projects_dir.glob(pattern))
         if matches:
             return matches[0]

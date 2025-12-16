@@ -43,8 +43,8 @@ Watchers do NOT self-perpetuate (cost control). The cycle is driven by user inte
 
 1. **Initialize** (if needed):
    ```bash
-   mkdir -p ~/.claude/emergent-learning/.coordination
-   python ~/.claude/emergent-learning/watcher/watcher_loop.py clear
+   mkdir -p ~/.claude/clc/.coordination
+   python ~/.claude/clc/watcher/watcher_loop.py clear
    ```
 
 2. **Analyze & decompose** the task into parallel subtasks
@@ -80,7 +80,7 @@ Watchers do NOT self-perpetuate (cost control). The cycle is driven by user inte
 
 5. **Spawn watcher** (optional but recommended):
    ```bash
-   python ~/.claude/emergent-learning/watcher/watcher_loop.py prompt
+   python ~/.claude/clc/watcher/watcher_loop.py prompt
    ```
 
    Then spawn with Task tool:
@@ -106,32 +106,32 @@ Watchers do NOT self-perpetuate (cost control). The cycle is driven by user inte
 
 8. **Stop monitoring** when done:
    ```bash
-   python ~/.claude/emergent-learning/watcher/watcher_loop.py stop
+   python ~/.claude/clc/watcher/watcher_loop.py stop
    ```
 
 ### `/swarm show` (View State)
 
 ```bash
-python ~/.claude/emergent-learning/watcher/watcher_loop.py status
+python ~/.claude/clc/watcher/watcher_loop.py status
 ```
 
 Also check blackboard:
 ```bash
-cat ~/.claude/emergent-learning/.coordination/blackboard.json | python -m json.tool
+cat ~/.claude/clc/.coordination/blackboard.json | python -m json.tool
 ```
 
 ### `/swarm reset` (Clear)
 
 Clear all state:
 ```bash
-rm -rf ~/.claude/emergent-learning/.coordination/*
+rm -rf ~/.claude/clc/.coordination/*
 ```
 
 ### `/swarm stop` (Disable)
 
 Stop monitoring:
 ```bash
-python ~/.claude/emergent-learning/watcher/watcher_loop.py stop
+python ~/.claude/clc/watcher/watcher_loop.py stop
 ```
 
 This creates a `watcher-stop` file that prevents future watcher spawns.

@@ -95,7 +95,7 @@ These indicate problems that need attention:
 ```
 
 **Cause:** Database hasn't been initialized
-**Solution:** Run `python ~/.claude/emergent-learning/scripts/init-db.py`
+**Solution:** Run `python ~/.claude/clc/scripts/init-db.py`
 **Impact:** No trails can be recorded
 
 ---
@@ -158,7 +158,7 @@ When debugging extraction issues, check which patterns are matching:
 **Solutions:**
 - Increase timeout in `lay_trails()` (currently 5.0 seconds)
 - Check disk space: `df -h`
-- Check permissions: `ls -la ~/.claude/emergent-learning/memory/`
+- Check permissions: `ls -la ~/.claude/clc/memory/`
 - Rebuild database if corrupted
 
 ---
@@ -167,17 +167,17 @@ When debugging extraction issues, check which patterns are matching:
 
 ### Count trails in last hour
 ```bash
-sqlite3 ~/.claude/emergent-learning/memory/index.db "SELECT COUNT(*) FROM trails WHERE created_at > datetime('now', '-1 hour');"
+sqlite3 ~/.claude/clc/memory/index.db "SELECT COUNT(*) FROM trails WHERE created_at > datetime('now', '-1 hour');"
 ```
 
 ### Group by agent
 ```bash
-sqlite3 ~/.claude/emergent-learning/memory/index.db "SELECT agent_id, COUNT(*) FROM trails GROUP BY agent_id ORDER BY COUNT(*) DESC;"
+sqlite3 ~/.claude/clc/memory/index.db "SELECT agent_id, COUNT(*) FROM trails GROUP BY agent_id ORDER BY COUNT(*) DESC;"
 ```
 
 ### Recent trails with details
 ```bash
-sqlite3 ~/.claude/emergent-learning/memory/index.db "SELECT created_at, location, scent, agent_id, message FROM trails ORDER BY created_at DESC LIMIT 10;"
+sqlite3 ~/.claude/clc/memory/index.db "SELECT created_at, location, scent, agent_id, message FROM trails ORDER BY created_at DESC LIMIT 10;"
 ```
 
 ### Check for errors in logs (if logging to file)

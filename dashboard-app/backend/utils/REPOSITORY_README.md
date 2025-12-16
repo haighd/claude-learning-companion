@@ -429,7 +429,7 @@ with get_db() as conn:
 Run the test suite to verify BaseRepository works correctly:
 
 ```bash
-cd ~/.claude/emergent-learning/dashboard-app/backend
+cd ~/.claude/clc/dashboard-app/backend
 python test_repository.py
 ```
 

@@ -284,7 +284,7 @@ $ sqlite3 index.db "PRAGMA foreign_key_check" | wc -l
 
 ### Apply Robustness Fixes:
 ```bash
-cd ~/.claude/emergent-learning
+cd ~/.claude/clc
 python3 scripts/apply_10_10_robustness.py
 ```
 

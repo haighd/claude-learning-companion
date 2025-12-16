@@ -227,7 +227,7 @@ $ sqlite3 index.db "PRAGMA freelist_count; PRAGMA page_count"
 
 ### One-Command Verification
 ```bash
-python3 ~/.claude/emergent-learning/scripts/apply_10_10_robustness.py
+python3 ~/.claude/clc/scripts/apply_10_10_robustness.py
 ```
 
 ### In Python
@@ -241,7 +241,7 @@ status = db.preflight_check()
 
 ### Quick Check
 ```bash
-sqlite3 ~/.claude/emergent-learning/memory/index.db \
+sqlite3 ~/.claude/clc/memory/index.db \
   "SELECT MAX(version) FROM schema_version"
 # Should return: 2
 ```

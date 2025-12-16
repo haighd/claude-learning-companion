@@ -8,7 +8,7 @@
 
 ## Files Modified
 
-### 1. /c~/.claude/emergent-learning/scripts/record-failure.sh
+### 1. /c~/.claude/clc/scripts/record-failure.sh
 
 **Backup**: `record-failure.sh.pre-hardening` (11KB)
 
@@ -76,7 +76,7 @@ filename_title=$(echo "$title" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -c
 
 ---
 
-### 2. /c~/.claude/emergent-learning/scripts/record-heuristic.sh
+### 2. /c~/.claude/clc/scripts/record-heuristic.sh
 
 **Backup**: `record-heuristic.sh.pre-hardening` (8.6KB)
 
@@ -132,7 +132,7 @@ fi
 
 ---
 
-### 3. /c~/.claude/emergent-learning/query/query.py
+### 3. /c~/.claude/clc/query/query.py
 
 **Backup**: `query.py.pre-hardening` (22KB)
 
@@ -213,7 +213,7 @@ All modifications tested with:
 If you need to revert these changes:
 
 ```bash
-cd ~/.claude/emergent-learning
+cd ~/.claude/clc
 
 # Restore original scripts
 mv scripts/record-failure.sh.pre-hardening scripts/record-failure.sh

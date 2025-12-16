@@ -6,7 +6,7 @@ The Emergent Learning Framework now has comprehensive meta-learning capabilities
 
 ### Check System Health
 ```bash
-~/.claude/emergent-learning/scripts/self-test.sh
+~/.claude/clc/scripts/self-test.sh
 ```
 
 This runs 11 comprehensive tests and automatically records any issues found.
@@ -14,13 +14,13 @@ This runs 11 comprehensive tests and automatically records any issues found.
 ### View Learning Metrics
 ```bash
 # Quick view
-~/.claude/emergent-learning/scripts/learning-metrics.sh
+~/.claude/clc/scripts/learning-metrics.sh
 
 # Detailed breakdown
-~/.claude/emergent-learning/scripts/learning-metrics.sh --detailed
+~/.claude/clc/scripts/learning-metrics.sh --detailed
 
 # JSON output for automation
-~/.claude/emergent-learning/scripts/learning-metrics.sh --json
+~/.claude/clc/scripts/learning-metrics.sh --json
 ```
 
 Tracks:
@@ -32,28 +32,28 @@ Tracks:
 ### Check for Duplicates
 ```bash
 # Quick stats
-~/.claude/emergent-learning/scripts/deduplicate-failures.sh --stats
+~/.claude/clc/scripts/deduplicate-failures.sh --stats
 
 # Full analysis
-~/.claude/emergent-learning/scripts/deduplicate-failures.sh --all
+~/.claude/clc/scripts/deduplicate-failures.sh --all
 
 # Generate report
-~/.claude/emergent-learning/scripts/deduplicate-failures.sh --report
+~/.claude/clc/scripts/deduplicate-failures.sh --report
 ```
 
 ### Get Heuristic Suggestions
 ```bash
 # Quick analysis
-~/.claude/emergent-learning/scripts/suggest-heuristics.sh --stats
+~/.claude/clc/scripts/suggest-heuristics.sh --stats
 
 # Analyze recent failures
-~/.claude/emergent-learning/scripts/suggest-heuristics.sh --recent 7
+~/.claude/clc/scripts/suggest-heuristics.sh --recent 7
 
 # Generate full opportunities report
-~/.claude/emergent-learning/scripts/suggest-heuristics.sh --report
+~/.claude/clc/scripts/suggest-heuristics.sh --report
 
 # Interactive heuristic generation
-~/.claude/emergent-learning/scripts/suggest-heuristics.sh --generate
+~/.claude/clc/scripts/suggest-heuristics.sh --generate
 ```
 
 ## Weekly Reviews
@@ -62,16 +62,16 @@ Run these once a week to maintain system health:
 
 ```bash
 # 1. Self-test
-~/.claude/emergent-learning/scripts/self-test.sh
+~/.claude/clc/scripts/self-test.sh
 
 # 2. Detailed metrics
-~/.claude/emergent-learning/scripts/learning-metrics.sh --detailed
+~/.claude/clc/scripts/learning-metrics.sh --detailed
 
 # 3. Heuristic opportunities
-~/.claude/emergent-learning/scripts/suggest-heuristics.sh --report
+~/.claude/clc/scripts/suggest-heuristics.sh --report
 
 # 4. Deduplication check
-~/.claude/emergent-learning/scripts/deduplicate-failures.sh --report
+~/.claude/clc/scripts/deduplicate-failures.sh --report
 ```
 
 ## Troubleshooting
@@ -79,7 +79,7 @@ Run these once a week to maintain system health:
 ### System Corrupted or Database Missing
 
 ```bash
-~/.claude/emergent-learning/scripts/bootstrap-recovery.sh
+~/.claude/clc/scripts/bootstrap-recovery.sh
 ```
 
 This will:
@@ -91,7 +91,7 @@ This will:
 ### Check Dependencies
 
 ```bash
-~/.claude/emergent-learning/scripts/dependency-check.sh
+~/.claude/clc/scripts/dependency-check.sh
 ```
 
 Validates:
@@ -148,19 +148,19 @@ Validates:
 
 When agents query the building:
 ```bash
-python ~/.claude/emergent-learning/query/query.py --context
+python ~/.claude/clc/query/query.py --context
 ```
 
 They should periodically check meta-learning insights:
 ```bash
 # Check if system is healthy
-~/.claude/emergent-learning/scripts/self-test.sh
+~/.claude/clc/scripts/self-test.sh
 
 # View recent learning trends
-~/.claude/emergent-learning/scripts/learning-metrics.sh
+~/.claude/clc/scripts/learning-metrics.sh
 
 # Get heuristic opportunities
-~/.claude/emergent-learning/scripts/suggest-heuristics.sh --recent 7
+~/.claude/clc/scripts/suggest-heuristics.sh --recent 7
 ```
 
 ## Key Metrics to Watch
@@ -190,18 +190,18 @@ They should periodically check meta-learning insights:
 ### Automated Daily Health Check
 Add to cron or scheduled tasks:
 ```bash
-0 9 * * * ~/.claude/emergent-learning/scripts/self-test.sh >> ~/daily-health.log 2>&1
+0 9 * * * ~/.claude/clc/scripts/self-test.sh >> ~/daily-health.log 2>&1
 ```
 
 ### Weekly Summary Email
 ```bash
-0 9 * * 1 ~/.claude/emergent-learning/scripts/learning-metrics.sh --detailed | mail -s "Weekly Learning Summary" you@example.com
+0 9 * * 1 ~/.claude/clc/scripts/learning-metrics.sh --detailed | mail -s "Weekly Learning Summary" you@example.com
 ```
 
 ### Continuous Monitoring
 ```bash
 # Run metrics in JSON mode and feed to monitoring system
-~/.claude/emergent-learning/scripts/learning-metrics.sh --json | your-monitoring-tool
+~/.claude/clc/scripts/learning-metrics.sh --json | your-monitoring-tool
 ```
 
 ## Understanding the Output
@@ -270,8 +270,8 @@ See full documentation in `META_LEARNING_REPORT.md`
 
 All scripts have `--help` flags:
 ```bash
-~/.claude/emergent-learning/scripts/self-test.sh --help
-~/.claude/emergent-learning/scripts/learning-metrics.sh --help
+~/.claude/clc/scripts/self-test.sh --help
+~/.claude/clc/scripts/learning-metrics.sh --help
 # etc.
 ```
 

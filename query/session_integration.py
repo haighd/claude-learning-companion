@@ -31,12 +31,12 @@ except ImportError:
     WINDOWS = False
 
 # Paths
-EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "emergent-learning"
-SESSIONS_PATH = EMERGENT_LEARNING_PATH / "sessions"
+CLC_PATH = Path.home() / ".claude" / "clc"
+SESSIONS_PATH = CLC_PATH / "sessions"
 LOGS_PATH = SESSIONS_PATH / "logs"
 PROCESSED_MARKER = SESSIONS_PATH / ".processed"
 PROCESSED_MARKER_LOCK = SESSIONS_PATH / ".processed.lock"
-PROPOSALS_PATH = EMERGENT_LEARNING_PATH / "proposals"
+PROPOSALS_PATH = CLC_PATH / "proposals"
 PENDING_PROPOSALS_PATH = PROPOSALS_PATH / "pending"
 
 
@@ -216,7 +216,7 @@ class SessionIntegration:
         Returns:
             True if extractor was triggered, False otherwise
         """
-        extractor_script = EMERGENT_LEARNING_PATH / "agents" / "learning-extractor" / "run_extractor.py"
+        extractor_script = CLC_PATH / "agents" / "learning-extractor" / "run_extractor.py"
 
         if not extractor_script.exists():
             self._log_debug(f"Learning extractor not found at {extractor_script}")

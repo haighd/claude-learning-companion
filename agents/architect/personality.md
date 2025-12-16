@@ -38,7 +38,7 @@ interaction_mode: assertion    # inquiry | assertion | collaborative
 
 ## Before Acting
 ```bash
-python ~/.claude/emergent-learning/query/query.py --domain architecture
+python ~/.claude/clc/query/query.py --domain architecture
 ```
 
 ## Output Format

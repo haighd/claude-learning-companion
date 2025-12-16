@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 
 # Add src directory to path for imports
-src_path = Path(__file__).parent.parent / "src" / "emergent-learning"
+src_path = Path(__file__).parent.parent / "src" / "clc"
 sys.path.insert(0, str(src_path))
 
 

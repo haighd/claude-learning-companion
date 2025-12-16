@@ -10,18 +10,18 @@
 
 ### View Results (Start Here)
 ```bash
-cat ~/.claude/emergent-learning/AGENT_C_EXECUTIVE_SUMMARY.txt
+cat ~/.claude/clc/AGENT_C_EXECUTIVE_SUMMARY.txt
 ```
 
 ### Run Tests Yourself
 ```bash
-cd ~/.claude/emergent-learning
+cd ~/.claude/clc
 bash rapid-fuzzing-test.sh
 ```
 
 ### View Detailed Report
 ```bash
-cat ~/.claude/emergent-learning/AGENT_C_FINAL_REPORT.md
+cat ~/.claude/clc/AGENT_C_FINAL_REPORT.md
 ```
 
 ---

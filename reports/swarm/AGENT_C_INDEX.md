@@ -77,7 +77,7 @@
 
 ### Run Initial Tests
 ```bash
-cd ~/.claude/emergent-learning
+cd ~/.claude/clc
 bash rapid-fuzzing-test.sh
 ```
 
@@ -94,11 +94,11 @@ bash verify-hardening.sh
 
 ### Rollback (if needed)
 ```bash
-cd ~/.claude/emergent-learning/scripts
+cd ~/.claude/clc/scripts
 mv record-failure.sh.pre-hardening record-failure.sh
 mv record-heuristic.sh.pre-hardening record-heuristic.sh
 
-cd ~/.claude/emergent-learning/query
+cd ~/.claude/clc/query
 mv query.py.pre-hardening query.py
 ```
 

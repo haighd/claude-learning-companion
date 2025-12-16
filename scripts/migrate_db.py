@@ -15,7 +15,7 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
 MIGRATIONS_DIR = SCRIPT_DIR / "migrations"
-DEFAULT_DB = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
+DEFAULT_DB = Path.home() / ".claude" / "clc" / "memory" / "index.db"
 
 
 def get_db_version(conn):

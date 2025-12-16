@@ -557,7 +557,7 @@ INSERT INTO classification_thresholds (level, threshold, updated_by, reason) VAL
 
 ### 3.2 Core Functions
 
-**File:** `~/.claude/emergent-learning/query/threshold_tuner.py`
+**File:** `~/.claude/clc/query/threshold_tuner.py`
 
 ```python
 #!/usr/bin/env python3
@@ -575,7 +575,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 
-DB_PATH = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
+DB_PATH = Path.home() / ".claude" / "clc" / "memory" / "index.db"
 
 @dataclass
 class ThresholdRecommendation:
@@ -1339,7 +1339,7 @@ class FraudDetector:
 
 ```bash
 # Run full analysis
-python ~/.claude/emergent-learning/query/threshold_tuner.py full-analysis --target-fpr 0.05
+python ~/.claude/clc/query/threshold_tuner.py full-analysis --target-fpr 0.05
 
 # Output:
 # {
@@ -1362,7 +1362,7 @@ python ~/.claude/emergent-learning/query/threshold_tuner.py full-analysis --targ
 
 ```bash
 # Check pending recommendations
-python ~/.claude/emergent-learning/query/threshold_tuner.py pending
+python ~/.claude/clc/query/threshold_tuner.py pending
 
 # Output shows all pending recommendations with current vs recommended
 ```
@@ -1377,7 +1377,7 @@ python ~/.claude/emergent-learning/query/threshold_tuner.py pending
 
 ```bash
 # Apply recommendation
-python ~/.claude/emergent-learning/query/threshold_tuner.py apply --rec-id 123
+python ~/.claude/clc/query/threshold_tuner.py apply --rec-id 123
 
 # Output:
 # {
@@ -1394,7 +1394,7 @@ python ~/.claude/emergent-learning/query/threshold_tuner.py apply --rec-id 123
 
 ```bash
 # If threshold change causes problems, rollback
-python ~/.claude/emergent-learning/query/threshold_tuner.py rollback --history-id 45
+python ~/.claude/clc/query/threshold_tuner.py rollback --history-id 45
 
 # Reverts to old threshold
 ```

@@ -231,7 +231,7 @@ When adding a new utility:
 ## File Paths
 
 ```
-C:\Users\Evede\.claude\emergent-learning\dashboard-app\backend\utils\
+C:\Users\Evede\.claude\clc\dashboard-app\backend\utils\
 ├── __init__.py           (21 lines) - Barrel export
 ├── database.py           (44 lines) - DB utilities
 ├── broadcast.py          (48 lines) - WebSocket manager
@@ -242,6 +242,6 @@ C:\Users\Evede\.claude\emergent-learning\dashboard-app\backend\utils\
 
 ## References
 
-- **Database Path:** `~/.claude/emergent-learning/memory/index.db`
+- **Database Path:** `~/.claude/clc/memory/index.db`
 - **Main App:** `dashboard-app/backend/main.py`
 - **Test File:** `dashboard-app/backend/test_repository.py`

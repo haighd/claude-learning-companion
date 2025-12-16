@@ -222,13 +222,13 @@ def search_logs(query: str, days: int = 7, limit: int = 10,
         query: Natural language search query
         days: Number of days to search back
         limit: Maximum number of results
-        base_path: Base path to emergent-learning directory
+        base_path: Base path to clc directory
 
     Returns:
         List of matching entries with relevance scores
     """
     if base_path is None:
-        base_path = Path.home() / ".claude" / "emergent-learning"
+        base_path = Path.home() / ".claude" / "clc"
 
     logs_dir = base_path / "sessions" / "logs"
 
@@ -387,7 +387,7 @@ Examples:
     parser.add_argument('--json', action='store_true',
                         help='Output results as JSON')
     parser.add_argument('--base-path', type=str,
-                        help='Base path to emergent-learning directory')
+                        help='Base path to clc directory')
     parser.add_argument('--debug', action='store_true',
                         help='Show debug information')
 

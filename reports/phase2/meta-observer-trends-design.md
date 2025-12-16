@@ -1667,9 +1667,9 @@ The dashboard already has panels for stats (StatsBar.tsx, HeuristicPanel.tsx). A
 ## 14. REFERENCES
 
 **Existing Code:**
-- `C:/Users/Evede/.claude/emergent-learning/query/lifecycle_manager.py` (Phase 1)
-- `C:/Users/Evede/.claude/emergent-learning/tests/test_lifecycle_adversarial.py` (Test framework)
-- `C:/Users/Evede/.claude/emergent-learning/memory/successes/2025-12-12-creative-heuristic-intelligence-proposals.md` (PROPOSAL 6)
+- `C:/Users/Evede/.claude/clc/query/lifecycle_manager.py` (Phase 1)
+- `C:/Users/Evede/.claude/clc/tests/test_lifecycle_adversarial.py` (Test framework)
+- `C:/Users/Evede/.claude/clc/memory/successes/2025-12-12-creative-heuristic-intelligence-proposals.md` (PROPOSAL 6)
 
 **Algorithms:**
 - CUSUM change point detection: Page, E.S. (1954). "Continuous Inspection Schemes"

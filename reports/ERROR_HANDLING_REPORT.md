@@ -340,7 +340,7 @@ All errors include:
 - **Category**: transient/permanent/retryable/fatal
 
 Example:
-```
+```sql
 ERROR [fatal]: Failed to insert failure into database
   Exit Code: 2
   Suggested Fix: Check database permissions and SQL syntax
@@ -429,13 +429,13 @@ All scripts passed bash syntax checks:
 ## File Listing
 
 ### New Files Created
-- `~/.claude\emergent-learning\scripts\lib\error-handling.sh` (600+ lines)
+- `~/.claude/clc/scripts/lib/error-handling.sh` (600+ lines)
 
 ### Modified Files
-- `~/.claude\emergent-learning\scripts\record-failure.sh` (318 lines)
-- `~/.claude\emergent-learning\scripts\record-heuristic.sh` (342 lines)
-- `~/.claude\emergent-learning\scripts\sync-db-markdown.sh` (557 lines)
-- `~/.claude\emergent-learning\scripts\start-experiment.sh` (340 lines)
+- `~/.claude/clc/scripts/record-failure.sh` (318 lines)
+- `~/.claude/clc/scripts/record-heuristic.sh` (342 lines)
+- `~/.claude/clc/scripts/sync-db-markdown.sh` (557 lines)
+- `~/.claude/clc/scripts/start-experiment.sh` (340 lines)
 
 ### Total Lines of Error Handling Code
 - Library: 600+ lines
@@ -550,5 +550,5 @@ All scripts now handle errors comprehensively, provide clear diagnostics, and fa
 
 **Agent**: Opus Agent F
 **Framework**: Emergent Learning Framework
-**Location**: `~/.claude/emergent-learning`
+**Location**: `~/.claude/clc`
 **Report Date**: 2025-12-01

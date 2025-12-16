@@ -253,16 +253,16 @@ The AdvisoryVerifier hook is ready for production use based on:
 
 ## Test Artifacts
 
-**Test File:** `~/.claude\emergent-learning\hooks\learning-loop\test_integration_phase4.py`
+**Test File:** `~/.claude/clc/hooks/learning-loop/test_integration_phase4.py`
 
 **Test Execution:**
 ```bash
-cd ~/.claude/emergent-learning/hooks/learning-loop
+cd ~/.claude/clc/hooks/learning-loop
 python test_integration_phase4.py
 ```
 
 **Expected Output:**
-```
+```text
 ======================================================================
 INTEGRATION TEST SUMMARY
 ======================================================================

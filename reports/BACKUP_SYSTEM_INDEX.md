@@ -22,7 +22,7 @@
 
 **Create a backup:**
 ```bash
-cd ~/.claude/emergent-learning
+cd ~/.claude/clc
 ./scripts/backup.sh
 ```
 
@@ -141,10 +141,10 @@ cd ~/.claude/emergent-learning
 
 | Variable | Purpose | Example |
 |----------|---------|---------|
-| `BACKUP_ROOT` | Backup location | `$HOME/.claude/backups/emergent-learning` |
+| `BACKUP_ROOT` | Backup location | `$HOME/.claude/backups/clc` |
 | `REMOTE_BACKUP_DEST` | Remote destination | `user@server:/backups` |
 | `BACKUP_ENCRYPTION_KEY` | GPG key for encryption | `admin@example.com` |
-| `FRAMEWORK_DIR` | Framework location | `$HOME/.claude/emergent-learning` |
+| `FRAMEWORK_DIR` | Framework location | `$HOME/.claude/clc` |
 
 ### Configuration Files
 

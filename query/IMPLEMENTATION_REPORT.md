@@ -22,7 +22,7 @@ Successfully enhanced the Emergent Learning Framework query system (`query.py`) 
 
 ### 1. Relevance Decay Scoring
 
-**File:** `~/.claude\emergent-learning\query\query.py`
+**File:** `~/.claude/clc/query/query.py`
 **Lines:** 1219-1267
 **Method:** `_calculate_relevance_score(learning, task, domain=None)`
 
@@ -54,7 +54,7 @@ Bad Date Handling: 0.750 ✓
 
 ### 2. Failure Pattern Matching
 
-**File:** `~/.claude\emergent-learning\query\query.py`
+**File:** `~/.claude/clc/query/query.py`
 **Lines:** 1269-1314
 **Method:** `find_similar_failures(task_description, threshold=0.3, limit=5)`
 
@@ -102,7 +102,7 @@ return sorted(results, key=similarity, reverse=True)[:limit]
 
 ### 3. Integration into build_context()
 
-**File:** `~/.claude\emergent-learning\query\query.py`
+**File:** `~/.claude/clc/query/query.py`
 **Lines:** 1455-1527
 
 #### Change 1: Similar Failures Warning (Lines 1455-1466)
@@ -218,7 +218,7 @@ tag_results_with_scores.sort(key=lambda x: x.get('_relevance', 0), reverse=True)
 
 ### Unit Tests Created
 
-**File:** `~/.claude\emergent-learning\query\test_enhancements.py`
+**File:** `~/.claude/clc/query/test_enhancements.py`
 
 **Tests:**
 1. ✅ Relevance scoring with various date ranges

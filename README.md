@@ -142,10 +142,10 @@ Runs automatically - no user interaction required. See [watcher/README.md](watch
 
 ```bash
 # Check what has been learned
-python ~/.claude/emergent-learning/query/query.py --stats
+python ~/.claude/clc/query/query.py --stats
 
 # Start dashboard manually (if needed)
-cd ~/.claude/emergent-learning/dashboard-app && ./run-dashboard.sh
+cd ~/.claude/clc/dashboard-app && ./run-dashboard.sh
 
 # Multi-agent swarm (Pro/Max plans)
 /swarm investigate the authentication system
@@ -237,7 +237,7 @@ If you see `Cannot find module @rollup/rollup-win32-x64-msvc` when starting the 
 
 **Fix Option 1:** Use PowerShell or CMD for npm install:
 ```powershell
-cd ~/.claude/emergent-learning/dashboard-app/frontend
+cd ~/.claude/clc/dashboard-app/frontend
 rm -rf node_modules package-lock.json
 npm install
 ```

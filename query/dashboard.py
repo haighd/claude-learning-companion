@@ -31,12 +31,12 @@ class Dashboard:
         Initialize the dashboard.
 
         Args:
-            base_path: Base path to the emergent-learning directory.
-                      Defaults to ~/.claude/emergent-learning
+            base_path: Base path to the clc directory.
+                      Defaults to ~/.claude/clc
         """
         if base_path is None:
             home = Path.home()
-            self.base_path = home / ".claude" / "emergent-learning"
+            self.base_path = home / ".claude" / "clc"
         else:
             self.base_path = Path(base_path)
 
@@ -551,7 +551,7 @@ Examples:
         """
     )
 
-    parser.add_argument('--base-path', type=str, help='Base path to emergent-learning directory')
+    parser.add_argument('--base-path', type=str, help='Base path to clc directory')
     parser.add_argument('--json', action='store_true', help='Output as JSON')
     parser.add_argument('--detailed', action='store_true', help='Include detailed metrics')
 

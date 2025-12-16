@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 
 # Configuration
-DB_PATH = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
+DB_PATH = Path.home() / ".claude" / "clc" / "memory" / "index.db"
 
 
 class FraudReviewer:

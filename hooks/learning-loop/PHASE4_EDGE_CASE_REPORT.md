@@ -311,9 +311,9 @@ password:secret123
 ## Test Artifacts
 
 All test files are available at:
-- `~/.claude/emergent-learning/hooks/learning-loop/test_edge_cases_phase4.py`
-- `~/.claude/emergent-learning/hooks/learning-loop/test_advisoryverifier_integration.py`
-- `~/.claude/emergent-learning/hooks/learning-loop/PHASE4_EDGE_CASE_REPORT.md`
+- `~/.claude/clc/hooks/learning-loop/test_edge_cases_phase4.py`
+- `~/.claude/clc/hooks/learning-loop/test_advisoryverifier_integration.py`
+- `~/.claude/clc/hooks/learning-loop/PHASE4_EDGE_CASE_REPORT.md`
 
 Run tests anytime with:
 ```bash

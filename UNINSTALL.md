@@ -36,7 +36,7 @@ The automated script will:
 ### Windows (PowerShell)
 ```powershell
 # Remove ELF files (keeps your Claude Code working)
-Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\emergent-learning"
+Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\clc"
 Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\hooks\learning-loop"
 
 # Note: You'll need to manually edit settings.json to remove hooks
@@ -46,7 +46,7 @@ Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\hooks\learning-loop"
 ### Mac/Linux
 ```bash
 # Remove ELF files (keeps your Claude Code working)
-rm -rf ~/.claude/emergent-learning
+rm -rf ~/.claude/clc
 rm -rf ~/.claude/hooks/learning-loop
 
 # Note: You'll need to manually edit settings.json to remove hooks
@@ -171,21 +171,21 @@ If you want to keep your learned heuristics and history for later:
 **Before uninstalling, backup:**
 ```bash
 # Copy database (contains heuristics, failures, successes)
-cp ~/.claude/emergent-learning/memory/index.db ~/elf-backup.db
+cp ~/.claude/clc/memory/index.db ~/elf-backup.db
 
 # Copy golden rules (if you customized them)
-cp ~/.claude/emergent-learning/memory/golden-rules.md ~/elf-golden-rules-backup.md
+cp ~/.claude/clc/memory/golden-rules.md ~/elf-golden-rules-backup.md
 
 # Copy CEO inbox (pending decisions)
-cp -r ~/.claude/emergent-learning/ceo-inbox ~/elf-ceo-inbox-backup
+cp -r ~/.claude/clc/ceo-inbox ~/elf-ceo-inbox-backup
 
 # Optional: Copy entire memory directory for complete backup
-cp -r ~/.claude/emergent-learning/memory ~/elf-memory-backup
+cp -r ~/.claude/clc/memory ~/elf-memory-backup
 ```
 
 **To restore later after reinstalling:**
 ```bash
-cp ~/elf-backup.db ~/.claude/emergent-learning/memory/index.db
+cp ~/elf-backup.db ~/.claude/clc/memory/index.db
 ```
 
 ---
@@ -201,7 +201,7 @@ claude --version
 And check no ELF directories remain:
 
 ```bash
-ls ~/.claude/emergent-learning    # Should say "No such file or directory"
+ls ~/.claude/clc    # Should say "No such file or directory"
 ls ~/.claude/hooks/learning-loop  # Should say "No such file or directory"
 ```
 
