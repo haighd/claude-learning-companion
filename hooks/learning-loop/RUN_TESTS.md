@@ -22,7 +22,7 @@ python test_integration_phase4.py
 ```
 
 Expected output:
-```
+```text
 Total Passed: 13
 Total Failed: 0
 Success Rate: 13/13 (100.0%)
@@ -97,7 +97,7 @@ Success Rate: 13/13 (100.0%)
 ## Interpreting Results
 
 ### Success
-```
+```text
 [PASS] Test N: Description
 ...
 Total Passed: N
@@ -106,7 +106,7 @@ Success Rate: N/N (100.0%)
 ```
 
 ### Failure
-```
+```text
 [FAIL] Test N: Description
 AssertionError: ...
 ```
@@ -206,8 +206,8 @@ Add to `run_all_tests()` in test_integration_phase4.py
 ## Test Files Location
 
 All test files are in:
-```
-~/.claude\clc\hooks\learning-loop\
+```text
+~/.claude/clc/hooks/learning-loop/
 ├── test_integration_phase4.py  (NEW - Phase 4)
 ├── test_advisory.py
 ├── test_comment_filter.py

@@ -10,8 +10,8 @@ from pathlib import Path
 import sys
 
 # Add fraud_review module to path
-EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "clc"
-sys.path.insert(0, str(EMERGENT_LEARNING_PATH / "query"))
+CLC_PATH = Path.home() / ".claude" / "clc"
+sys.path.insert(0, str(CLC_PATH / "query"))
 
 from fraud_review import FraudReviewer
 

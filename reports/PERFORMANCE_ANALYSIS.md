@@ -274,6 +274,6 @@ CREATE INDEX idx_learnings_tags_json ON learnings USING json_extract(tags_json, 
 ---
 
 ## File Locations
-- **Query Script:** `~/.claude\clc\query\query.py`
-- **Database:** `~/.claude\clc\memory\index.db`
-- **Golden Rules:** `~/.claude\clc\memory\golden-rules.md`
+- **Query Script:** `~/.claude/clc/query/query.py`
+- **Database:** `~/.claude/clc/memory/index.db`
+- **Golden Rules:** `~/.claude/clc/memory/golden-rules.md`

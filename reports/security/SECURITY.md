@@ -31,8 +31,8 @@ ELF is **NOT designed for**:
 **Recommendations:**
 ```bash
 # Set restrictive permissions on database files
-chmod 600 ~/.clc/memory/*.db
-chmod 600 ~/.clc/coordination/*.db
+chmod 600 ~/.claude/clc/memory/*.db
+chmod 600 ~/.claude/clc/coordination/*.db
 ```
 
 ### 2. Secrets Management
@@ -122,12 +122,12 @@ ssh -L 8080:localhost:8080 user@remote-host
 ### 7. File System Access
 
 **File Operations:**
-- Framework writes to ~/.clc/ by default
+- Framework writes to ~/.claude/clc/ by default
 - Scripts may read/write files in project directories
 - No privilege escalation mechanisms
 
 **Recommendations:**
-- Ensure ~/.clc/ has restrictive permissions
+- Ensure ~/.claude/clc/ has restrictive permissions
 - Use dedicated user accounts for automation
 - Monitor file system activity in production environments
 

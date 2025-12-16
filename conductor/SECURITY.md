@@ -156,7 +156,7 @@ The test suite includes:
 
 Run tests with:
 ```bash
-cd ~/.claude\clc\conductor
+cd ~/.claude/clc/conductor
 python -m pytest tests/test_validation.py -v
 ```
 
