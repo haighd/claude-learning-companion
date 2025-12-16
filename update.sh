@@ -24,9 +24,9 @@ NC='\033[0m' # No Color
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
-EMERGENT_LEARNING_DIR="$CLAUDE_DIR/clc"
-VERSION_FILE="$EMERGENT_LEARNING_DIR/VERSION"
-DB_PATH="$EMERGENT_LEARNING_DIR/memory/index.db"
+CLC_DIR="$CLAUDE_DIR/clc"
+VERSION_FILE="$CLC_DIR/VERSION"
+DB_PATH="$CLC_DIR/memory/index.db"
 STOCK_HASHES_FILE="$SCRIPT_DIR/.stock-hashes"
 GITHUB_REPO="Spacehunterz/Emergent-Learning-Framework_ELF"
 GITHUB_API="https://api.github.com/repos/$GITHUB_REPO"
@@ -116,7 +116,7 @@ compute_file_hash() {
 # Check if a file has been modified from stock
 is_file_modified() {
     local file="$1"
-    local relative_path="${file#$EMERGENT_LEARNING_DIR/}"
+    local relative_path="${file#$CLC_DIR/}"
 
     if [ ! -f "$STOCK_HASHES_FILE" ]; then
         # No stock hashes file - can't determine, assume not modified
@@ -149,14 +149,14 @@ create_backup() {
     fi
 
     # Backup golden rules
-    if [ -f "$EMERGENT_LEARNING_DIR/memory/golden-rules.md" ]; then
-        cp "$EMERGENT_LEARNING_DIR/memory/golden-rules.md" "$BACKUP_DIR/"
+    if [ -f "$CLC_DIR/memory/golden-rules.md" ]; then
+        cp "$CLC_DIR/memory/golden-rules.md" "$BACKUP_DIR/"
         echo -e "  ${GREEN}✓${NC} Golden rules"
     fi
 
     # Backup CEO inbox
-    if [ -d "$EMERGENT_LEARNING_DIR/ceo-inbox" ]; then
-        cp -r "$EMERGENT_LEARNING_DIR/ceo-inbox" "$BACKUP_DIR/"
+    if [ -d "$CLC_DIR/ceo-inbox" ]; then
+        cp -r "$CLC_DIR/ceo-inbox" "$BACKUP_DIR/"
         echo -e "  ${GREEN}✓${NC} CEO inbox"
     fi
 
@@ -198,14 +198,14 @@ rollback() {
 
     # Restore golden rules
     if [ -f "$BACKUP_DIR/golden-rules.md" ]; then
-        cp "$BACKUP_DIR/golden-rules.md" "$EMERGENT_LEARNING_DIR/memory/"
+        cp "$BACKUP_DIR/golden-rules.md" "$CLC_DIR/memory/"
         echo -e "  ${GREEN}✓${NC} Golden rules restored"
     fi
 
     # Restore CEO inbox
     if [ -d "$BACKUP_DIR/ceo-inbox" ]; then
-        rm -rf "$EMERGENT_LEARNING_DIR/ceo-inbox"
-        cp -r "$BACKUP_DIR/ceo-inbox" "$EMERGENT_LEARNING_DIR/"
+        rm -rf "$CLC_DIR/ceo-inbox"
+        cp -r "$BACKUP_DIR/ceo-inbox" "$CLC_DIR/"
         echo -e "  ${GREEN}✓${NC} CEO inbox restored"
     fi
 
@@ -249,7 +249,7 @@ trap on_error ERR
 prompt_conflict() {
     local file="$1"
     local new_file="$2"
-    local relative_path="${file#$EMERGENT_LEARNING_DIR/}"
+    local relative_path="${file#$CLC_DIR/}"
 
     while true; do
         echo ""
@@ -299,7 +299,7 @@ prompt_conflict() {
 
 # Check dashboard for modifications
 check_dashboard_modifications() {
-    local dashboard_dir="$EMERGENT_LEARNING_DIR/dashboard-app"
+    local dashboard_dir="$CLC_DIR/dashboard-app"
     local modified_count=0
 
     if [ ! -d "$dashboard_dir" ]; then
@@ -360,8 +360,8 @@ run_migrations() {
 echo -e "${YELLOW}[Step 1/6]${NC} Pre-flight checks..."
 
 # Check if ELF is installed
-if [ ! -d "$EMERGENT_LEARNING_DIR" ]; then
-    echo -e "${RED}[Error]${NC} ELF not installed at $EMERGENT_LEARNING_DIR"
+if [ ! -d "$CLC_DIR" ]; then
+    echo -e "${RED}[Error]${NC} ELF not installed at $CLC_DIR"
     echo -e "${YELLOW}Run install.sh first to install ELF.${NC}"
     exit 1
 fi
@@ -420,7 +420,7 @@ TRACKED_FILES=(
 )
 
 for relative_file in "${TRACKED_FILES[@]}"; do
-    full_path="$EMERGENT_LEARNING_DIR/$relative_file"
+    full_path="$CLC_DIR/$relative_file"
     if [ -f "$full_path" ] && is_file_modified "$full_path"; then
         MODIFIED_FILES+=("$relative_file")
         echo -e "  ${YELLOW}Modified:${NC} $relative_file"
@@ -527,7 +527,7 @@ else
             # Check each file for modifications
             find "$TEMP_DIR/$dir" -type f | while read -r new_file; do
                 relative="${new_file#$TEMP_DIR/}"
-                existing="$EMERGENT_LEARNING_DIR/$relative"
+                existing="$CLC_DIR/$relative"
 
                 if [ -f "$existing" ] && is_file_modified "$existing"; then
                     prompt_conflict "$existing" "$new_file"
@@ -542,8 +542,8 @@ else
     # Update dashboard if not skipped
     if [ "$SKIP_DASHBOARD" != true ] && [ -d "$TEMP_DIR/dashboard-app" ]; then
         echo -e "  Updating dashboard..."
-        rm -rf "$EMERGENT_LEARNING_DIR/dashboard-app"
-        cp -r "$TEMP_DIR/dashboard-app" "$EMERGENT_LEARNING_DIR/"
+        rm -rf "$CLC_DIR/dashboard-app"
+        cp -r "$TEMP_DIR/dashboard-app" "$CLC_DIR/"
         echo -e "  ${GREEN}✓${NC} Dashboard updated"
     fi
 
@@ -578,9 +578,9 @@ elif command -v pip &>/dev/null; then
 fi
 
 # Update dashboard dependencies if dashboard was updated
-if [ "$SKIP_DASHBOARD" != true ] && [ -d "$EMERGENT_LEARNING_DIR/dashboard-app/frontend" ]; then
+if [ "$SKIP_DASHBOARD" != true ] && [ -d "$CLC_DIR/dashboard-app/frontend" ]; then
     echo -e "  Installing dashboard dependencies..."
-    cd "$EMERGENT_LEARNING_DIR/dashboard-app/frontend"
+    cd "$CLC_DIR/dashboard-app/frontend"
     if command -v bun &>/dev/null; then
         bun install --silent 2>/dev/null || true
     elif command -v npm &>/dev/null; then
