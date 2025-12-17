@@ -427,7 +427,7 @@ else
         1|"")
             # Merge: append CLC instructions to existing
             echo "" >> "$CLAUDE_MD_DST"
-            echo "---" >> "$CLAUDE_MD_DST"
+            echo "# --- CLC Content Appended Below ---" >> "$CLAUDE_MD_DST"
             echo "" >> "$CLAUDE_MD_DST"
             cat "$CLAUDE_MD_SRC" >> "$CLAUDE_MD_DST"
             echo -e "  ${GREEN}Merged CLC instructions into existing CLAUDE.md${NC}"
