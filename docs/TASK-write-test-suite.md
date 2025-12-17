@@ -79,31 +79,74 @@ Write new, focused tests starting with the most critical components:
 - [ ] Test heuristics router endpoints (`/api/heuristics/*`):
   - [ ] Test `GET /heuristics` (list all)
   - [ ] Test `GET /heuristics/{id}` (get single)
+  - [ ] Test `GET /heuristic-graph` (relationship graph)
   - [ ] Test `POST /heuristics/{id}/promote`
+  - [ ] Test `POST /heuristics/{id}/demote`
   - [ ] Test `PUT /heuristics/{id}` (update)
   - [ ] Test `DELETE /heuristics/{id}`
 - [ ] Test runs router endpoints (`/api/runs/*`):
   - [ ] Test `GET /runs` (list runs)
-  - [ ] Test `GET /runs/{id}` (get single run)
-  - [ ] Test `GET /runs/{id}/nodes` (get run nodes)
+  - [ ] Test `GET /runs/{id}` (get single run with executions)
+  - [ ] Test `GET /runs/{id}/diff` (get run diff)
+  - [ ] Test `POST /runs/{id}/retry` (retry run)
+  - [ ] Test `GET /hotspots` (hot spots from runs)
+  - [ ] Test `GET /hotspots/treemap` (treemap visualization)
 - [ ] Test knowledge router endpoints (`/api/knowledge/*`):
-  - [ ] Test `GET /knowledge` (list knowledge items)
-  - [ ] Test `GET /knowledge/{id}` (get single item)
+  - [ ] Test `GET /learnings` (list learnings)
+  - [ ] Test decisions sub-router:
+    - [ ] Test `GET /decisions` (list)
+    - [ ] Test `GET /decisions/{id}` (get single)
+    - [ ] Test `POST /decisions` (create)
+    - [ ] Test `PUT /decisions/{id}` (update)
+    - [ ] Test `DELETE /decisions/{id}`
+    - [ ] Test `POST /decisions/{id}/supersede`
+  - [ ] Test assumptions sub-router:
+    - [ ] Test `GET /assumptions` (list)
+    - [ ] Test `GET /assumptions/{id}` (get single)
+    - [ ] Test `POST /assumptions` (create)
+    - [ ] Test `PUT /assumptions/{id}` (update)
+    - [ ] Test `POST /assumptions/{id}/verify`
+    - [ ] Test `POST /assumptions/{id}/challenge`
+    - [ ] Test `DELETE /assumptions/{id}`
+  - [ ] Test invariants sub-router:
+    - [ ] Test `GET /invariants` (list)
+    - [ ] Test `GET /invariants/{id}` (get single)
+    - [ ] Test `POST /invariants` (create)
+    - [ ] Test `PUT /invariants/{id}` (update)
+    - [ ] Test `POST /invariants/{id}/validate`
+    - [ ] Test `POST /invariants/{id}/violate`
+    - [ ] Test `DELETE /invariants/{id}`
+  - [ ] Test spike-reports sub-router:
+    - [ ] Test `GET /spike-reports` (list)
+    - [ ] Test `GET /spike-reports/search`
+    - [ ] Test `GET /spike-reports/{id}` (get single)
+    - [ ] Test `POST /spike-reports` (create)
+    - [ ] Test `PUT /spike-reports/{id}` (update)
+    - [ ] Test `POST /spike-reports/{id}/rate`
+    - [ ] Test `DELETE /spike-reports/{id}`
 - [ ] Test query router endpoints (`/api/queries/*`):
-  - [ ] Test `POST /queries` (execute query)
-  - [ ] Test `GET /queries/history` (query history)
+  - [ ] Test `GET /queries` (list query history)
+  - [ ] Test `POST /query` (execute query)
 - [ ] Test session router endpoints (`/api/sessions/*`):
+  - [ ] Test `GET /sessions/stats` (session statistics)
   - [ ] Test `GET /sessions` (list sessions)
   - [ ] Test `GET /sessions/{id}` (get session details)
-  - [ ] Test `GET /sessions/{id}/events` (session events)
+  - [ ] Test `GET /sessions/{id}/summary` (get session summary)
+  - [ ] Test `GET /projects` (list projects)
+  - [ ] Test `POST /sessions/{id}/summarize` (generate summary)
+  - [ ] Test `POST /sessions/summarize-batch` (batch summarize)
 - [ ] Test admin router endpoints (`/api/admin/*`):
-  - [ ] Test `GET /admin/config` (get config)
-  - [ ] Test `POST /admin/config` (update config)
-  - [ ] Test `POST /admin/reindex` (trigger reindex)
+  - [ ] Test `GET /ceo-inbox` (list CEO inbox items)
+  - [ ] Test `GET /ceo-inbox/{filename}` (get single item)
+  - [ ] Test `GET /export/{export_type}` (export data)
+  - [ ] Test `POST /open-in-editor` (open file in editor)
 - [ ] Test workflow router endpoints (`/api/workflows/*`):
   - [ ] Test `GET /workflows` (list workflows)
-  - [ ] Test `GET /workflows/{id}` (get workflow)
   - [ ] Test `POST /workflows` (create workflow)
+- [ ] Test fraud router endpoints (`/api/fraud/*`):
+  - [ ] Test `GET /fraud-reports` (list reports)
+  - [ ] Test `GET /fraud-reports/{id}` (get single report)
+  - [ ] Test `POST /fraud-reports/{id}/review` (review report)
 - [ ] Test database utilities
 
 ## Technical Notes
