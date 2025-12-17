@@ -159,7 +159,10 @@ Write new, focused tests starting with the most critical components:
   - [ ] Test `GET /fraud-reports` (list reports)
   - [ ] Test `GET /fraud-reports/{id}` (get single report)
   - [ ] Test `POST /fraud-reports/{id}/review` (review report)
-- [ ] Test database utilities
+- [ ] Test database utilities (`dashboard-app/backend/utils.py`):
+  - [ ] Test `get_db()` database connection helper
+  - [ ] Test `dict_from_row()` row conversion
+  - [ ] Test `ConnectionManager` WebSocket management
 
 ## Technical Notes
 
@@ -168,8 +171,10 @@ Write new, focused tests starting with the most critical components:
 - For database permission tests (os.chmod, icacls), use either:
   - Temporary file-based database to verify actual permission setting
   - Mock filesystem calls to verify correct arguments are passed
-- Create proper fixtures in `conftest.py`
+- Create proper fixtures in `conftest.py` and organize tests by mirroring the application's directory structure (e.g., `tests/query/test_query.py`)
 - Create a strategy for managing test data (e.g., using a library like `factory-boy` to create model factories) to cover diverse scenarios and edge cases
+- Mock external services (e.g., LLM APIs) to ensure tests are fast, deterministic, and don't rely on network access
+- Use `pytest.mark.parametrize` to reduce code duplication when testing similar functions or API endpoints
 - Consider using snapshot testing (e.g., `pytest-snapshot`) for asserting complex API responses, especially for Dashboard API endpoints
 - Aim for tests that actually run in CI
 
