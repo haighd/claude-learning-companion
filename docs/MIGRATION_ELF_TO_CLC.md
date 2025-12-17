@@ -79,7 +79,7 @@ Update the paths in each file.
 Check `~/.claude/commands/` for old paths:
 
 ```bash
-grep -rn "emergent-learning" ~/.claude/commands/
+grep -rnE "emergent-learning|\.claude/elf" ~/.claude/commands/
 ```
 
 The CLC install should have updated these, but verify:
@@ -111,13 +111,14 @@ Kill any old processes:
 **Mac/Linux**
 ```bash
 pkill -f "emergent-learning"
+pkill -f ".claude/elf"
 pkill -f "dashboard-app"
 ```
 
 **Windows (PowerShell)**
 ```powershell
 # Stop processes by command line content
-Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*emergent-learning*' } | Stop-Process -Force -ErrorAction SilentlyContinue
+Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*emergent-learning*' -or $_.CommandLine -like '*\.claude\elf*' } | Stop-Process -Force -ErrorAction SilentlyContinue
 Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*dashboard-app*' } | Stop-Process -Force -ErrorAction SilentlyContinue
 ```
 
@@ -139,9 +140,11 @@ After confirming CLC works, remove old installation:
 ```bash
 # Backup first
 mv ~/.claude/emergent-learning ~/.claude/emergent-learning.bak
+mv ~/.claude/elf ~/.claude/elf.bak
 
 # Or delete if you have no customizations
 rm -rf ~/.claude/emergent-learning
+rm -rf ~/.claude/elf
 ```
 
 ## Verification Checklist
