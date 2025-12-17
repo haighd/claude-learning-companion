@@ -209,8 +209,8 @@ class AutoCapture:
                         output_data = json.loads(output_json)
                         outcome = output_data.get('outcome', 'unknown')
                         reason = output_data.get('reason', '')
-                    except (json.JSONDecodeError, TypeError):
-                        pass
+                    except (json.JSONDecodeError, TypeError) as e:
+                        logger.warning(f"Could not parse output_json for run {run_id}: {e}")
 
                 if outcome != "unknown":
                     summary_parts.append(f"Outcome: {outcome}")
