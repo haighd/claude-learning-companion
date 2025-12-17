@@ -1,12 +1,12 @@
-# Load Building Context
+# Load CLC Context
 
-Query the Emergent Learning Framework for institutional knowledge.
+Query the Claude Learning Companion for institutional knowledge.
 
 ## Steps
 
 1. Run the query system to load context:
    ```bash
-   python ~/.claude/emergent-learning/query/query.py --context
+   python3 ~/.claude/clc/query/query.py --context
    ```
 
 2. Summarize for the user:
@@ -21,9 +21,9 @@ Query the Emergent Learning Framework for institutional knowledge.
 
 ## Domain-Specific Queries
 
-If the user includes a domain (e.g., "/building architecture"), also run:
+If the user includes a domain (e.g., "/checkin architecture"), also run:
 ```bash
-python ~/.claude/emergent-learning/query/query.py --domain [domain]
+python3 ~/.claude/clc/query/query.py --domain [domain]
 ```
 
 ## Available Domains

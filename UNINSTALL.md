@@ -1,6 +1,6 @@
-# Uninstalling ELF (Emergent Learning Framework)
+# Uninstalling CLC (Claude Learning Companion)
 
-This guide helps you cleanly remove ELF without breaking your Claude Code setup.
+This guide helps you cleanly remove CLC without breaking your Claude Code setup.
 
 ---
 
@@ -11,18 +11,18 @@ For the easiest uninstall experience, use the automated script:
 ### Windows (PowerShell)
 ```powershell
 # Download and run uninstall script
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/your-repo/ELF/main/scripts/uninstall.ps1" -OutFile "$env:TEMP\uninstall-elf.ps1"
-PowerShell -ExecutionPolicy Bypass -File "$env:TEMP\uninstall-elf.ps1"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/your-repo/CLC/v1.0.0/scripts/uninstall.ps1" -OutFile "$env:TEMP\uninstall-clc.ps1"
+PowerShell -ExecutionPolicy Bypass -File "$env:TEMP\uninstall-clc.ps1"
 ```
 
 ### Mac/Linux
 ```bash
 # Download and run uninstall script
-curl -fsSL https://raw.githubusercontent.com/your-repo/ELF/main/scripts/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/your-repo/CLC/v1.0.0/scripts/uninstall.sh | bash
 ```
 
 The automated script will:
-- Remove all ELF directories safely
+- Remove all CLC directories safely
 - Clean up hooks from settings.json automatically
 - Offer to backup your data before removal
 - Validate that Claude Code still works after uninstall
@@ -35,8 +35,8 @@ The automated script will:
 
 ### Windows (PowerShell)
 ```powershell
-# Remove ELF files (keeps your Claude Code working)
-Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\emergent-learning"
+# Remove CLC files (keeps your Claude Code working)
+Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\clc"
 Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\hooks\learning-loop"
 
 # Note: You'll need to manually edit settings.json to remove hooks
@@ -45,8 +45,8 @@ Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\hooks\learning-loop"
 
 ### Mac/Linux
 ```bash
-# Remove ELF files (keeps your Claude Code working)
-rm -rf ~/.claude/emergent-learning
+# Remove CLC files (keeps your Claude Code working)
+rm -rf ~/.claude/clc
 rm -rf ~/.claude/hooks/learning-loop
 
 # Note: You'll need to manually edit settings.json to remove hooks
@@ -102,53 +102,53 @@ The installer added hooks to your `~/.claude/settings.json`. To remove them:
 
 ## Optional: Remove CLAUDE.md Changes
 
-**WARNING:** CLAUDE.md contains important instructions for how Claude Code operates. Removing it will affect ALL your Claude Code sessions, not just ELF.
+**WARNING:** CLAUDE.md contains important instructions for how Claude Code operates. Removing it will affect ALL your Claude Code sessions, not just CLC.
 
 ### Before Removing CLAUDE.md:
 
 1. **Check if you had a pre-existing CLAUDE.md:**
-   - If you installed ELF on a fresh system, ELF created this file
-   - If you had Claude Code configured before ELF, you likely had your own CLAUDE.md
-   - **The ELF installer preserves existing CLAUDE.md files** - it does NOT overwrite them
+   - If you installed CLC on a fresh system, CLC created this file
+   - If you had Claude Code configured before CLC, you likely had your own CLAUDE.md
+   - **The CLC installer preserves existing CLAUDE.md files** - it does NOT overwrite them
 
 2. **Determine what's in your CLAUDE.md:**
    ```bash
    # View your CLAUDE.md file
    cat ~/.claude/CLAUDE.md
-   
-   # Check if it contains only ELF instructions
-   grep -i "emergent learning" ~/.claude/CLAUDE.md
+
+   # Check for CLC-related instructions
+   grep -E -i "\b(claude learning companion|clc)\b" ~/.claude/CLAUDE.md
    ```
 
 3. **Safe removal options:**
 
-   **Option A: If ELF created it (safe to remove):**
+   **Option A: If CLC created it (safe to remove):**
    ```bash
-   # Only remove if the file contains ONLY ELF instructions
+   # Only remove if the file contains ONLY CLC instructions
    rm ~/.claude/CLAUDE.md
    ```
 
    **Option B: If you're unsure (safest):**
    ```bash
-   # Backup first, then remove ELF sections manually
+   # Backup first, then remove CLC sections manually
    cp ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.backup
-   
-   # Edit the file and remove only the ELF-related sections
+
+   # Edit the file and remove only the CLC-related sections
    nano ~/.claude/CLAUDE.md  # or use your preferred editor
    ```
 
    **Option C: If you had pre-existing content (keep and edit):**
    ```bash
-   # Just remove the ELF sections from CLAUDE.md
+   # Just remove the CLC sections from CLAUDE.md
    # Keep your original Claude Code instructions
    ```
 
 **What happens if you remove CLAUDE.md:**
-- Claude Code will no longer follow the ELF query-before-acting protocol
+- Claude Code will no longer follow the CLC query-before-acting protocol
 - Any other custom instructions you had will also be removed
 - Your Claude Code sessions will use default behavior only
 
-**Recommendation:** Unless you're certain ELF created this file and you have no other use for CLAUDE.md, consider keeping it and removing only the ELF-specific sections.
+**Recommendation:** Unless you're certain CLC created this file and you have no other use for CLAUDE.md, consider keeping it and removing only the CLC-specific sections.
 
 ---
 
@@ -198,10 +198,10 @@ After removing, verify Claude Code still works:
 claude --version
 ```
 
-And check no ELF directories remain:
+And check no CLC directories remain:
 
 ```bash
-ls ~/.claude/emergent-learning    # Should say "No such file or directory"
+ls ~/.claude/clc                  # Should say "No such file or directory"
 ls ~/.claude/hooks/learning-loop  # Should say "No such file or directory"
 ```
 
