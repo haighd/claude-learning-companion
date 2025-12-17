@@ -87,27 +87,36 @@ grep -nE "emergent-learning|\.claude/elf" ~/.claude/CLAUDE.md
 
 Replace:
 - `~/.claude/emergent-learning/` → `~/.claude/clc/`
+- `~/.claude/elf/` → `~/.claude/clc/`
 - `emergent-learning` → `clc`
 - `ELF` → `CLC`
+
+**Automated replacement (Mac/Linux):**
+```bash
+# Backup the file first, just in case
+cp ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.migration-backup
+
+# Run replacements
+sed -i.bak -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' -e 's|~/.claude/elf/|~/.claude/clc/|g' -e 's|emergent-learning|clc|g' -e 's|ELF|CLC|g' ~/.claude/CLAUDE.md
+```
 
 ## Step 3: Update Project CLAUDE.md Files
 
 For each project that references ELF/emergent-learning:
 
 ```bash
-# Find all project CLAUDE.md files with old references
+# Find and automatically update all project CLAUDE.md files
 # Replace ~/Projects with the actual path to your projects directory
-find ~/Projects -name "CLAUDE.md" -exec grep -lE "emergent-learning|\.claude/elf" {} \;
+find ~/Projects -name "CLAUDE.md" -type f -print0 | xargs -0 sed -i.bak -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' -e 's|~/.claude/elf/|~/.claude/clc/|g' -e 's|emergent-learning|clc|g' -e 's|ELF|CLC|g'
 ```
-
-Update the paths in each file.
 
 ## Step 4: Update Slash Commands
 
-Check `~/.claude/commands/` for old paths:
+Check and update `~/.claude/commands/` for old paths:
 
 ```bash
-grep -rnE "emergent-learning|\.claude/elf" ~/.claude/commands/
+# Find and automatically update slash commands
+find ~/.claude/commands/ -type f -name "*.md" -print0 | xargs -0 sed -i.bak -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' -e 's|~/.claude/elf/|~/.claude/clc/|g' -e 's|emergent-learning|clc|g' -e 's|ELF|CLC|g'
 ```
 
 The CLC install should have updated these, but verify:
