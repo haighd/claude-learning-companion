@@ -21,6 +21,7 @@ Usage:
 """
 
 import asyncio
+import json
 import logging
 from datetime import datetime
 from typing import Optional
@@ -205,7 +206,6 @@ class AutoCapture:
                 reason = ""
                 if output_json and output_json != '{}':
                     try:
-                        import json
                         output_data = json.loads(output_json)
                         outcome = output_data.get('outcome', 'unknown')
                         reason = output_data.get('reason', '')
