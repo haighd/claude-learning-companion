@@ -22,24 +22,50 @@ During PR #1 (rename emergent-learning to clc), we identified that:
 Write new, focused tests starting with the most critical components:
 
 ### Priority 1: Query System (`query/query.py`)
-- [ ] Test `build_context()` method
-- [ ] Test relevance scoring
-- [ ] Test domain filtering
-- [ ] Test database queries (with SQLite in-memory)
+- [ ] Test `build_context()` method (and relevance scoring)
+- [ ] Test `query_by_domain()`
+- [ ] Test `query_by_tags()`
+- [ ] Test `query_recent()`
+- [ ] Test `get_golden_rules()`
+- [ ] Test `get_active_experiments()` and `get_pending_ceo_reviews()`
+- [ ] Test `get_violations()` and `get_violation_summary()`
+- [ ] Test `get_decisions()`, `get_invariants()`, `get_assumptions()`, `get_spike_reports()`
+- [ ] Test `find_similar_failures()`
+- [ ] Test `validate_database()`
+- [ ] Test CLI functionality in `main()`
 
 ### Priority 2: Learning Loop Hooks (`hooks/learning-loop/`)
-- [ ] Test `pre_tool_learning.py` - heuristic lookup
-- [ ] Test `post_tool_learning.py` - outcome recording
-- [ ] Test `get_conductor_and_node()` helper
-- [ ] Test trail laying functionality
+- `pre_tool_learning.py`
+  - [ ] Test domain extraction logic
+  - [ ] Test complexity and risk scoring (`ComplexityScorer`)
+  - [ ] Test heuristic retrieval
+- `post_tool_learning.py`
+  - [ ] Test task outcome determination (`determine_outcome`) for success, failure, and unknown cases
+  - [ ] Test heuristic validation logic (success/failure paths)
+  - [ ] Test auto-recording of failures
+  - [ ] Test advisory verification for risky patterns (`AdvisoryVerifier`)
+  - [ ] Test trail laying functionality
+  - [ ] Test `get_conductor_and_node()` helper
 
 ### Priority 3: Conductor (`conductor/`)
-- [ ] Test workflow start/completion
-- [ ] Test node execution recording
-- [ ] Test run status updates
+- [ ] Test workflow management (create, get, list)
+- [ ] Test node execution recording (start, completion, failure)
+- [ ] Test run status updates and context management
+- [ ] Test `safe_eval_condition` helper with various inputs
+- [ ] Test different workflow patterns:
+  - [ ] Linear (A -> B -> C)
+  - [ ] Branching (A -> B, A -> C)
+  - [ ] Conditional branching
+  - [ ] Converging (A -> C, B -> C)
+- [ ] Test trail laying and retrieval (`lay_trail`, `get_trails`, `get_hot_spots`)
 
 ### Priority 4: Dashboard API (`dashboard-app/backend/`)
-- [ ] Test core endpoints
+- [ ] Test WebSocket connection and real-time updates (`/ws`)
+- [ ] Test analytics router endpoints (`/api/analytics/*`)
+- [ ] Test heuristics router endpoints (`/api/heuristics/*`)
+- [ ] Test runs and knowledge routers (`/api/runs/*`, `/api/knowledge/*`)
+- [ ] Test query and session routers (`/api/queries/*`, `/api/sessions/*`)
+- [ ] Test admin and workflow routers (`/api/admin/*`, `/api/workflows/*`)
 - [ ] Test database utilities
 
 ## Technical Notes
