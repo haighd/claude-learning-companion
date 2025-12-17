@@ -14,7 +14,11 @@ The CLC project has 23 test files in `tests/` but many have issues (missing impo
 
 **Legacy Test Inventory (23 files):**
 - **To replace** (10 files): Listed in each priority section below
-- **To evaluate** (11 files): `test_baseline_refresh.py`, `test_crash_recovery.py`, `test_dependency_graph.py`, `test_destructive_edge_cases.py`, `test_domain_elasticity.py`, `test_integration_multiagent.py`, `test_lifecycle_adversarial.py`, `test_meta_observer.py`, `test_sqlite_edge_cases.py`, `test_stress.py`, `test_temporal_smoothing.py` - assess during implementation whether these can be salvaged or should be replaced
+- **Mapped to priorities** (6 files):
+  - Priority 1 (Query): `test_sqlite_edge_cases.py`, `test_meta_observer.py` - database edge cases and observability
+  - Priority 3 (Conductor): `test_crash_recovery.py`, `test_dependency_graph.py` - workflow resilience
+  - Priority 5 (Non-Functional): `test_stress.py`, `test_lifecycle_adversarial.py` - performance and security
+- **To evaluate** (5 files): `test_baseline_refresh.py`, `test_destructive_edge_cases.py`, `test_domain_elasticity.py`, `test_integration_multiagent.py`, `test_temporal_smoothing.py` - assess during implementation whether these can be salvaged or should be replaced
 - **Pytest infrastructure** (2 files): `conftest.py` (will be replaced with new fixtures), `__init__.py` (keep as package marker)
 
 ## Background
@@ -29,7 +33,7 @@ During PR #1 (rename emergent-learning to clc), we identified that:
 Write new, focused tests starting with the most critical components:
 
 ### Priority 1: Query System (`query/query.py`)
-*Replaces: `tests/test_edge_cases.py`, `tests/test_edge_cases_v2.py`*
+*Replaces: `tests/test_edge_cases.py`, `tests/test_edge_cases_v2.py`, `tests/test_sqlite_edge_cases.py`, `tests/test_meta_observer.py`*
 
 - [ ] Test `build_context()` method (and relevance scoring)
 - [ ] Test `query_by_domain()`
@@ -67,7 +71,7 @@ Write new, focused tests starting with the most critical components:
   - [ ] Test explicit learning extraction (`extract_and_record_learnings`)
 
 ### Priority 3: Conductor (`conductor/`)
-*Replaces: `tests/test_conductor_workflow.py`, `tests/test_claim_chains.py`, `tests/test_claim_chains_comprehensive.py`*
+*Replaces: `tests/test_conductor_workflow.py`, `tests/test_claim_chains.py`, `tests/test_claim_chains_comprehensive.py`, `tests/test_crash_recovery.py`, `tests/test_dependency_graph.py`*
 
 - [ ] Test workflow management (create, get, list)
 - [ ] Test node execution recording (start, completion, failure)
@@ -172,6 +176,15 @@ Write new, focused tests starting with the most critical components:
   - [ ] Test `dict_from_row()` row conversion
   - [ ] Test `ConnectionManager` WebSocket management
 
+### Priority 5: Non-Functional Testing
+*Replaces: `tests/test_stress.py`, `tests/test_lifecycle_adversarial.py`*
+
+- [ ] Implement stress tests to measure performance under heavy load
+- [ ] Implement adversarial tests to check for security vulnerabilities and robustness against unexpected inputs
+- [ ] Evaluate and potentially integrate chaos testing principles
+- [ ] Test concurrent access patterns and race conditions
+- [ ] Test memory usage under sustained load
+
 ## Technical Notes
 
 - Use `pytest` with `pytest-asyncio` for async tests
@@ -200,6 +213,7 @@ Write new, focused tests starting with the most critical components:
 - [ ] New tests are documented with clear docstrings and cover important edge cases
 - [ ] Create a `tests/README.md` documenting test organization, how to run tests, and guidelines for contributors
 - [ ] Test suite completes within reasonable time (target: under 5 minutes) to maintain fast CI feedback
+- [ ] No flaky tests are merged into the main branch
 - [ ] Legacy broken tests are deleted as new tests replace them
 
 ## To Start This Task
