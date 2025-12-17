@@ -1,12 +1,12 @@
 #!/bin/bash
-# Emergent Learning Framework - Restore Script
+# Claude Learning Companion - Restore Script
 # Restores framework from backup with conflict detection and verification
 
 set -euo pipefail
 
 # Configuration
-FRAMEWORK_DIR="$HOME/.claude/emergent-learning"
-BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/emergent-learning}"
+FRAMEWORK_DIR="$HOME/.claude/clc"
+BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/clc}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -37,7 +37,7 @@ usage() {
     cat << EOF
 Usage: $0 [OPTIONS] <backup-timestamp>
 
-Restore Emergent Learning Framework from backup.
+Restore Claude Learning Companion from backup.
 
 Arguments:
   <backup-timestamp>    Timestamp of backup to restore (format: YYYYMMDD_HHMMSS)
@@ -236,7 +236,7 @@ if [[ "$NO_BACKUP" != true ]] && [[ -d "$FRAMEWORK_DIR" ]]; then
     log_info "Creating safety backup of current state: $SAFETY_BACKUP"
 
     cd "$HOME/.claude"
-    tar -czf "$SAFETY_BACKUP" emergent-learning/
+    tar -czf "$SAFETY_BACKUP" clc/
     log_success "Safety backup created"
 fi
 

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Session Logger Module for Emergent Learning Framework.
+Session Logger Module for Claude Learning Companion.
 
 Provides comprehensive session logging functionality:
 - Appends tool usage to JSONL files
-- Format: ~/.claude/emergent-learning/sessions/logs/YYYY-MM-DD_session.jsonl
+- Format: ~/.claude/clc/sessions/logs/YYYY-MM-DD_session.jsonl
 - Tracks tool invocations, observations, and decisions
 - Auto-creates directories as needed
 - Handles session rotation (30-day retention)
@@ -24,8 +24,8 @@ import hashlib
 # Configuration
 MAX_SUMMARY_LENGTH = 500
 RETENTION_DAYS = 30
-LOGS_DIR = Path.home() / ".claude" / "emergent-learning" / "sessions" / "logs"
-PROCESSED_FILE = Path.home() / ".claude" / "emergent-learning" / "sessions" / ".processed"
+LOGS_DIR = Path.home() / ".claude" / "clc" / "sessions" / "logs"
+PROCESSED_FILE = Path.home() / ".claude" / "clc" / "sessions" / ".processed"
 
 
 # Thread-safe file writing lock
@@ -51,7 +51,7 @@ class SessionLogger:
         Initialize the session logger.
 
         Args:
-            logs_dir: Custom logs directory (default: ~/.claude/emergent-learning/sessions/logs)
+            logs_dir: Custom logs directory (default: ~/.claude/clc/sessions/logs)
         """
         self.logs_dir = logs_dir or LOGS_DIR
         self._ensure_dirs()
@@ -152,7 +152,7 @@ class SessionLogger:
         """Log a debug message to stderr."""
         try:
             # Only log in debug mode (check env var)
-            if os.environ.get('ELF_DEBUG', '').lower() in ('1', 'true', 'yes'):
+            if os.environ.get('CLC_DEBUG', '').lower() in ('1', 'true', 'yes'):
                 sys.stderr.write(f"[SessionLogger] DEBUG: {message}\n")
         except (IOError, OSError, AttributeError):
             pass  # Debug logging is best-effort
@@ -580,7 +580,7 @@ if __name__ == "__main__":
     # Demo/test when run directly
     import argparse
 
-    parser = argparse.ArgumentParser(description="Session Logger for ELF")
+    parser = argparse.ArgumentParser(description="Session Logger for CLC")
     parser.add_argument("--test", action="store_true", help="Run test logging")
     parser.add_argument("--cleanup", action="store_true", help="Run cleanup")
     parser.add_argument("--dry-run", action="store_true", help="Dry run for cleanup")

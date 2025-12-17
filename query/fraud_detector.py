@@ -22,7 +22,7 @@ from statistics import mean, stdev, variance
 from math import prod
 
 # Configuration
-DB_PATH = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
+DB_PATH = Path.home() / ".claude" / "clc" / "memory" / "index.db"
 
 @dataclass
 class AnomalySignal:

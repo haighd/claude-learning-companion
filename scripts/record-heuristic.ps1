@@ -1,4 +1,4 @@
-# Record a heuristic in the Emergent Learning Framework
+# Record a heuristic in the Claude Learning Companion
 
 $ErrorActionPreference = "Stop"
 

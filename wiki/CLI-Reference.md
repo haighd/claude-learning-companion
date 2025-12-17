@@ -74,7 +74,7 @@ asyncio.run(main())
 
 Search your session history with natural language using the `/search` slash command:
 
-```
+```bash
 /search what was my last prompt?
 /search what was I working on yesterday?
 /search find prompts about git
@@ -90,33 +90,33 @@ Type `/search` followed by any question in plain English. Claude will search you
 
 ```bash
 # Record a failure
-~/.claude/emergent-learning/scripts/record-failure.sh
+~/.claude/clc/scripts/record-failure.sh
 
 # Record a heuristic
-~/.claude/emergent-learning/scripts/record-heuristic.sh
+~/.claude/clc/scripts/record-heuristic.sh
 
 # Start an experiment
-~/.claude/emergent-learning/scripts/start-experiment.sh
+~/.claude/clc/scripts/start-experiment.sh
 ```
 
 ## Conductor Commands
 
 ```bash
 # List workflow runs
-python ~/.claude/emergent-learning/conductor/query_conductor.py --workflows
+python ~/.claude/clc/conductor/query_conductor.py --workflows
 
 # Show specific run
-python ~/.claude/emergent-learning/conductor/query_conductor.py --workflow 123
+python ~/.claude/clc/conductor/query_conductor.py --workflow 123
 
 # Show failures
-python ~/.claude/emergent-learning/conductor/query_conductor.py --failures
+python ~/.claude/clc/conductor/query_conductor.py --failures
 
 # Show hotspots
-python ~/.claude/emergent-learning/conductor/query_conductor.py --hotspots
+python ~/.claude/clc/conductor/query_conductor.py --hotspots
 
 # Show trails by scent
-python ~/.claude/emergent-learning/conductor/query_conductor.py --trails --scent blocker
+python ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
 
 # Statistics
-python ~/.claude/emergent-learning/conductor/query_conductor.py --stats
+python ~/.claude/clc/conductor/query_conductor.py --stats
 ```

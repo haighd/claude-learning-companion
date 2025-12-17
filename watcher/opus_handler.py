@@ -23,11 +23,11 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 
 # Paths
-COORDINATION_DIR = Path.home() / ".claude" / "emergent-learning" / ".coordination"
+COORDINATION_DIR = Path.home() / ".claude" / "clc" / ".coordination"
 BLACKBOARD_FILE = COORDINATION_DIR / "blackboard.json"
 WATCHER_LOG = COORDINATION_DIR / "watcher-log.md"
 DECISION_FILE = COORDINATION_DIR / "decision.md"
-CEO_INBOX = Path.home() / ".claude" / "emergent-learning" / "ceo-inbox"
+CEO_INBOX = Path.home() / ".claude" / "clc" / "ceo-inbox"
 
 
 def gather_full_context(escalation: Dict[str, Any]) -> Dict[str, Any]:

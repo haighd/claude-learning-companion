@@ -1,7 +1,7 @@
-# Emergent Learning Dashboard Launcher
+# Claude Learning Companion Dashboard Launcher
 # Double-click to start, close window to stop all servers
 
-$Host.UI.RawUI.WindowTitle = "Emergent Learning Dashboard"
+$Host.UI.RawUI.WindowTitle = "CLC Dashboard"
 
 $DashboardPath = $PSScriptRoot
 $BackendPath = Join-Path $DashboardPath "backend"
@@ -9,7 +9,7 @@ $FrontendPath = Join-Path $DashboardPath "frontend"
 
 Clear-Host
 Write-Host "========================================================" -ForegroundColor Cyan
-Write-Host "        EMERGENT LEARNING DASHBOARD                     " -ForegroundColor Cyan
+Write-Host "        CLC DASHBOARD                                   " -ForegroundColor Cyan
 Write-Host "        Agent Intelligence System                       " -ForegroundColor Cyan
 Write-Host "========================================================" -ForegroundColor Cyan
 Write-Host ""

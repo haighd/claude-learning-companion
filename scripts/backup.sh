@@ -1,13 +1,13 @@
 #!/bin/bash
-# Emergent Learning Framework - Backup Script
+# Claude Learning Companion - Backup Script
 # Creates timestamped backups of databases and git-tracked files
 # Supports local and remote backup destinations
 
 set -euo pipefail
 
 # Configuration
-FRAMEWORK_DIR="$HOME/.claude/emergent-learning"
-BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/emergent-learning}"
+FRAMEWORK_DIR="$HOME/.claude/clc"
+BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/clc}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="$BACKUP_ROOT/$TIMESTAMP"
 RETENTION_DAILY=7
@@ -89,7 +89,7 @@ log_success "Git archive created"
 # 4. Create metadata file
 log_info "Creating backup metadata..."
 cat > "$BACKUP_DIR/backup_metadata.txt" << EOF
-Emergent Learning Framework Backup
+Claude Learning Companion Backup
 ===================================
 
 Backup Date: $(date)

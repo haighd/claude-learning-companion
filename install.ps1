@@ -1,4 +1,4 @@
-# Emergent Learning Framework - Windows Installer
+# Claude Learning Companion - Windows Installer
 # Run with: PowerShell -ExecutionPolicy Bypass -File install.ps1 [options]
 
 param(
@@ -92,12 +92,12 @@ $InstallDashboard = -not $NoDashboard -and -not $CoreOnly
 $InstallSwarm = -not $NoSwarm -and -not $CoreOnly
 
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "  Emergent Learning Framework Installer" -ForegroundColor Cyan
+Write-Host "  Claude Learning Companion Installer" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Check for existing installation
-$ExistingVersionFile = Join-Path $env:USERPROFILE ".claude\emergent-learning\VERSION"
+$ExistingVersionFile = Join-Path $env:USERPROFILE ".claude\clc\VERSION"
 if (Test-Path $ExistingVersionFile) {
     $InstalledVersion = (Get-Content $ExistingVersionFile -Raw).Trim()
     Write-Host "[!] ELF is already installed (version $InstalledVersion)" -ForegroundColor Yellow
@@ -153,12 +153,12 @@ Write-Host ""
 # Get paths
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ClaudeDir = Join-Path $env:USERPROFILE ".claude"
-$EmergentLearningDir = Join-Path $ClaudeDir "emergent-learning"
+$CLCDir = Join-Path $ClaudeDir "clc"
 $HooksDir = Join-Path $ClaudeDir "hooks"
 $SettingsFile = Join-Path $ClaudeDir "settings.json"
 
 # Detect in-place installation (cloned directly to target)
-$InPlaceInstall = Test-InPlaceInstall -ScriptDir $ScriptDir -TargetDir $EmergentLearningDir
+$InPlaceInstall = Test-InPlaceInstall -ScriptDir $ScriptDir -TargetDir $CLCDir
 if ($InPlaceInstall) {
     Write-Host "  Detected: In-place installation (repo cloned to target directory)" -ForegroundColor Cyan
     Write-Host "  Note: Skipping self-copy operations" -ForegroundColor Cyan
@@ -212,28 +212,28 @@ Write-Host ""
 Write-Host "[Step 2/5] Creating directory structure..." -ForegroundColor Yellow
 
 # Create directories
-$MemoryDir = Join-Path $EmergentLearningDir "memory"
+$MemoryDir = Join-Path $CLCDir "memory"
 $directories = @(
     $ClaudeDir,
-    $EmergentLearningDir,
+    $CLCDir,
     $MemoryDir,
     (Join-Path $MemoryDir "failures"),
     (Join-Path $MemoryDir "successes"),
-    (Join-Path $EmergentLearningDir "query"),
-    (Join-Path $EmergentLearningDir "ceo-inbox"),
+    (Join-Path $CLCDir "query"),
+    (Join-Path $CLCDir "ceo-inbox"),
     $HooksDir,
     (Join-Path $HooksDir "learning-loop")
 )
 
 if ($InstallSwarm) {
-    $AgentsDir = Join-Path $EmergentLearningDir "agents"
+    $AgentsDir = Join-Path $CLCDir "agents"
     $directories += @(
         $AgentsDir,
         (Join-Path $AgentsDir "researcher"),
         (Join-Path $AgentsDir "architect"),
         (Join-Path $AgentsDir "skeptic"),
         (Join-Path $AgentsDir "creative"),
-        (Join-Path $EmergentLearningDir "conductor")
+        (Join-Path $CLCDir "conductor")
     )
 }
 
@@ -251,7 +251,7 @@ Write-Host "[Step 3/5] Installing core components..." -ForegroundColor Yellow
 $srcDir = $ScriptDir
 $srcQueryDir = Join-Path $srcDir "query"
 $srcTemplatesDir = Join-Path $srcDir "templates"
-$dstQueryDir = Join-Path $EmergentLearningDir "query"
+$dstQueryDir = Join-Path $CLCDir "query"
 
 # Copy core files (using safe copy that skips if src=dst)
 Copy-IfDifferent -Source (Join-Path $srcQueryDir "query.py") -Destination (Join-Path $dstQueryDir "query.py") | Out-Null
@@ -272,7 +272,7 @@ Copy-Item -Path (Join-Path $hooksSource "*.py") -Destination $learningLoopDir -F
 Write-Host "  Copied learning hooks" -ForegroundColor Green
 
 # Copy scripts (using safe copy)
-$scriptsDst = Join-Path $EmergentLearningDir "scripts"
+$scriptsDst = Join-Path $CLCDir "scripts"
 New-Item -ItemType Directory -Path $scriptsDst -Force | Out-Null
 $scriptsSource = Join-Path $srcDir "scripts"
 if (Test-Path $scriptsSource) {
@@ -305,7 +305,7 @@ if ($InstallSwarm) {
 
     # Copy conductor (using safe copy)
     $conductorSrc = Join-Path $srcDir "conductor"
-    $conductorDst = Join-Path $EmergentLearningDir "conductor"
+    $conductorDst = Join-Path $CLCDir "conductor"
     Get-ChildItem -Path $conductorSrc -Filter "*.py" | ForEach-Object {
         Copy-IfDifferent -Source $_.FullName -Destination $conductorDst | Out-Null
     }
@@ -316,7 +316,7 @@ if ($InstallSwarm) {
 
     # Copy agent personas (using safe copy)
     $srcAgentsDir = Join-Path $srcDir "agents"
-    $dstAgentsDir = Join-Path $EmergentLearningDir "agents"
+    $dstAgentsDir = Join-Path $CLCDir "agents"
     $agents = @("researcher", "architect", "skeptic", "creative")
     foreach ($agent in $agents) {
         $agentSrc = Join-Path $srcAgentsDir $agent
@@ -371,7 +371,7 @@ if ($InstallDashboard) {
     Write-Host "[Installing] Dashboard..." -ForegroundColor Yellow
 
     $dashboardSrc = Join-Path $srcDir "dashboard-app"
-    $dashboardDst = Join-Path $EmergentLearningDir "dashboard-app"
+    $dashboardDst = Join-Path $CLCDir "dashboard-app"
 
     if (Test-Path $dashboardSrc) {
         # For in-place install, skip the copy entirely
@@ -456,7 +456,7 @@ if (-not $settings.ContainsKey("hooks")) {
 }
 
 # Create ELF hooks - use detected python command
-$elfPreHook = @{
+$clcPreHook = @{
     "matcher" = "Task"
     "hooks" = @(
         @{
@@ -466,7 +466,7 @@ $elfPreHook = @{
     )
 }
 
-$elfPostHook = @{
+$clcPostHook = @{
     "matcher" = "Task"
     "hooks" = @(
         @{
@@ -477,7 +477,7 @@ $elfPostHook = @{
 }
 
 # Hook for file operations (trail tracking for hotspots)
-$elfFileOpsHook = @{
+$clcFileOpsHook = @{
     "matcher" = "Read|Edit|Write|Glob|Grep"
     "hooks" = @(
         @{
@@ -506,12 +506,12 @@ $settings["hooks"]["PostToolUse"] = @($settings["hooks"]["PostToolUse"] | Where-
 
 # Add ELF hooks using ArrayList to avoid nested array issues
 [System.Collections.ArrayList]$preHooks = @($settings["hooks"]["PreToolUse"])
-$preHooks.Add($elfPreHook) | Out-Null
+$preHooks.Add($clcPreHook) | Out-Null
 $settings["hooks"]["PreToolUse"] = $preHooks
 
 [System.Collections.ArrayList]$postHooks = @($settings["hooks"]["PostToolUse"])
-$postHooks.Add($elfPostHook) | Out-Null
-$postHooks.Add($elfFileOpsHook) | Out-Null
+$postHooks.Add($clcPostHook) | Out-Null
+$postHooks.Add($clcFileOpsHook) | Out-Null
 $settings["hooks"]["PostToolUse"] = $postHooks
 
 # Write without BOM (UTF8 BOM can break JSON parsers)
@@ -544,7 +544,7 @@ if (-not (Test-Path $claudeMdDst)) {
 } else {
     # Existing CLAUDE.md found - check if ELF already configured
     $existingContent = Get-Content $claudeMdDst -Raw
-    if ($existingContent -match "Emergent Learning Framework") {
+    if ($existingContent -match "Claude Learning Companion") {
         Write-Host "  CLAUDE.md already contains ELF configuration (skipped)" -ForegroundColor Green
     } else {
         # Existing config without ELF - prompt user for action
@@ -565,26 +565,26 @@ if (-not (Test-Path $claudeMdDst)) {
                 $backupFile = Join-Path $ClaudeDir "CLAUDE.md.backup"
                 Copy-Item -Path $claudeMdDst -Destination $backupFile -Force
 
-                $elfContent = Get-Content $claudeMdSrc -Raw
+                $clcContent = Get-Content $claudeMdSrc -Raw
                 $mergedContent = @"
 $existingContent
 
 
 # ==============================================
-# EMERGENT LEARNING FRAMEWORK - AUTO-APPENDED
+# CLAUDE LEARNING COMPANION - AUTO-APPENDED
 # ==============================================
 
-$elfContent
+$clcContent
 "@
                 [System.IO.File]::WriteAllText($claudeMdDst, $mergedContent, [System.Text.UTF8Encoding]::new($false))
-                Write-Host "  Merged ELF with your config (backup: CLAUDE.md.backup)" -ForegroundColor Green
+                Write-Host "  Merged CLC with your config (backup: CLAUDE.md.backup)" -ForegroundColor Green
             }
             "2" {
-                # Replace: Backup existing, use ELF only
+                # Replace: Backup existing, use CLC only
                 $backupFile = Join-Path $ClaudeDir "CLAUDE.md.backup"
                 Copy-Item -Path $claudeMdDst -Destination $backupFile -Force
                 Copy-Item -Path $claudeMdSrc -Destination $claudeMdDst -Force
-                Write-Host "  Replaced with ELF config (your config backed up to CLAUDE.md.backup)" -ForegroundColor Green
+                Write-Host "  Replaced with CLC config (your config backed up to CLAUDE.md.backup)" -ForegroundColor Green
             }
             "3" {
                 # Skip: Don't modify
@@ -601,7 +601,7 @@ $elfContent
 
 # === VERSION FILE ===
 # Create VERSION file for update tracking
-$VersionFilePath = Join-Path $EmergentLearningDir "VERSION"
+$VersionFilePath = Join-Path $CLCDir "VERSION"
 if (-not (Test-Path $VersionFilePath)) {
     Set-Content -Path $VersionFilePath -Value "1.0.0" -NoNewline
     Write-Host "  [+] Created VERSION file (1.0.0)" -ForegroundColor Green
@@ -629,11 +629,11 @@ Write-Host "  cat ~/.claude/CLAUDE.md"
 Write-Host ""
 if ($InstallDashboard) {
     Write-Host "  # 2. Start the dashboard:"
-    Write-Host "  cd ~/.claude/emergent-learning/dashboard-app; ./run-dashboard.ps1"
+    Write-Host "  cd ~/.claude/clc/dashboard-app; ./run-dashboard.ps1"
     Write-Host ""
 }
 Write-Host "  # 3. Test the query system:"
-Write-Host "  python3 ~/.claude/emergent-learning/query/query.py --context"
+Write-Host "  python3 ~/.claude/clc/query/query.py --context"
 Write-Host ""
 Write-Host "  # 4. Start using Claude Code (it will now query the building automatically!)"
 Write-Host "  claude"

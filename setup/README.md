@@ -1,11 +1,11 @@
-# Emergent Learning Framework - Setup
+# Claude Learning Companion - Setup
 
-This folder contains the configuration files needed to fully use the Emergent Learning Framework with Claude Code.
+This folder contains the configuration files needed to fully use the Claude Learning Companion with Claude Code.
 
 ## Quick Install
 
 ```bash
-cd ~/.claude/emergent-learning/setup
+cd ~/.claude/clc/setup
 chmod +x install.sh
 ./install.sh
 ```
@@ -14,7 +14,7 @@ chmod +x install.sh
 
 | File | Destination | Purpose |
 |------|-------------|---------|
-| `CLAUDE.md.template` | `~/.claude/CLAUDE.md` | Main configuration - tells Claude to query the building |
+| `CLAUDE.md.template` | `~/.claude/CLAUDE.md` | Main configuration - tells Claude to query CLC |
 | `commands/*.md` | `~/.claude/commands/` | Slash commands like `/search`, `/checkin`, `/swarm` |
 | `commands/*.py` | `~/.claude/commands/` | Python scripts powering the commands |
 | `hooks/*.py` | `~/.claude/hooks/` | Enforcement hooks (golden rule enforcer) |
@@ -32,20 +32,20 @@ If you prefer to install manually:
 
 ### CLAUDE.md
 The main configuration file that instructs Claude to:
-- Query the building at the start of every conversation
+- Query CLC at the start of every conversation
 - Follow golden rules
 - Use the session memory system
 - Start the dashboard when needed
 
 ### Slash Commands
 - `/search` - Search through session history with natural language
-- `/checkin` - Manual building check-in
+- `/checkin` - Manual CLC check-in
 - `/checkpoint` - Save current progress
 - `/swarm` - Launch multi-agent coordination
 
 ### Hooks
-- `golden-rule-enforcer.py` - Blocks Claude if it doesn't query the building
-- `SessionStart/load-building.py` - Auto-queries on startup
+- `golden-rule-enforcer.py` - Blocks Claude if it doesn't query CLC
+- `SessionStart/load-clc.py` - Auto-queries on startup
 - `SessionStart/start-dashboard.py` - Starts dashboard servers
 
 ## Customization
@@ -57,7 +57,7 @@ Edit `~/.claude/CLAUDE.md` after installation to:
 
 ## Troubleshooting
 
-**Claude doesn't query the building:**
+**Claude doesn't query CLC:**
 - Check that `~/.claude/CLAUDE.md` exists
 - Verify hooks are in `~/.claude/hooks/`
 

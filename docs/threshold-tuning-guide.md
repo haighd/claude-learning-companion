@@ -20,7 +20,7 @@ The adaptive threshold tuning system automatically analyzes fraud detection perf
 First time only:
 
 ```bash
-cd ~/.claude/emergent-learning
+cd ~/.claude/clc
 sqlite3 memory/index.db < scripts/migrate-threshold-tuning.sql
 ```
 
@@ -115,7 +115,7 @@ Reverts a threshold change to its previous value.
 - **achieved_tpr**: Actual true positive rate (recall - what % of fraud is caught)
 
 **Example:**
-```
+```text
 achieved_fpr: 0.04 (4%)
 achieved_tpr: 0.87 (87%)
 ```
@@ -232,7 +232,7 @@ Stricter FPR (2% instead of 5%), fewer false positives but may miss some fraud.
 ### View Threshold History
 
 ```bash
-sqlite3 ~/.claude/emergent-learning/memory/index.db \
+sqlite3 ~/.claude/clc/memory/index.db \
   "SELECT * FROM threshold_change_log ORDER BY applied_at DESC LIMIT 10"
 ```
 
@@ -241,7 +241,7 @@ Shows last 10 threshold changes with deltas and who made them.
 ### Check Active Thresholds
 
 ```bash
-sqlite3 ~/.claude/emergent-learning/memory/index.db \
+sqlite3 ~/.claude/clc/memory/index.db \
   "SELECT * FROM active_thresholds"
 ```
 

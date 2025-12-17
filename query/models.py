@@ -1,5 +1,5 @@
 """
-Peewee-AIO async ORM models for the Emergent Learning Framework.
+Peewee-AIO async ORM models for the Claude Learning Companion.
 
 This module defines all database models using peewee-aio for async support,
 matching the existing SQLite schema exactly.
@@ -8,7 +8,7 @@ Usage:
     from models import manager, initialize_database, Learning, Heuristic, ...
 
     # Initialize with path (async)
-    await initialize_database('~/.claude/emergent-learning/memory/index.db')
+    await initialize_database('~/.claude/clc/memory/index.db')
 
     # Query examples (async)
     async with manager:
@@ -40,7 +40,7 @@ async def initialize_database(db_path: Optional[str] = None) -> Manager:
     Initialize the async database connection.
 
     Args:
-        db_path: Path to SQLite database file. Defaults to ~/.claude/emergent-learning/memory/index.db
+        db_path: Path to SQLite database file. Defaults to ~/.claude/clc/memory/index.db
 
     Returns:
         Configured Manager instance
@@ -48,7 +48,7 @@ async def initialize_database(db_path: Optional[str] = None) -> Manager:
     global manager
 
     if db_path is None:
-        db_path = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
+        db_path = Path.home() / ".claude" / "clc" / "memory" / "index.db"
     else:
         db_path = Path(db_path).expanduser()
 
@@ -150,7 +150,7 @@ def initialize_database_sync(db_path: Optional[str] = None) -> Manager:
     global manager, db
 
     if db_path is None:
-        db_path = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
+        db_path = Path.home() / ".claude" / "clc" / "memory" / "index.db"
     else:
         db_path = Path(db_path).expanduser().resolve()
 

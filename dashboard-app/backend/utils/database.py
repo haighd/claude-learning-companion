@@ -1,5 +1,5 @@
 """
-Database utility functions for the Emergent Learning Dashboard.
+Database utility functions for the Claude Learning Companion Dashboard.
 
 Provides database connection management and helper functions for SQLite operations.
 """
@@ -10,8 +10,8 @@ from pathlib import Path
 
 
 # Database path
-EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "emergent-learning"
-DB_PATH = EMERGENT_LEARNING_PATH / "memory" / "index.db"
+CLC_PATH = Path.home() / ".claude" / "clc"
+DB_PATH = CLC_PATH / "memory" / "index.db"
 
 
 def escape_like(s: str) -> str:

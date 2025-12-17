@@ -36,7 +36,7 @@ def get_relative_time(dt):
 def load_session_summaries():
     """Load all session summaries from memory/sessions/*.md"""
     summaries = {}
-    sessions_dir = Path.home() / '.claude' / 'emergent-learning' / 'memory' / 'sessions'
+    sessions_dir = Path.home() / '.claude' / 'clc' / 'memory' / 'sessions'
 
     if not sessions_dir.exists():
         return summaries

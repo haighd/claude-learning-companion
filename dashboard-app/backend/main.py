@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Emergent Learning Dashboard - Backend API
+Claude Learning Companion Dashboard - Backend API
 
 FastAPI backend providing:
 - REST API for dashboard data
@@ -48,7 +48,7 @@ from routers.fraud import set_paths as set_fraud_paths
 from routers.workflows import set_paths as set_workflows_paths
 
 # Paths
-EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "emergent-learning"
+CLC_PATH = Path.home() / ".claude" / "clc"
 FRONTEND_PATH = Path(__file__).parent.parent / "frontend" / "dist"
 
 # Import session indexing
@@ -62,7 +62,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="Emergent Learning Dashboard",
+    title="Claude Learning Companion Dashboard",
     description="Interactive dashboard for AI agent orchestration and learning",
     version="1.0.0"
 )
@@ -128,9 +128,9 @@ session_index = SessionIndex()
 set_heuristics_manager(manager)
 set_knowledge_manager(manager)
 set_session_index(session_index)
-set_admin_paths(EMERGENT_LEARNING_PATH)
-set_fraud_paths(EMERGENT_LEARNING_PATH)
-set_workflows_paths(EMERGENT_LEARNING_PATH)
+set_admin_paths(CLC_PATH)
+set_fraud_paths(CLC_PATH)
+set_workflows_paths(CLC_PATH)
 
 
 # ==============================================================================
@@ -320,7 +320,7 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.send_json({
             "type": "connected",
             "timestamp": datetime.now().isoformat(),
-            "message": "Connected to Emergent Learning Dashboard"
+            "message": "Connected to Claude Learning Companion Dashboard"
         })
 
         while True:

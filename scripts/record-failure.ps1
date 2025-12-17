@@ -1,4 +1,4 @@
-# Record a failure in the Emergent Learning Framework
+# Record a failure in the Claude Learning Companion
 
 $ErrorActionPreference = "Stop"
 

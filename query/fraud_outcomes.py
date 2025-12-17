@@ -18,7 +18,7 @@ from typing import Optional, List, Dict, Tuple, Literal
 from dataclasses import dataclass
 
 # Configuration
-DB_PATH = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
+DB_PATH = Path.home() / ".claude" / "clc" / "memory" / "index.db"
 
 OutcomeType = Literal['true_positive', 'false_positive', 'dismissed', 'pending']
 TimePeriod = Literal['all_time', 'last_30d', 'last_7d', 'last_24h']

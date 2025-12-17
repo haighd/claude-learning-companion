@@ -73,23 +73,23 @@ Add your custom CLAUDE.md content AFTER the CLC section.
 ```bash
 claude
 # Say "check in" - should query building
-python ~/.claude/emergent-learning/query/query.py --stats
+python ~/.claude/clc/query/query.py --stats
 ```
 
 ## Upgrading Versions
 
 ```bash
 # 1. Backup
-cp ~/.claude/emergent-learning/memory/index.db ~/clc-backup.db
+cp ~/.claude/clc/memory/index.db ~/clc-backup.db
 
 # 2. Pull latest
-cd ~/.claude/emergent-learning && git pull
+cd ~/.claude/clc && git pull
 
 # 3. Reinstall
 ./install.sh
 
 # 4. Validate
-python ~/.claude/emergent-learning/query/query.py --validate
+python ~/.claude/clc/query/query.py --validate
 ```
 
 ## Team Setup
@@ -111,7 +111,7 @@ python query.py --import-heuristics team-heuristics.json
 
 **Full uninstall:**
 1. Remove hooks from settings.json
-2. Delete `~/.claude/emergent-learning/`
+2. Delete `~/.claude/clc/`
 3. Restore CLAUDE.md.backup
 
 **Partial disable:**

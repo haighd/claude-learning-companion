@@ -21,7 +21,7 @@ METRICS_DB="${METRICS_DB:-}"
 # Initialize metrics subsystem
 #
 # Args:
-#   $1 - Database path (optional, defaults to ~/.claude/emergent-learning/memory/index.db)
+#   $1 - Database path (optional, defaults to ~/.claude/clc/memory/index.db)
 #
 metrics_init() {
     local db_path="${1:-}"
@@ -29,9 +29,9 @@ metrics_init() {
     if [ -z "$db_path" ]; then
         local home_dir="${HOME:-$USERPROFILE}"
         if [ -n "$home_dir" ]; then
-            METRICS_DB="$home_dir/.claude/emergent-learning/memory/index.db"
+            METRICS_DB="$home_dir/.claude/clc/memory/index.db"
         else
-            METRICS_DB="/tmp/emergent-learning/memory/index.db"
+            METRICS_DB="/tmp/clc/memory/index.db"
         fi
     else
         METRICS_DB="$db_path"

@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 # Configuration
-DB_PATH = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
+DB_PATH = Path.home() / ".claude" / "clc" / "memory" / "index.db"
 
 # Fraud detection integration
 try:

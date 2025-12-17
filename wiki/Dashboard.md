@@ -6,7 +6,7 @@
 
 **Manual Start:**
 ```bash
-cd ~/.claude/emergent-learning/dashboard-app
+cd ~/.claude/clc/dashboard-app
 ./run-dashboard.ps1  # Windows PowerShell
 ./run-dashboard.sh   # Mac/Linux/Git Bash
 ```
@@ -60,7 +60,7 @@ The top bar shows real-time metrics:
 - **Frontend:** React 18 + TypeScript + Vite + Tailwind CSS
 - **Backend:** FastAPI (Python) with WebSocket updates
 - **Visualization:** D3.js for treemaps
-- **Database:** Reads from `~/.claude/emergent-learning/memory/index.db`
+- **Database:** Reads from `~/.claude/clc/memory/index.db`
 - **Themes:** 10 cosmic themes (black-hole, nebula, aurora, etc.)
 
 The dashboard operates **without consuming API tokens** - it reads directly from your local SQLite database.

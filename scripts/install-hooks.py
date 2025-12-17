@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Install ELF hooks into Claude Code's hooks directory.
+Install CLC hooks into Claude Code's hooks directory.
 
 This script:
 1. Copies hook files from the repo to ~/.claude/hooks/learning-loop/
@@ -19,11 +19,11 @@ from pathlib import Path
 # Paths
 HOME = Path.home()
 CLAUDE_DIR = HOME / ".claude"
-ELF_DIR = CLAUDE_DIR / "emergent-learning"
-SOURCE_HOOKS = ELF_DIR / "hooks" / "learning-loop"
+CLC_DIR = CLAUDE_DIR / "clc"
+SOURCE_HOOKS = CLC_DIR / "hooks" / "learning-loop"
 TARGET_HOOKS = CLAUDE_DIR / "hooks" / "learning-loop"
 SETTINGS_FILE = CLAUDE_DIR / "settings.json"
-MARKER_FILE = ELF_DIR / ".hooks-installed"
+MARKER_FILE = CLC_DIR / ".hooks-installed"
 
 
 def install_hooks():
@@ -130,7 +130,7 @@ def main():
             return 0
         # Files missing, reinstall
     
-    print("Installing ELF hooks...")
+    print("Installing CLC hooks...")
     
     if not install_hooks():
         return 1

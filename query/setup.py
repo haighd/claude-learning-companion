@@ -64,7 +64,7 @@ def ensure_full_setup():
     if not global_claude_md.exists():
         print("")
         print("=" * 60)
-        print("[ELF] Welcome! First-time setup...")
+        print("[CLC] Welcome! First-time setup...")
         print("=" * 60)
         print("")
         print("Installing:")
@@ -87,31 +87,31 @@ def ensure_full_setup():
                     ["bash", str(setup_script), "--mode", "fresh"],
                     capture_output=True, text=True, timeout=30
                 )
-            print("[ELF] Setup complete!")
+            print("[CLC] Setup complete!")
             print("")
             return "fresh_install"
         except Exception as e:
-            print(f"[ELF] Setup issue: {e}")
+            print(f"[CLC] Setup issue: {e}")
             return "install_failed"
 
-    # Case 2: Has CLAUDE.md with ELF already
+    # Case 2: Has CLAUDE.md with CLC already
     try:
         with open(global_claude_md, 'r', encoding='utf-8') as f:
             content = f.read()
-        if "Emergent Learning Framework" in content or "query the building" in content.lower():
+        if "Claude Learning Companion" in content or "Emergent Learning Framework" in content or "query the building" in content.lower():
             return "ok"
     except:
         pass
 
-    # Case 3: Has CLAUDE.md but no ELF - Claude should ask user
+    # Case 3: Has CLAUDE.md but no CLC - Claude should ask user
     print("")
     print("=" * 60)
-    print("[ELF] Existing configuration detected")
+    print("[CLC] Existing configuration detected")
     print("=" * 60)
     print("")
-    print("You have ~/.claude/CLAUDE.md but it doesn't include ELF.")
+    print("You have ~/.claude/CLAUDE.md but it doesn't include CLC.")
     print("Claude will ask how you'd like to proceed.")
     print("")
-    print("[ELF_NEEDS_USER_CHOICE]")
+    print("[CLC_NEEDS_USER_CHOICE]")
     print("")
     return "needs_user_choice"

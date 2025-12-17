@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 # Import the RISKY_PATTERNS from post_tool_learning
-sys.path.insert(0, str(Path.home() / ".claude" / "emergent-learning" / "hooks" / "learning-loop"))
+sys.path.insert(0, str(Path.home() / ".claude" / "clc" / "hooks" / "learning-loop"))
 from post_tool_learning import RISKY_PATTERNS, AdvisoryVerifier
 
 def test_pattern(test_name, code_sample, expected_detections):
