@@ -97,7 +97,13 @@ Replace:
 cp ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.migration-backup
 
 # Run replacements
-sed -i.bak -E -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' -e 's|~/.claude/elf/|~/.claude/clc/|g' -e 's|\bemergent-learning\b|clc|g' -e 's|Emergent Learning Framework|Claude Learning Companion|g' -e 's|\bELF\b|CLC|g' -e 's|\belf\b|clc|g' ~/.claude/CLAUDE.md
+sed -i.bak -E \
+  -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' \
+  -e 's|~/.claude/elf/|~/.claude/clc/|g' \
+  -e 's|\bemergent-learning\b|clc|g' \
+  -e 's|Emergent Learning Framework|Claude Learning Companion|g' \
+  -e 's|\bELF\b|CLC|g' \
+  -e 's|\belf\b|clc|g' ~/.claude/CLAUDE.md
 ```
 
 ## Step 3: Update Project CLAUDE.md Files
@@ -107,7 +113,13 @@ For each project that references ELF/emergent-learning:
 ```bash
 # Find and automatically update all project CLAUDE.md files
 # Replace ~/Projects with the actual path to your projects directory
-find ~/Projects -name "CLAUDE.md" -type f -print0 | xargs -0 sed -i.bak -E -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' -e 's|~/.claude/elf/|~/.claude/clc/|g' -e 's|\bemergent-learning\b|clc|g' -e 's|Emergent Learning Framework|Claude Learning Companion|g' -e 's|\bELF\b|CLC|g' -e 's|\belf\b|clc|g'
+find ~/Projects -name "CLAUDE.md" -type f -print0 | xargs -0 sed -i.bak -E \
+  -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' \
+  -e 's|~/.claude/elf/|~/.claude/clc/|g' \
+  -e 's|\bemergent-learning\b|clc|g' \
+  -e 's|Emergent Learning Framework|Claude Learning Companion|g' \
+  -e 's|\bELF\b|CLC|g' \
+  -e 's|\belf\b|clc|g'
 ```
 
 ## Step 4: Update Slash Commands
@@ -116,7 +128,13 @@ Check and update `~/.claude/commands/` for old paths:
 
 ```bash
 # Find and automatically update slash commands
-find ~/.claude/commands/ -type f -name "*.md" -print0 | xargs -0 sed -i.bak -E -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' -e 's|~/.claude/elf/|~/.claude/clc/|g' -e 's|\bemergent-learning\b|clc|g' -e 's|Emergent Learning Framework|Claude Learning Companion|g' -e 's|\bELF\b|CLC|g' -e 's|\belf\b|clc|g'
+find ~/.claude/commands/ -type f -name "*.md" -print0 | xargs -0 sed -i.bak -E \
+  -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' \
+  -e 's|~/.claude/elf/|~/.claude/clc/|g' \
+  -e 's|\bemergent-learning\b|clc|g' \
+  -e 's|Emergent Learning Framework|Claude Learning Companion|g' \
+  -e 's|\bELF\b|CLC|g' \
+  -e 's|\belf\b|clc|g'
 ```
 
 **Windows users:** Use VS Code or another editor with global search-and-replace to perform these replacements across your files. Search for `emergent-learning`, `ELF`, `elf`, and `Emergent Learning Framework` and replace with the corresponding CLC terms.
