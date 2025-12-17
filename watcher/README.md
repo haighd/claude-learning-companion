@@ -68,7 +68,7 @@ The Tiered Watcher Pattern solves the problem of continuous AI monitoring at sca
 
 # Or directly
 cd ~/.claude/clc
-python watcher/launcher.py
+python3 watcher/launcher.py
 ```
 
 ### 2. Stop the Watcher
@@ -149,7 +149,7 @@ watcher/
 **Solution**:
 ```bash
 cd ~/.claude/clc
-pip install anthropic  # or bun install if using JS version
+python3 -m pip install anthropic  # or bun install if using JS version
 ```
 
 **Problem**: `ANTHROPIC_API_KEY not found`
@@ -256,7 +256,7 @@ After=network.target
 [Service]
 Type=simple
 User=youruser
-WorkingDirectory=/home/youruser/.claude/emergent-learning
+WorkingDirectory=/home/youruser/.claude/clc
 ExecStart=/usr/bin/python3 watcher/launcher.py
 Restart=on-failure
 RestartSec=10

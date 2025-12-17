@@ -155,19 +155,19 @@ The handler uses conservative heuristics (in priority order):
 
 ```bash
 # One-shot check
-python opus_handler.py
+python3 opus_handler.py
 
 # Watch mode (poll every 30s)
-python opus_handler.py --watch
+python3 opus_handler.py --watch
 
 # Custom interval (poll every 60s)
-python opus_handler.py --watch --interval 60
+python3 opus_handler.py --watch --interval 60
 
 # With timeout (watch for max 600s)
-python opus_handler.py --watch --timeout 600
+python3 opus_handler.py --watch --timeout 600
 
 # Custom coordination directory
-python opus_handler.py --coordination-dir /path/to/.coordination
+python3 opus_handler.py --coordination-dir /path/to/.coordination
 ```
 
 ### Exit Codes
@@ -235,7 +235,7 @@ To test the Opus Handler:
 2. **Run handler:**
    ```bash
    cd ~/.claude/clc/watcher
-   python opus_handler.py
+   python3 opus_handler.py
    ```
 
 3. **Verify:**

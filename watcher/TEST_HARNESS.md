@@ -17,7 +17,7 @@ The test harness creates mock coordination state and validates that the watcher 
 ### Run All Tests
 
 ```bash
-python test_watcher.py --all
+python3 test_watcher.py --all
 ```
 
 This runs all 5 scenarios and reports a summary at the end.
@@ -25,17 +25,17 @@ This runs all 5 scenarios and reports a summary at the end.
 ### Run Individual Scenario
 
 ```bash
-python test_watcher.py --scenario nominal
-python test_watcher.py --scenario stale
-python test_watcher.py --scenario error
-python test_watcher.py --scenario complete
-python test_watcher.py --scenario stopped
+python3 test_watcher.py --scenario nominal
+python3 test_watcher.py --scenario stale
+python3 test_watcher.py --scenario error
+python3 test_watcher.py --scenario complete
+python3 test_watcher.py --scenario stopped
 ```
 
 ### Cleanup Test State
 
 ```bash
-python test_watcher.py --cleanup
+python3 test_watcher.py --cleanup
 ```
 
 Removes any test files from the coordination directory.
@@ -43,10 +43,10 @@ Removes any test files from the coordination directory.
 ### Use Actual Directory (Advanced)
 
 ```bash
-python test_watcher.py --all --use-actual-dir
+python3 test_watcher.py --all --use-actual-dir
 ```
 
-**WARNING**: This runs tests against the actual `~/.claude/emergent-learning/.coordination/` directory instead of a temporary directory. Only use this if you understand the implications.
+**WARNING**: This runs tests against the actual `~/.claude/clc/.coordination/` directory instead of a temporary directory. Only use this if you understand the implications.
 
 ## Test Scenarios
 
@@ -270,11 +270,11 @@ Make sure you're NOT using `--use-actual-dir` flag. The default behavior uses te
 
 Make sure you're running from the watcher directory:
 ```bash
-cd ~/.claude/emergent-learning/watcher
-python test_watcher.py --all
+cd ~/.claude/clc/watcher
+python3 test_watcher.py --all
 ```
 
 Or use absolute path:
 ```bash
-python ~/.claude/emergent-learning/watcher/test_watcher.py --all
+python3 ~/.claude/clc/watcher/test_watcher.py --all
 ```

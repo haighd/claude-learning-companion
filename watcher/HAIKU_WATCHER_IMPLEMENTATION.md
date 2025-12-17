@@ -77,16 +77,16 @@ ERROR_KEYWORDS = [            # patterns to detect
 
 ```bash
 # Default settings
-python haiku_watcher.py
+python3 haiku_watcher.py
 
 # Custom poll interval
-python haiku_watcher.py --interval 30
+python3 haiku_watcher.py --interval 30
 
 # Custom coordination directory
-python haiku_watcher.py --coordination-dir /path/to/.coordination
+python3 haiku_watcher.py --coordination-dir /path/to/.coordination
 
 # Help
-python haiku_watcher.py --help
+python3 haiku_watcher.py --help
 ```
 
 ## Error Detection Strategy

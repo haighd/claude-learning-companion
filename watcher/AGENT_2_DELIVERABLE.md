@@ -69,7 +69,7 @@ Complete documentation including:
 ### Run All Tests
 ```bash
 cd ~/.claude/clc/watcher
-python test_watcher.py --all
+python3 test_watcher.py --all
 ```
 
 **Output:**
@@ -103,12 +103,12 @@ TEST RUN: PASSED
 
 ### Run Individual Scenario
 ```bash
-python test_watcher.py --scenario stale
+python3 test_watcher.py --scenario stale
 ```
 
 ### Cleanup Test State
 ```bash
-python test_watcher.py --cleanup
+python3 test_watcher.py --cleanup
 ```
 
 ---
