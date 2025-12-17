@@ -11,7 +11,7 @@ For the easiest uninstall experience, use the automated script:
 ### Windows (PowerShell)
 ```powershell
 # Download and run uninstall script
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/your-repo/CLC/main/scripts/uninstall.ps1" -OutFile "$env:TEMP\uninstall-clc.ps1"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/your-repo/CLC/v1.0.0/scripts/uninstall.ps1" -OutFile "$env:TEMP\uninstall-clc.ps1"
 PowerShell -ExecutionPolicy Bypass -File "$env:TEMP\uninstall-clc.ps1"
 ```
 
