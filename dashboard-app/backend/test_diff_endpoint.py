@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 # Simulate the diff endpoint logic
-DB_PATH = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
+DB_PATH = Path.home() / ".claude" / "clc" / "memory" / "index.db"
 
 def test_diff_endpoint(run_id: int):
     """Test the diff endpoint logic"""

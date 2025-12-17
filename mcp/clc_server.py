@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-ELF MCP Server - Emergent Learning Framework exposed via Model Context Protocol.
+CLC MCP Server - Claude Learning Companion exposed via Model Context Protocol.
 
-This server exposes ELF's knowledge and recording capabilities to external tools
+This server exposes CLC's knowledge and recording capabilities to external tools
 like claude-flow, enabling them to:
 - Query the building for context (golden rules, heuristics, learnings)
 - Record heuristics and failures
@@ -10,8 +10,8 @@ like claude-flow, enabling them to:
 - Search knowledge base
 
 Usage:
-    python elf_server.py                    # Run with stdio transport (default)
-    claude mcp add elf python ~/.claude/emergent-learning/mcp/elf_server.py
+    python clc_server.py                    # Run with stdio transport (default)
+    claude mcp add clc python ~/.claude/clc/mcp/clc_server.py
 """
 
 import json
@@ -38,7 +38,7 @@ from pydantic import BaseModel, Field, field_validator, ConfigDict
 from query import QuerySystem
 
 # Initialize the MCP server
-mcp = FastMCP("ELF_FLOW_MCP")
+mcp = FastMCP("CLC_FLOW_MCP")
 
 
 # ============================================================================
@@ -60,7 +60,7 @@ class SourceType(str, Enum):
 
 
 class QueryInput(BaseModel):
-    """Input for elf_query tool."""
+    """Input for clc_query tool."""
     model_config = ConfigDict(str_strip_whitespace=True)
 
     domain: Optional[str] = Field(
@@ -81,7 +81,7 @@ class QueryInput(BaseModel):
 
 
 class RecordHeuristicInput(BaseModel):
-    """Input for elf_record_heuristic tool."""
+    """Input for clc_record_heuristic tool."""
     model_config = ConfigDict(str_strip_whitespace=True)
 
     domain: str = Field(
@@ -122,7 +122,7 @@ class RecordHeuristicInput(BaseModel):
 
 
 class RecordFailureInput(BaseModel):
-    """Input for elf_record_failure tool."""
+    """Input for clc_record_failure tool."""
     model_config = ConfigDict(str_strip_whitespace=True)
 
     title: str = Field(
@@ -157,7 +157,7 @@ class RecordFailureInput(BaseModel):
 
 
 class SearchInput(BaseModel):
-    """Input for elf_search tool."""
+    """Input for clc_search tool."""
     model_config = ConfigDict(str_strip_whitespace=True)
 
     query: str = Field(
@@ -232,18 +232,18 @@ def parse_frontmatter(content: str) -> Dict[str, Any]:
 # ============================================================================
 
 @mcp.tool(
-    name="elf_query",
+    name="clc_query",
     annotations={
-        "title": "Query ELF Building",
+        "title": "Query CLC Building",
         "readOnlyHint": True,
         "destructiveHint": False,
         "idempotentHint": True,
         "openWorldHint": False
     }
 )
-async def elf_query(params: QueryInput) -> str:
+async def clc_query(params: QueryInput) -> str:
     """
-    Query the Emergent Learning Framework for context.
+    Query the Claude Learning Companion for context.
 
     Returns golden rules, heuristics, learnings, and other knowledge
     relevant to the current task. This is the primary way to load
@@ -272,22 +272,22 @@ async def elf_query(params: QueryInput) -> str:
         return context
 
     except Exception as e:
-        return f"Error querying ELF: {type(e).__name__}: {str(e)}"
+        return f"Error querying CLC: {type(e).__name__}: {str(e)}"
 
 
 @mcp.tool(
-    name="elf_record_heuristic",
+    name="clc_record_heuristic",
     annotations={
-        "title": "Record ELF Heuristic",
+        "title": "Record CLC Heuristic",
         "readOnlyHint": False,
         "destructiveHint": False,
         "idempotentHint": False,
         "openWorldHint": False
     }
 )
-async def elf_record_heuristic(params: RecordHeuristicInput) -> str:
+async def clc_record_heuristic(params: RecordHeuristicInput) -> str:
     """
-    Record a new heuristic in the Emergent Learning Framework.
+    Record a new heuristic in the Claude Learning Companion.
 
     Heuristics are reusable rules of thumb discovered through work.
     They should be actionable, specific, and testable.
@@ -377,18 +377,18 @@ Generated from failures, successes, and observations in the **{domain}** domain.
 
 
 @mcp.tool(
-    name="elf_record_failure",
+    name="clc_record_failure",
     annotations={
-        "title": "Record ELF Failure",
+        "title": "Record CLC Failure",
         "readOnlyHint": False,
         "destructiveHint": False,
         "idempotentHint": False,
         "openWorldHint": False
     }
 )
-async def elf_record_failure(params: RecordFailureInput) -> str:
+async def clc_record_failure(params: RecordFailureInput) -> str:
     """
-    Record a failure in the Emergent Learning Framework.
+    Record a failure in the Claude Learning Companion.
 
     Failures are valuable learning opportunities. Recording them
     immediately while context is fresh helps extract lessons and
@@ -496,16 +496,16 @@ async def elf_record_failure(params: RecordFailureInput) -> str:
 
 
 @mcp.tool(
-    name="elf_ceo_inbox",
+    name="clc_ceo_inbox",
     annotations={
-        "title": "Check ELF CEO Inbox",
+        "title": "Check CLC CEO Inbox",
         "readOnlyHint": True,
         "destructiveHint": False,
         "idempotentHint": True,
         "openWorldHint": False
     }
 )
-async def elf_ceo_inbox() -> str:
+async def clc_ceo_inbox() -> str:
     """
     Check pending decisions in the CEO inbox.
 
@@ -568,18 +568,18 @@ async def elf_ceo_inbox() -> str:
 
 
 @mcp.tool(
-    name="elf_search",
+    name="clc_search",
     annotations={
-        "title": "Search ELF Knowledge",
+        "title": "Search CLC Knowledge",
         "readOnlyHint": True,
         "destructiveHint": False,
         "idempotentHint": True,
         "openWorldHint": False
     }
 )
-async def elf_search(params: SearchInput) -> str:
+async def clc_search(params: SearchInput) -> str:
     """
-    Search the ELF knowledge base for relevant information.
+    Search the CLC knowledge base for relevant information.
 
     Searches across heuristics, learnings, and failures to find
     knowledge relevant to a query.

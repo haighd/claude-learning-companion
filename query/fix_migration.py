@@ -4,7 +4,7 @@ import sqlite3
 from pathlib import Path
 
 home = Path.home()
-db_path = home / ".claude" / "emergent-learning" / "memory" / "index.db"
+db_path = home / ".claude" / "clc" / "memory" / "index.db"
 
 conn = sqlite3.connect(str(db_path))
 

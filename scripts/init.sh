@@ -1,12 +1,12 @@
 #!/bin/bash
-# Initialize the Emergent Learning Framework
+# Initialize the Claude Learning Companion
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BASE_DIR="$(dirname "$SCRIPT_DIR")"
 
-echo "=== Initializing Emergent Learning Framework ==="
+echo "=== Initializing Claude Learning Companion ==="
 echo "Base directory: $BASE_DIR"
 echo ""
 
@@ -145,14 +145,14 @@ if [ ! -f "$README_PATH" ]; then
     echo ""
     echo "Creating README..."
     cat > "$README_PATH" <<'EOF'
-# Emergent Learning Framework
+# Claude Learning Companion
 
 A systematic approach to learning from failures, extracting heuristics, and running deliberate experiments.
 
 ## Directory Structure
 
 ```
-emergent-learning/
+clc/
 ├── memory/              # The knowledge base
 │   ├── failures/        # Documented failures
 │   ├── successes/       # Documented successes
@@ -225,7 +225,7 @@ fi
 echo ""
 echo "Creating initial git commit..."
 git add .
-git commit -m "init: Initialize Emergent Learning Framework" -m "Created directory structure, database, and golden rules" || echo "Already committed"
+git commit -m "init: Initialize Claude Learning Companion" -m "Created directory structure, database, and golden rules" || echo "Already committed"
 echo "✓ Initial commit created"
 
 echo ""

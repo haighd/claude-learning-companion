@@ -19,7 +19,7 @@ The CLC project has 23 test files in `tests/` but many have issues (missing impo
 
 ## Background
 
-During PR #1 (rename emergent-learning to clc), we identified that:
+During PR #1 (rename ELF to CLC), we identified that:
 - `test_claim_chains*.py` - ImportError: cannot import 'BlockedError' from blackboard
 - `test_conductor_workflow.py` - FileNotFoundError: missing `init_db.sql`
 - Multiple other tests have similar dependency/fixture issues

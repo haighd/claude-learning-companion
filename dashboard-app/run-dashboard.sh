@@ -1,10 +1,10 @@
 #!/bin/bash
-# Emergent Learning Dashboard Launcher
+# Claude Learning Companion Dashboard Launcher
 # Run from dashboard-app/ directory or double-click
 
-# Find the ELF directory (handles both running from dashboard-app/ or elsewhere)
+# Find the CLC directory (handles both running from dashboard-app/ or elsewhere)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ELF_DIR="$(dirname "$SCRIPT_DIR")"
+CLC_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Detect Python command
 if command -v python3 &> /dev/null; then
@@ -52,7 +52,7 @@ BACKEND_PATH="$SCRIPT_DIR/backend"
 FRONTEND_PATH="$SCRIPT_DIR/frontend"
 
 echo "========================================================"
-echo "        EMERGENT LEARNING DASHBOARD                     "
+echo "        CLAUDE LEARNING COMPANION DASHBOARD             "
 echo "        Agent Intelligence System                       "
 echo "========================================================"
 echo ""

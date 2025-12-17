@@ -142,10 +142,10 @@ Runs automatically - no user interaction required. See [watcher/README.md](watch
 
 ```bash
 # Check what has been learned
-python ~/.claude/emergent-learning/query/query.py --stats
+python ~/.claude/clc/query/query.py --stats
 
 # Start dashboard manually (if needed)
-cd ~/.claude/emergent-learning/dashboard-app && ./run-dashboard.sh
+cd ~/.claude/clc/dashboard-app && ./run-dashboard.sh
 
 # Multi-agent swarm (Pro/Max plans)
 /swarm investigate the authentication system
@@ -207,17 +207,17 @@ See [query/MIGRATION.md](query/MIGRATION.md) for migration guide from sync API.
 
 **Quick Start:** [Getting Started Guide](GETTING_STARTED.md) - Step-by-step setup from zero to running
 
-Full documentation in the [Wiki](https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF/wiki):
+Full documentation in the [Wiki](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki):
 
-- [Installation](https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF/wiki/Installation) - Prerequisites, options, troubleshooting
-- [Configuration](https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF/wiki/Configuration) - CLAUDE.md, settings.json, hooks
-- [Dashboard](https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF/wiki/Dashboard) - Tabs, stats, themes
-- [Swarm](https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF/wiki/Swarm) - Multi-agent coordination, blackboard pattern
-- [CLI Reference](https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF/wiki/CLI-Reference) - All query commands
-- [Golden Rules](https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF/wiki/Golden-Rules) - How to customize principles
-- [Migration](https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF/wiki/Migration) - Upgrading, team setup
-- [Architecture](https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF/wiki/Architecture) - Database schema, hooks system
-- [Token Costs](https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF/wiki/Token-Costs) - Usage breakdown, optimization
+- [Installation](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Installation) - Prerequisites, options, troubleshooting
+- [Configuration](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Configuration) - CLAUDE.md, settings.json, hooks
+- [Dashboard](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Dashboard) - Tabs, stats, themes
+- [Swarm](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Swarm) - Multi-agent coordination, blackboard pattern
+- [CLI Reference](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/CLI-Reference) - All query commands
+- [Golden Rules](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Golden-Rules) - How to customize principles
+- [Migration](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Migration) - Upgrading, team setup
+- [Architecture](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Architecture) - Database schema, hooks system
+- [Token Costs](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Token-Costs) - Usage breakdown, optimization
 
 ## Plan Compatibility
 
@@ -237,7 +237,7 @@ If you see `Cannot find module @rollup/rollup-win32-x64-msvc` when starting the 
 
 **Fix Option 1:** Use PowerShell or CMD for npm install:
 ```powershell
-cd ~/.claude/emergent-learning/dashboard-app/frontend
+cd ~/.claude/clc/dashboard-app/frontend
 rm -rf node_modules package-lock.json
 npm install
 ```
@@ -253,7 +253,7 @@ The run-dashboard.sh script will now detect this issue and warn you before faili
 
 - [Claude Code Docs](https://docs.anthropic.com/en/docs/claude-code)
 - [Hooks System](https://docs.anthropic.com/en/docs/claude-code/hooks)
-- [Issues & Support](https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF/issues)
+- [Issues & Support](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/issues)
 
 ## License
 

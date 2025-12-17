@@ -2,7 +2,7 @@
 """
 Session Start Hook - Load Building Context + Session Memory
 
-Automatically loads context from the Emergent Learning Framework
+Automatically loads context from the Claude Learning Companion
 and triggers summarization of the previous session.
 """
 
@@ -69,7 +69,7 @@ def find_previous_session():
 
 def check_summary_exists(session_file):
     """Check if a summary already exists for this session."""
-    summaries_dir = Path.home() / ".claude" / "emergent-learning" / "memory" / "sessions"
+    summaries_dir = Path.home() / ".claude" / "clc" / "memory" / "sessions"
 
     if not summaries_dir.exists():
         return False
@@ -100,7 +100,7 @@ def check_summary_exists(session_file):
 def main():
     print("[SessionStart] Hook fired", flush=True)
 
-    base_dir = Path.home() / ".claude" / "emergent-learning"
+    base_dir = Path.home() / ".claude" / "clc"
     query_script = base_dir / "query" / "query.py"
 
     if not query_script.exists():

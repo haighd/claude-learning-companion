@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-DB_PATH="$HOME/.claude/emergent-learning/memory/index.db"
+DB_PATH="$HOME/.claude/clc/memory/index.db"
 TEST_COUNT=0
 PASS_COUNT=0
 FAIL_COUNT=0

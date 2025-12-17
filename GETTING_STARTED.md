@@ -1,4 +1,4 @@
-# Getting Started with ELF (Emergent Learning Framework)
+# Getting Started with CLC (Claude Learning Companion)
 
 Complete setup guide - from zero to running.
 
@@ -8,7 +8,7 @@ Complete setup guide - from zero to running.
 
 ### Required: Claude Code CLI
 
-ELF extends Claude Code. You need it installed first.
+CLC extends Claude Code. You need it installed first.
 
 **Check if you have it:**
 ```bash
@@ -52,12 +52,12 @@ node --version
 
 ---
 
-## Step 1: Download ELF
+## Step 1: Download CLC
 
 **Option A: Git clone**
 ```bash
-git clone https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF.git
-cd Emergent-Learning-Framework_ELF
+git clone https://github.com/Spacehunterz/Claude-Learning-Companion_CLC.git
+cd Claude-Learning-Companion_CLC
 ```
 
 **Option B: Download ZIP**
@@ -101,11 +101,11 @@ chmod +x install.sh
 Run this to check everything is working:
 
 ```bash
-python ~/.claude/emergent-learning/query/query.py --validate
+python ~/.claude/clc/query/query.py --validate
 ```
 
 You should see:
-```
+```text
 Database validation passed
 Tables: learnings, heuristics, metrics...
 ```
@@ -117,7 +117,7 @@ Tables: learnings, heuristics, metrics...
 ### Basic Usage (Automatic)
 
 Just use Claude Code normally! The hooks will:
-- Query the building before tasks
+- Query CLC before tasks
 - Record outcomes after tasks
 
 ```bash
@@ -132,29 +132,29 @@ If you installed the dashboard:
 
 **Windows:**
 ```powershell
-cd ~/.claude/emergent-learning/dashboard-app
+cd ~/.claude/clc/dashboard-app
 .\run-dashboard.ps1
 ```
 
 **Mac/Linux:**
 ```bash
-cd ~/.claude/emergent-learning/dashboard-app
+cd ~/.claude/clc/dashboard-app
 ./run-dashboard.sh
 ```
 
 Then open: http://localhost:3001
 
-### Query the Building Manually
+### Query CLC Manually
 
 ```bash
 # See what Claude sees before tasks
-python ~/.claude/emergent-learning/query/query.py --context
+python ~/.claude/clc/query/query.py --context
 
 # Search by domain
-python ~/.claude/emergent-learning/query/query.py --domain testing
+python ~/.claude/clc/query/query.py --domain testing
 
 # View statistics
-python ~/.claude/emergent-learning/query/query.py --stats
+python ~/.claude/clc/query/query.py --stats
 ```
 
 ---
@@ -189,14 +189,14 @@ Try `python3` instead, or install Python. See Step 0.
 ### "Permission denied" on Mac/Linux
 ```bash
 chmod +x install.sh
-chmod +x ~/.claude/emergent-learning/dashboard-app/run-dashboard.sh
+chmod +x ~/.claude/clc/dashboard-app/run-dashboard.sh
 ```
 
 ### Dashboard won't start
 - Check Bun/Node.js is installed: `bun --version` or `node --version`
 - Try reinstalling dependencies:
   ```bash
-  cd ~/.claude/emergent-learning/dashboard-app/frontend
+  cd ~/.claude/clc/dashboard-app/frontend
   rm -rf node_modules package-lock.json
   bun install   # recommended
   # or: npm install (may have issues on Windows)
@@ -205,7 +205,7 @@ chmod +x ~/.claude/emergent-learning/dashboard-app/run-dashboard.sh
 ### "Cannot find module @rollup/rollup-win32-x64-msvc" (Windows)
 This is a known npm bug. **Use Bun instead:**
 ```bash
-cd ~/.claude/emergent-learning/dashboard-app/frontend
+cd ~/.claude/clc/dashboard-app/frontend
 rm -rf node_modules package-lock.json
 bun install
 bun run dev
@@ -237,7 +237,7 @@ See `UNINSTALL.md` for clean removal instructions.
 
 | Task | Command |
 |------|---------|
-| Query building | `python ~/.claude/emergent-learning/query/query.py --context` |
-| View stats | `python ~/.claude/emergent-learning/query/query.py --stats` |
-| Start dashboard | `cd ~/.claude/emergent-learning/dashboard-app && ./run-dashboard.sh` |
-| Validate install | `python ~/.claude/emergent-learning/query/query.py --validate` |
+| Query CLC | `python ~/.claude/clc/query/query.py --context` |
+| View stats | `python ~/.claude/clc/query/query.py --stats` |
+| Start dashboard | `cd ~/.claude/clc/dashboard-app && ./run-dashboard.sh` |
+| Validate install | `python ~/.claude/clc/query/query.py --validate` |

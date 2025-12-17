@@ -298,7 +298,7 @@ Error Codes:
     )
 
     # Basic arguments
-    parser.add_argument('--base-path', type=str, help='Base path to emergent-learning directory')
+    parser.add_argument('--base-path', type=str, help='Base path to clc directory')
     parser.add_argument('--context', action='store_true', help='Build full context for agents')
     parser.add_argument('--depth', choices=['minimal', 'standard', 'deep'], default='standard',
                        help='Context depth: minimal (golden rules only ~500 tokens), '

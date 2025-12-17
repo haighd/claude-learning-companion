@@ -1,11 +1,11 @@
-# Initialize the Emergent Learning Framework
+# Initialize the Claude Learning Companion
 
 $ErrorActionPreference = "Stop"
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $BaseDir = Split-Path -Parent $ScriptDir
 
-Write-Host "=== Initializing Emergent Learning Framework ===" -ForegroundColor Cyan
+Write-Host "=== Initializing Claude Learning Companion ===" -ForegroundColor Cyan
 Write-Host "Base directory: $BaseDir"
 Write-Host ""
 
@@ -157,14 +157,14 @@ if (-not (Test-Path $ReadmePath)) {
     Write-Host ""
     Write-Host "Creating README..."
     $readme = @"
-# Emergent Learning Framework
+# Claude Learning Companion
 
 A systematic approach to learning from failures, extracting heuristics, and running deliberate experiments.
 
 ## Directory Structure
 
 ``````
-emergent-learning/
+clc/
 ├── memory/              # The knowledge base
 │   ├── failures/        # Documented failures
 │   ├── successes/       # Documented successes
@@ -240,7 +240,7 @@ Write-Host "Creating initial git commit..."
 Push-Location $BaseDir
 try {
     git add .
-    git commit -m "init: Initialize Emergent Learning Framework" -m "Created directory structure, database, and golden rules" 2>&1 | Out-Null
+    git commit -m "init: Initialize Claude Learning Companion" -m "Created directory structure, database, and golden rules" 2>&1 | Out-Null
     Write-Host "✓ Initial commit created" -ForegroundColor Green
 } catch {
     Write-Host "Already committed or no changes" -ForegroundColor Yellow

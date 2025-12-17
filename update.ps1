@@ -1,4 +1,4 @@
-# Emergent Learning Framework - Windows Updater
+# Claude Learning Companion - Windows Updater
 # Run with: PowerShell -ExecutionPolicy Bypass -File update.ps1
 
 param(
@@ -19,7 +19,7 @@ if ($Help) {
     Write-Host "  -SkipBackup  Skip backup creation (not recommended)"
     Write-Host "  -Help        Show this help"
     Write-Host ""
-    Write-Host "This script safely updates the Emergent Learning Framework while"
+    Write-Host "This script safely updates the Claude Learning Companion while"
     Write-Host "preserving your customizations and data."
     exit 0
 }
@@ -27,20 +27,20 @@ if ($Help) {
 # Paths
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ClaudeDir = Join-Path $env:USERPROFILE ".claude"
-$EmergentLearningDir = Join-Path $ClaudeDir "emergent-learning"
-$VersionFile = Join-Path $EmergentLearningDir "VERSION"
-$DbPath = Join-Path $EmergentLearningDir "memory\index.db"
+$ClcDir = Join-Path $ClaudeDir "clc"
+$VersionFile = Join-Path $ClcDir "VERSION"
+$DbPath = Join-Path $ClcDir "memory\index.db"
 $StockHashesFile = Join-Path $ScriptDir ".stock-hashes"
 
 # GitHub repo info
-$GithubRepo = "Spacehunterz/Emergent-Learning-Framework_ELF"
+$GithubRepo = "Spacehunterz/Claude-Learning-Companion_CLC"
 $GithubApiUrl = "https://api.github.com/repos/$GithubRepo/releases/latest"
 
 # Backup directory (will be set later with timestamp)
 $BackupDir = $null
 
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "  Emergent Learning Framework Updater" -ForegroundColor Cyan
+Write-Host "  Claude Learning Companion Updater" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -80,7 +80,7 @@ function Get-LatestVersion {
 
     # Use GitHub API
     try {
-        $response = Invoke-RestMethod -Uri $GithubApiUrl -Headers @{"User-Agent"="ELF-Updater"}
+        $response = Invoke-RestMethod -Uri $GithubApiUrl -Headers @{"User-Agent"="CLC-Updater"}
         return $response.tag_name
     } catch {
         return $null
@@ -145,27 +145,27 @@ function Test-FileModified {
 
 function New-Backup {
     $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-    $script:BackupDir = Join-Path $ClaudeDir "emergent-learning-backup-$timestamp"
+    $script:BackupDir = Join-Path $ClaudeDir "clc-backup-$timestamp"
 
     Write-Host "[Backup] Creating backup at $BackupDir" -ForegroundColor Yellow
     New-Item -ItemType Directory -Path $BackupDir -Force | Out-Null
 
     # Backup database
-    $dbSrc = Join-Path $EmergentLearningDir "memory\index.db"
+    $dbSrc = Join-Path $ClcDir "memory\index.db"
     if (Test-Path $dbSrc) {
         Copy-Item -Path $dbSrc -Destination $BackupDir
         Write-Host "  [+] Database (index.db)" -ForegroundColor Green
     }
 
     # Backup golden rules
-    $goldenRules = Join-Path $EmergentLearningDir "memory\golden-rules.md"
+    $goldenRules = Join-Path $ClcDir "memory\golden-rules.md"
     if (Test-Path $goldenRules) {
         Copy-Item -Path $goldenRules -Destination $BackupDir
         Write-Host "  [+] Golden rules" -ForegroundColor Green
     }
 
     # Backup CEO inbox
-    $ceoInbox = Join-Path $EmergentLearningDir "ceo-inbox"
+    $ceoInbox = Join-Path $ClcDir "ceo-inbox"
     if (Test-Path $ceoInbox) {
         Copy-Item -Path $ceoInbox -Destination $BackupDir -Recurse
         Write-Host "  [+] CEO inbox" -ForegroundColor Green
@@ -199,7 +199,7 @@ function Restore-Backup {
     # Restore database
     $dbBackup = Join-Path $BackupDir "index.db"
     if (Test-Path $dbBackup) {
-        $dbDst = Join-Path $EmergentLearningDir "memory\index.db"
+        $dbDst = Join-Path $ClcDir "memory\index.db"
         Copy-Item -Path $dbBackup -Destination $dbDst -Force
         Write-Host "  [+] Database restored" -ForegroundColor Green
     }
@@ -207,7 +207,7 @@ function Restore-Backup {
     # Restore golden rules
     $goldenBackup = Join-Path $BackupDir "golden-rules.md"
     if (Test-Path $goldenBackup) {
-        $goldenDst = Join-Path $EmergentLearningDir "memory\golden-rules.md"
+        $goldenDst = Join-Path $ClcDir "memory\golden-rules.md"
         Copy-Item -Path $goldenBackup -Destination $goldenDst -Force
         Write-Host "  [+] Golden rules restored" -ForegroundColor Green
     }
@@ -473,11 +473,11 @@ try {
         # Standalone update - download release
         Write-Host "  Downloading latest release..." -ForegroundColor Cyan
 
-        $response = Invoke-RestMethod -Uri $GithubApiUrl -Headers @{"User-Agent"="ELF-Updater"}
+        $response = Invoke-RestMethod -Uri $GithubApiUrl -Headers @{"User-Agent"="CLC-Updater"}
         $tarballUrl = $response.tarball_url
 
-        $tempDir = Join-Path $env:TEMP "elf-update-$(Get-Date -Format 'yyyyMMddHHmmss')"
-        $tarballPath = Join-Path $env:TEMP "elf-update.tar.gz"
+        $tempDir = Join-Path $env:TEMP "clc-update-$(Get-Date -Format 'yyyyMMddHHmmss')"
+        $tarballPath = Join-Path $env:TEMP "clc-update.tar.gz"
 
         Invoke-WebRequest -Uri $tarballUrl -OutFile $tarballPath
 
@@ -540,13 +540,13 @@ Write-Host ""
 Write-Host "[Step 6/6] Post-update tasks..." -ForegroundColor Yellow
 
 # Update VERSION file in installed location
-$installedVersionFile = Join-Path $EmergentLearningDir "VERSION"
+$installedVersionFile = Join-Path $ClcDir "VERSION"
 $latestClean = $latestVersion -replace '^v', ''
 Set-Content -Path $installedVersionFile -Value $latestClean -NoNewline
 Write-Host "  Updated VERSION file to $latestClean" -ForegroundColor Green
 
 # Update dependencies if dashboard installed
-$dashboardFrontend = Join-Path $EmergentLearningDir "dashboard-app\frontend"
+$dashboardFrontend = Join-Path $ClcDir "dashboard-app\frontend"
 if ((Test-Path $dashboardFrontend) -and -not $SkipDashboard) {
     Write-Host "  Updating dashboard dependencies..." -ForegroundColor Cyan
     Push-Location $dashboardFrontend
@@ -580,5 +580,5 @@ if ($BackupDir) {
 
 Write-Host "Next steps:" -ForegroundColor Yellow
 Write-Host "  1. Restart Claude Code to pick up changes"
-Write-Host "  2. Test the query system: python ~/.claude/emergent-learning/query/query.py --context"
+Write-Host "  2. Test the query system: python ~/.claude/clc/query/query.py --context"
 Write-Host ""

@@ -32,8 +32,8 @@ except ImportError:
     def lay_trails(*args, **kwargs): pass
 
 # Paths - using Path.home() for portability
-EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "emergent-learning"
-DB_PATH = EMERGENT_LEARNING_PATH / "memory" / "index.db"
+CLC_PATH = Path.home() / ".claude" / "clc"
+DB_PATH = CLC_PATH / "memory" / "index.db"
 STATE_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
 PENDING_TASKS_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "pending-tasks.json"
 
@@ -647,7 +647,7 @@ def main():
                 # Normalize path
                 file_path = file_path.replace('\\', '/')
                 # Extract relative path from common markers
-                for marker in ['.claude/emergent-learning/', 'emergent-learning/', 'dashboard-app/']:
+                for marker in ['.claude/clc/', 'clc/', 'dashboard-app/']:
                     if marker in file_path:
                         file_path = file_path[file_path.index(marker):]
                         break
@@ -701,12 +701,12 @@ def main():
         if pending and pending.get('run_id') and pending.get('exec_id'):
             # Complete the existing workflow run
             try:
-                sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
+                sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
                 from conductor import Conductor
 
                 conductor = Conductor(
-                    base_path=str(Path.home() / '.claude' / 'emergent-learning'),
-                    project_root=str(Path.home() / '.claude' / 'emergent-learning')
+                    base_path=str(Path.home() / '.claude' / 'clc'),
+                    project_root=str(Path.home() / '.claude' / 'clc')
                 )
 
                 run_id = pending['run_id']
@@ -735,12 +735,12 @@ def main():
             # No pending task found - create new workflow record
             sys.stderr.write(f"[LEARNING_LOOP] No pending task for {task_id}, creating new workflow record\n")
             try:
-                sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
+                sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
                 from conductor import Conductor, Node
 
                 conductor = Conductor(
-                    base_path=str(Path.home() / '.claude' / 'emergent-learning'),
-                    project_root=str(Path.home() / '.claude' / 'emergent-learning')
+                    base_path=str(Path.home() / '.claude' / 'clc'),
+                    project_root=str(Path.home() / '.claude' / 'clc')
                 )
 
                 run_id = conductor.start_run(
@@ -800,12 +800,12 @@ def main():
 
             # Create workflow run and record as pending
             try:
-                sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
+                sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
                 from conductor import Conductor, Node
 
                 conductor = Conductor(
-                    base_path=str(Path.home() / '.claude' / 'emergent-learning'),
-                    project_root=str(Path.home() / '.claude' / 'emergent-learning')
+                    base_path=str(Path.home() / '.claude' / 'clc'),
+                    project_root=str(Path.home() / '.claude' / 'clc')
                 )
 
                 description = tool_input.get('description', 'Background task')
@@ -852,12 +852,12 @@ def main():
             outcome, reason = determine_outcome(tool_output)
 
             try:
-                sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
+                sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
                 from conductor import Conductor, Node
 
                 conductor = Conductor(
-                    base_path=str(Path.home() / '.claude' / 'emergent-learning'),
-                    project_root=str(Path.home() / '.claude' / 'emergent-learning')
+                    base_path=str(Path.home() / '.claude' / 'clc'),
+                    project_root=str(Path.home() / '.claude' / 'clc')
                 )
 
                 description = tool_input.get('description', 'Unknown task')

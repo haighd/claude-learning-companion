@@ -31,7 +31,7 @@ test_cases = [
     },
     {
         "name": "Windows path",
-        "content": "Updated C:\\Users\\Test\\.claude\\emergent-learning\\hooks\\learning-loop\\test.py",
+        "content": "Updated C:\\Users\\Test\\.claude\\clc\\hooks\\learning-loop\\test.py",
         "expected_paths": ["test.py"]
     },
     {
@@ -101,7 +101,7 @@ if result > 0:
     import sqlite3
     from pathlib import Path
 
-    db_path = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
+    db_path = Path.home() / ".claude" / "clc" / "memory" / "index.db"
     conn = sqlite3.connect(str(db_path))
     cursor = conn.cursor()
 

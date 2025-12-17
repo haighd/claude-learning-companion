@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Emergent Learning Framework - Setup Script
+# Claude Learning Companion - Setup Script
 # Supports: --mode fresh|merge|replace|skip
 #
 # Cross-platform: Works on Windows (Git Bash/MSYS2), Linux, and macOS
@@ -10,7 +10,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
-ELF_DIR="$CLAUDE_DIR/emergent-learning"
+CLC_DIR="$CLAUDE_DIR/clc"
 MODE="${1#--mode=}"
 MODE="${MODE:-interactive}"
 
@@ -33,7 +33,7 @@ install_commands() {
 }
 
 install_settings() {
-    # Generate settings.json with hooks pointing to emergent-learning directory
+    # Generate settings.json with hooks pointing to clc directory
     # Uses Python for cross-platform path handling
     python3 << 'PYTHON_SCRIPT'
 import json
@@ -42,18 +42,18 @@ import sys
 from pathlib import Path
 
 claude_dir = Path.home() / ".claude"
-elf_hooks = claude_dir / "emergent-learning" / "hooks" / "learning-loop"
+clc_hooks = claude_dir / "clc" / "hooks" / "learning-loop"
 settings_file = claude_dir / "settings.json"
 
 # Detect platform and format paths appropriately
 if sys.platform == "win32":
     # Windows: use escaped backslashes in JSON
-    pre_hook = str(elf_hooks / "pre_tool_learning.py").replace("\\", "\\\\")
-    post_hook = str(elf_hooks / "post_tool_learning.py").replace("\\", "\\\\")
+    pre_hook = str(clc_hooks / "pre_tool_learning.py").replace("\\", "\\\\")
+    post_hook = str(clc_hooks / "post_tool_learning.py").replace("\\", "\\\\")
 else:
     # Unix: forward slashes
-    pre_hook = str(elf_hooks / "pre_tool_learning.py")
-    post_hook = str(elf_hooks / "post_tool_learning.py")
+    pre_hook = str(clc_hooks / "pre_tool_learning.py")
+    post_hook = str(clc_hooks / "post_tool_learning.py")
 
 settings = {
     "hooks": {
@@ -96,19 +96,19 @@ if settings_file.exists():
 with open(settings_file, "w") as f:
     json.dump(settings, f, indent=4)
 
-print(f"[ELF] settings.json configured with hooks at: {elf_hooks}")
+print(f"[CLC] settings.json configured with hooks at: {clc_hooks}")
 PYTHON_SCRIPT
 }
 
 install_git_hooks() {
     # Install git pre-commit hook for invariant enforcement
-    local git_hooks_dir="$ELF_DIR/.git/hooks"
+    local git_hooks_dir="$CLC_DIR/.git/hooks"
 
     if [ -d "$git_hooks_dir" ]; then
         if [ -f "$SCRIPT_DIR/git-hooks/pre-commit" ]; then
             cp "$SCRIPT_DIR/git-hooks/pre-commit" "$git_hooks_dir/pre-commit"
             chmod +x "$git_hooks_dir/pre-commit"
-            echo "[ELF] Git pre-commit hook installed (invariant enforcement)"
+            echo "[CLC] Git pre-commit hook installed (invariant enforcement)"
         fi
     fi
 }
@@ -120,11 +120,11 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
-        echo "[ELF] Fresh install complete"
+        echo "[CLC] Fresh install complete"
         ;;
 
     merge)
-        # Merge: their config + ELF
+        # Merge: their config + CLC
         if [ -f "$CLAUDE_DIR/CLAUDE.md" ]; then
             cp "$CLAUDE_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md.backup"
             {
@@ -132,13 +132,13 @@ case "$MODE" in
                 echo ""
                 echo ""
                 echo "# =============================================="
-                echo "# EMERGENT LEARNING FRAMEWORK - AUTO-APPENDED"
+                echo "# CLAUDE LEARNING COMPANION - AUTO-APPENDED"
                 echo "# =============================================="
                 echo ""
                 cat "$SCRIPT_DIR/CLAUDE.md.template"
             } > "$CLAUDE_DIR/CLAUDE.md.new"
             mv "$CLAUDE_DIR/CLAUDE.md.new" "$CLAUDE_DIR/CLAUDE.md"
-            echo "[ELF] Merged with existing config (backup: CLAUDE.md.backup)"
+            echo "[CLC] Merged with existing config (backup: CLAUDE.md.backup)"
         fi
         install_commands
         install_settings
@@ -146,7 +146,7 @@ case "$MODE" in
         ;;
 
     replace)
-        # Replace: backup theirs, use ELF only
+        # Replace: backup theirs, use CLC only
         if [ -f "$CLAUDE_DIR/CLAUDE.md" ]; then
             cp "$CLAUDE_DIR/CLAUDE.md" "$CLAUDE_DIR/CLAUDE.md.backup"
         fi
@@ -154,13 +154,13 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
-        echo "[ELF] Replaced config (backup: CLAUDE.md.backup)"
+        echo "[CLC] Replaced config (backup: CLAUDE.md.backup)"
         ;;
 
     skip)
         # Skip CLAUDE.md but install commands/hooks
-        echo "[ELF] Skipping CLAUDE.md modification"
-        echo "[ELF] Warning: ELF may not function correctly without CLAUDE.md instructions"
+        echo "[CLC] Skipping CLAUDE.md modification"
+        echo "[CLC] Warning: CLC may not function correctly without CLAUDE.md instructions"
         install_commands
         install_settings
         install_git_hooks
@@ -169,19 +169,19 @@ case "$MODE" in
     interactive|*)
         # Interactive mode - show menu
         echo "========================================"
-        echo "Emergent Learning Framework - Setup"
+        echo "Claude Learning Companion - Setup"
         echo "========================================"
         echo ""
 
         if [ -f "$CLAUDE_DIR/CLAUDE.md" ]; then
-            if grep -q "Emergent Learning Framework" "$CLAUDE_DIR/CLAUDE.md" 2>/dev/null; then
-                echo "ELF already configured in CLAUDE.md"
+            if grep -q -e "Claude Learning Companion" -e "Emergent Learning Framework" "$CLAUDE_DIR/CLAUDE.md" 2>/dev/null; then
+                echo "CLC already configured in CLAUDE.md"
             else
                 echo "Existing CLAUDE.md found."
                 echo ""
                 echo "Options:"
-                echo "  1) Merge - Keep yours, add ELF below"
-                echo "  2) Replace - Use ELF only (yours backed up)"
+                echo "  1) Merge - Keep yours, add CLC below"
+                echo "  2) Replace - Use CLC only (yours backed up)"
                 echo "  3) Skip - Don't modify CLAUDE.md"
                 echo ""
                 read -p "Choice [1/2/3]: " choice

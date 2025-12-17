@@ -18,11 +18,11 @@ Before starting ANY investigation, debugging, research, or problem-solving task:
 
 1. **QUERY THE BUILDING:**
    ```bash
-   python ~/.claude/emergent-learning/query/query.py --context
+   python ~/.claude/clc/query/query.py --context
    ```
    For domain-specific work:
    ```bash
-   python ~/.claude/emergent-learning/query/query.py --domain [domain]
+   python ~/.claude/clc/query/query.py --domain [domain]
    ```
 
 2. **VERIFY YOU HAVE QUERIED:**
@@ -35,7 +35,7 @@ Before starting ANY investigation, debugging, research, or problem-solving task:
 
 4. **DASHBOARD (once per session, at conversation start only):**
    Only on the FIRST check-in of a NEW conversation:
-   - Ask user: "Start ELF dashboard?" (Yes/No)
+   - Ask user: "Start CLC dashboard?" (Yes/No)
    - If Yes: Start servers via bash
    - If No: Skip
 
@@ -43,20 +43,20 @@ Before starting ANY investigation, debugging, research, or problem-solving task:
 
    Start command (handles port detection, skips if already running):
    ```bash
-   bash ~/.claude/emergent-learning/dashboard-app/run-dashboard.sh
+   bash ~/.claude/clc/dashboard-app/run-dashboard.sh
    ```
 
 **This protocol is MANDATORY. Query before acting. Every single time.**
 
 ---
 
-## The Building - Emergent Learning Framework
+## CLC - Claude Learning Companion
 
-**IMPORTANT: Querying the building is REQUIRED, not conditional on user requests.**
+**IMPORTANT: Querying CLC is REQUIRED, not conditional on user requests.**
 
-### What is The Building?
+### What is CLC?
 
-**The building** is the Emergent Learning Framework - institutional knowledge that persists across sessions. You are a temporary worker; the building is permanent. The building contains:
+**CLC** (Claude Learning Companion) is institutional knowledge that persists across sessions. You are a temporary worker; CLC is permanent. CLC contains:
 - Golden rules (constitutional principles)
 - Heuristics (learned patterns)
 - Failure records (what didn't work)
@@ -64,7 +64,7 @@ Before starting ANY investigation, debugging, research, or problem-solving task:
 - Active experiments
 - Pending CEO decisions
 
-### When to Query The Building
+### When to Query CLC
 
 **ALWAYS query before:**
 - Investigations or debugging sessions
@@ -80,12 +80,12 @@ Before starting ANY investigation, debugging, research, or problem-solving task:
 
 **Standard query (REQUIRED for most tasks):**
 ```bash
-python ~/.claude/emergent-learning/query/query.py --context
+python ~/.claude/clc/query/query.py --context
 ```
 
 **Domain-specific query:**
 ```bash
-python ~/.claude/emergent-learning/query/query.py --domain [domain]
+python ~/.claude/clc/query/query.py --domain [domain]
 ```
 
 **After querying, you MUST:**
@@ -94,30 +94,30 @@ python ~/.claude/emergent-learning/query/query.py --domain [domain]
 3. Check for active experiments
 4. Apply this knowledge to your approach
 
-### User Mentions of The Building
+### User Mentions of CLC
 
 When the user explicitly says:
 - "check in"
-- "check the building"
-- "coordinate subagents in the building"
-- "what does the building know"
-- "ask the building about X"
+- "check CLC"
+- "coordinate subagents in CLC"
+- "what does CLC know"
+- "ask CLC about X"
 
 This is a REMINDER to query, but you should have already done so automatically.
 
-### Recording to the Building
+### Recording to CLC
 
-- **Failure:** `~/.claude/emergent-learning/scripts/record-failure.sh`
+- **Failure:** `~/.claude/clc/scripts/record-failure.sh`
 - **Success:** Create file in `memory/successes/` following template
-- **Heuristic:** `~/.claude/emergent-learning/scripts/record-heuristic.sh`
-- **Experiment:** `~/.claude/emergent-learning/scripts/start-experiment.sh`
+- **Heuristic:** `~/.claude/clc/scripts/record-heuristic.sh`
+- **Experiment:** `~/.claude/clc/scripts/start-experiment.sh`
 - **CEO Decision:** Create file in `ceo-inbox/` following template
 
 ### Golden Rules (Always Follow)
 
 **These are constitutional principles. They are MANDATORY.**
 
-1. **Query before acting** - ALWAYS query the building before investigations/tasks. This is Rule #1 for a reason. It is not negotiable.
+1. **Query before acting** - ALWAYS query CLC before investigations/tasks. This is Rule #1 for a reason. It is not negotiable.
 2. **Document failures immediately** - Record what went wrong while details are fresh
 3. **Extract heuristics, not just outcomes** - Document the WHY, not just the WHAT
 4. **Break it before shipping it** - Test destructively, assume failure modes
@@ -142,7 +142,7 @@ For Claude Code subagents, you can optionally use Basic Memory coordination (req
 
 ## Agent Personas (for complex problems)
 
-Read personality files at `~/.claude/emergent-learning/agents/` when needed:
+Read personality files at `~/.claude/clc/agents/` when needed:
 
 | Agent | Role | Trigger |
 |-------|------|---------|
@@ -168,17 +168,17 @@ Escalate to human (create file in ceo-inbox/) when:
 
 **Self-check before starting work:**
 
-1. Have I queried the building? (If NO -> STOP and query now)
+1. Have I queried CLC? (If NO -> STOP and query now)
 2. Have I reviewed relevant golden rules and heuristics?
 3. Am I applying institutional knowledge to this task?
 
 ### Recovery Procedure (If You Skipped Querying)
 
-If you realize mid-task that you did NOT query the building:
+If you realize mid-task that you did NOT query CLC:
 
 1. **STOP immediately**
-2. **Query now:** `python ~/.claude/emergent-learning/query/query.py --context`
+2. **Query now:** `python ~/.claude/clc/query/query.py --context`
 3. **Review the results** - adjust your approach based on learnings
 4. **Continue with corrected approach**
 
-**Remember: You are a temporary worker. The building is permanent. Query the building. Always.**
+**Remember: You are a temporary worker. CLC is permanent. Query CLC. Always.**

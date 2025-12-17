@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 
 # Add the sessions directory to path for logger import
-SESSIONS_DIR = Path.home() / ".claude" / "emergent-learning" / "sessions"
+SESSIONS_DIR = Path.home() / ".claude" / "clc" / "sessions"
 sys.path.insert(0, str(SESSIONS_DIR))
 
 try:
@@ -36,7 +36,7 @@ except ImportError:
     class SessionLogger:
         """Minimal fallback logger if main module not available."""
         def __init__(self):
-            self.logs_dir = Path.home() / ".claude" / "emergent-learning" / "sessions" / "logs"
+            self.logs_dir = Path.home() / ".claude" / "clc" / "sessions" / "logs"
             self.logs_dir.mkdir(parents=True, exist_ok=True)
 
         def log_tool_use(self, tool, tool_input, tool_output, outcome):

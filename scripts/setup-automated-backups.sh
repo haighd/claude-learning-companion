@@ -1,5 +1,5 @@
 #!/bin/bash
-# Emergent Learning Framework - Automated Backup Setup
+# Claude Learning Companion - Automated Backup Setup
 # Configures cron jobs for automated backups and verification
 
 set -euo pipefail
@@ -17,14 +17,14 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FRAMEWORK_DIR="$HOME/.claude/emergent-learning"
+FRAMEWORK_DIR="$HOME/.claude/clc"
 LOG_DIR="$HOME/.claude/backups/logs"
 
 # Create log directory
 mkdir -p "$LOG_DIR"
 
 echo "================================================"
-echo "Emergent Learning Framework - Backup Automation"
+echo "Claude Learning Companion - Backup Automation"
 echo "================================================"
 echo ""
 
@@ -37,11 +37,11 @@ if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
     WRAPPER_SCRIPT="$FRAMEWORK_DIR/scripts/run-backup-windows.bat"
     cat > "$WRAPPER_SCRIPT" << 'EOF'
 @echo off
-REM Emergent Learning Framework - Windows Backup Wrapper
+REM Claude Learning Companion - Windows Backup Wrapper
 REM Run this script with Windows Task Scheduler
 
 set LOGFILE=%USERPROFILE%\.claude\backups\logs\backup-%date:~-4,4%%date:~-10,2%%date:~-7,2%.log
-bash "%USERPROFILE%\.claude\emergent-learning\scripts\backup.sh" >> "%LOGFILE%" 2>&1
+bash "%USERPROFILE%\.claude\clc\scripts\backup.sh" >> "%LOGFILE%" 2>&1
 EOF
 
     log_success "Created Windows wrapper script: $WRAPPER_SCRIPT"
@@ -50,7 +50,7 @@ EOF
     echo ""
     echo "1. Open Task Scheduler (taskschd.msc)"
     echo "2. Click 'Create Basic Task'"
-    echo "3. Name: 'Emergent Learning Backup'"
+    echo "3. Name: 'Claude Learning Companion Backup'"
     echo "4. Trigger: Daily at 2:00 AM"
     echo "5. Action: Start a program"
     echo "6. Program: $WRAPPER_SCRIPT"
@@ -59,7 +59,7 @@ EOF
     echo "For weekly verification, create another task:"
     echo ""
     echo "Create: verify-backup-windows.bat"
-    echo "Content: bash ~/.claude/emergent-learning/scripts/verify-backup.sh --alert-on-fail"
+    echo "Content: bash ~/.claude/clc/scripts/verify-backup.sh --alert-on-fail"
     echo "Schedule: Weekly on Sunday at 3:00 AM"
     echo ""
     exit 0
@@ -92,15 +92,15 @@ trap "rm -f $TEMP_CRON" EXIT
 # Export current crontab
 crontab -l 2>/dev/null > "$TEMP_CRON" || echo "" > "$TEMP_CRON"
 
-# Remove any existing emergent-learning backup jobs
-sed -i.bak '/emergent-learning.*backup/d' "$TEMP_CRON" 2>/dev/null || \
-    sed -i '' '/emergent-learning.*backup/d' "$TEMP_CRON" 2>/dev/null || \
-    grep -v 'emergent-learning.*backup' "$TEMP_CRON" > "${TEMP_CRON}.new" && mv "${TEMP_CRON}.new" "$TEMP_CRON"
+# Remove any existing clc backup jobs
+sed -i.bak '/clc.*backup/d' "$TEMP_CRON" 2>/dev/null || \
+    sed -i '' '/clc.*backup/d' "$TEMP_CRON" 2>/dev/null || \
+    grep -v 'clc.*backup' "$TEMP_CRON" > "${TEMP_CRON}.new" && mv "${TEMP_CRON}.new" "$TEMP_CRON"
 
 # Add new backup jobs
 cat >> "$TEMP_CRON" << EOF
 
-# Emergent Learning Framework - Automated Backups
+# Claude Learning Companion - Automated Backups
 # Added by setup-automated-backups.sh on $(date)
 
 # Daily backup at midnight (00:00)
@@ -134,7 +134,7 @@ echo "  crontab -l"
 echo ""
 log_info "To remove automated backups:"
 echo "  crontab -e"
-echo "  (then delete the Emergent Learning section)"
+echo "  (then delete the Claude Learning Companion section)"
 echo ""
 
 # Create a monitoring script
@@ -143,7 +143,7 @@ cat > "$MONITOR_SCRIPT" << 'EOFMONITOR'
 #!/bin/bash
 # Check if backups are running successfully
 
-BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/emergent-learning}"
+BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/clc}"
 LOG_DIR="$HOME/.claude/backups/logs"
 
 echo "Backup Health Check"

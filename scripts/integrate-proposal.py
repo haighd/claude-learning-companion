@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Emergent Learning Framework - Proposal Integration Script
+Claude Learning Companion - Proposal Integration Script
 
-Reads approved proposal markdown files and integrates them into the ELF:
+Reads approved proposal markdown files and integrates them into the CLC:
 - heuristic: Adds to heuristics table in DB + creates markdown file
 - failure: Adds to learnings table + creates markdown file
 - pattern: Adds as observation to learnings table
@@ -29,21 +29,21 @@ class ProposalIntegrationError(Exception):
 
 
 class ProposalIntegrator:
-    """Handles integration of approved proposals into the ELF."""
+    """Handles integration of approved proposals into the CLC."""
 
     def __init__(self, base_path: Optional[str] = None, debug: bool = False):
         """
         Initialize the integrator.
 
         Args:
-            base_path: Base path to emergent-learning directory
+            base_path: Base path to clc directory
             debug: Enable debug output
         """
         self.debug = debug
 
         if base_path is None:
             home = Path.home()
-            self.base_path = home / ".claude" / "emergent-learning"
+            self.base_path = home / ".claude" / "clc"
         else:
             self.base_path = Path(base_path)
 
@@ -440,10 +440,10 @@ class ProposalIntegrator:
 def main():
     """Command-line interface for proposal integration."""
     parser = argparse.ArgumentParser(
-        description="Integrate approved proposals into the Emergent Learning Framework"
+        description="Integrate approved proposals into the Claude Learning Companion"
     )
     parser.add_argument('proposal_path', help='Path to approved proposal file')
-    parser.add_argument('--base-path', help='Base path to emergent-learning directory')
+    parser.add_argument('--base-path', help='Base path to clc directory')
     parser.add_argument('--debug', action='store_true', help='Enable debug output')
 
     args = parser.parse_args()

@@ -1,4 +1,4 @@
-# Emergent Learning Dashboard - Startup Script
+# CLC Dashboard - Startup Script
 # Run this script to start both backend and frontend
 
 $ErrorActionPreference = "Stop"
@@ -8,7 +8,7 @@ $BackendPath = Join-Path $DashboardPath "backend"
 $FrontendPath = Join-Path $DashboardPath "frontend"
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  Emergent Learning Dashboard Startup  " -ForegroundColor Cyan
+Write-Host "  CLC Dashboard Startup                " -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

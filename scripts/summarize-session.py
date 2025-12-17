@@ -23,9 +23,9 @@ from typing import Optional, Dict, Any, List
 from collections import Counter
 
 # Paths
-ELF_DIR = Path.home() / ".claude" / "emergent-learning"
+CLC_DIR = Path.home() / ".claude" / "clc"
 PROJECTS_DIR = Path.home() / ".claude" / "projects"
-DB_PATH = ELF_DIR / "memory" / "index.db"
+DB_PATH = CLC_DIR / "memory" / "index.db"
 
 
 def get_db():

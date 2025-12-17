@@ -1,13 +1,13 @@
 #!/bin/bash
-# Emergent Learning Framework - Enhanced Backup Script v2.0
+# Claude Learning Companion - Enhanced Backup Script v2.0
 # Adds encryption, automated verification, and remote backup integrity checks
 
 set -euo pipefail
 
 # Source the original backup script functionality
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FRAMEWORK_DIR="$HOME/.claude/emergent-learning"
-BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/emergent-learning}"
+FRAMEWORK_DIR="$HOME/.claude/clc"
+BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/clc}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="$BACKUP_ROOT/$TIMESTAMP"
 RETENTION_DAILY=7
@@ -123,8 +123,8 @@ else
     log_info "No remote backup configured (set REMOTE_BACKUP_DEST to enable)"
     log_info "Examples:"
     log_info "  - SSH: user@server:/path/to/backups"
-    log_info "  - rclone: myremote:backups/emergent-learning"
-    log_info "  - S3: s3://my-bucket/emergent-learning"
+    log_info "  - rclone: myremote:backups/clc"
+    log_info "  - S3: s3://my-bucket/clc"
 fi
 
 # Auto-verify backup integrity

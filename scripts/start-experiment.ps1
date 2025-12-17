@@ -1,4 +1,4 @@
-# Start a new experiment in the Emergent Learning Framework
+# Start a new experiment in the Claude Learning Companion
 
 $ErrorActionPreference = "Stop"
 

@@ -1,11 +1,11 @@
 #!/bin/bash
-# Emergent Learning Framework - Git-Based Point-in-Time Recovery
+# Claude Learning Companion - Git-Based Point-in-Time Recovery
 # Restore framework to any git commit while preserving or restoring databases
 
 set -euo pipefail
 
 # Configuration
-FRAMEWORK_DIR="$HOME/.claude/emergent-learning"
+FRAMEWORK_DIR="$HOME/.claude/clc"
 
 # Colors for output
 RED='\033[0;31m'

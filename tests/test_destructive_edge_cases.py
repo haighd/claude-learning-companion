@@ -23,7 +23,7 @@ class DestructiveEdgeTester:
     """Test suite for destructive database edge cases"""
 
     def __init__(self):
-        self.base_path = Path.home() / ".claude" / "emergent-learning"
+        self.base_path = Path.home() / ".claude" / "clc"
         self.db_path = self.base_path / "memory" / "index.db"
         self.test_results = []
         self.master_backup = None

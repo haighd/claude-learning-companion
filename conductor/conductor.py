@@ -174,12 +174,12 @@ class Conductor:
         Initialize the Conductor.
 
         Args:
-            base_path: Path to emergent-learning directory (default: ~/.claude/emergent-learning)
+            base_path: Path to clc directory (default: ~/.claude/clc)
             project_root: Project root for blackboard coordination (default: current dir)
         """
         if base_path is None:
             home = Path.home()
-            self.base_path = home / ".claude" / "emergent-learning"
+            self.base_path = home / ".claude" / "clc"
         else:
             self.base_path = Path(base_path)
 

@@ -171,21 +171,21 @@ If you want to keep your learned heuristics and history for later:
 **Before uninstalling, backup:**
 ```bash
 # Copy database (contains heuristics, failures, successes)
-cp ~/.claude/emergent-learning/memory/index.db ~/elf-backup.db
+cp ~/.claude/clc/memory/index.db ~/clc-backup.db
 
 # Copy golden rules (if you customized them)
-cp ~/.claude/emergent-learning/memory/golden-rules.md ~/elf-golden-rules-backup.md
+cp ~/.claude/clc/memory/golden-rules.md ~/clc-golden-rules-backup.md
 
 # Copy CEO inbox (pending decisions)
-cp -r ~/.claude/emergent-learning/ceo-inbox ~/elf-ceo-inbox-backup
+cp -r ~/.claude/clc/ceo-inbox ~/clc-ceo-inbox-backup
 
 # Optional: Copy entire memory directory for complete backup
-cp -r ~/.claude/emergent-learning/memory ~/elf-memory-backup
+cp -r ~/.claude/clc/memory ~/clc-memory-backup
 ```
 
 **To restore later after reinstalling:**
 ```bash
-cp ~/elf-backup.db ~/.claude/emergent-learning/memory/index.db
+cp ~/clc-backup.db ~/.claude/clc/memory/index.db
 ```
 
 ---

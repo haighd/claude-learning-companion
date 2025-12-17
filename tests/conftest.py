@@ -1,7 +1,7 @@
 """
-Pytest configuration for ELF test suite.
+Pytest configuration for CLC test suite.
 
-Fixtures and configuration for testing the Emergent Learning Framework.
+Fixtures and configuration for testing the Claude Learning Companion.
 """
 import pytest
 import tempfile
@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 
 # Add src directory to path for imports
-src_path = Path(__file__).parent.parent / "src" / "emergent-learning"
+src_path = Path(__file__).parent.parent / "src" / "clc"
 sys.path.insert(0, str(src_path))
 
 
