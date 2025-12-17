@@ -12,6 +12,10 @@ The CLC project has 23 test files in `tests/` but many have issues (missing impo
 
 **Legacy Test Mapping:** Each priority section below includes a list of legacy test files it replaces. Delete these files as the new tests are completed and verified.
 
+**Legacy Test Inventory (23 files):**
+- **To replace** (10 files): Listed in each priority section below
+- **To evaluate** (13 files): `test_baseline_refresh.py`, `test_crash_recovery.py`, `test_dependency_graph.py`, `test_destructive_edge_cases.py`, `test_domain_elasticity.py`, `test_integration_multiagent.py`, `test_lifecycle_adversarial.py`, `test_meta_observer.py`, `test_sqlite_edge_cases.py`, `test_stress.py`, `test_temporal_smoothing.py`, `conftest.py`, `__init__.py` - assess during implementation whether these can be salvaged or should be replaced
+
 ## Background
 
 During PR #1 (rename emergent-learning to clc), we identified that:
@@ -80,6 +84,9 @@ Write new, focused tests starting with the most critical components:
 ### Priority 4: Dashboard API (`dashboard-app/backend/`)
 *Replaces: `tests/test_fraud_detection.py`, `tests/test_fraud_outcomes.py`, `tests/test_blackboard_v2.py`*
 
+**Note:** This priority is large. Consider implementing one router at a time for incremental progress.
+
+#### 4.1 Core Infrastructure
 - [ ] Test WebSocket connection and real-time updates (`/ws`)
 - [ ] Test analytics router endpoints (`/api/analytics/*`):
   - [ ] Test `GET /stats`
@@ -172,6 +179,7 @@ Write new, focused tests starting with the most critical components:
   - Temporary file-based database to verify actual permission setting
   - Mock filesystem calls to verify correct arguments are passed
 - Create proper fixtures in `conftest.py` and organize tests by mirroring the application's directory structure (e.g., `tests/query/test_query.py`)
+- Build shared, reusable fixtures for common data setups (e.g., `standard_user_session`, `complex_workflow_run`, `golden_heuristics_set`) to reduce boilerplate
 - Create a strategy for managing test data (e.g., using a library like `factory-boy` to create model factories) to cover diverse scenarios and edge cases
 - Mock external services (e.g., LLM APIs) to ensure tests are fast, deterministic, and don't rely on network access
 - Use `pytest.mark.parametrize` to reduce code duplication when testing similar functions or API endpoints
