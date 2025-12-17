@@ -151,8 +151,16 @@ Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*dashboard-
 ```
 
 Then start the new dashboard:
+
+**Mac/Linux**
 ```bash
 bash ~/.claude/clc/dashboard-app/run-dashboard.sh
+```
+
+**Windows (PowerShell)**
+```powershell
+# Run from within the clc repository directory
+.\dashboard-app\run-dashboard.ps1
 ```
 
 ### Database migration needed
