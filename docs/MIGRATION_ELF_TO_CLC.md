@@ -13,7 +13,7 @@ This guide covers converting existing projects that use the old `emergent-learni
 
 ## Step 1: Update ~/.claude/settings.json
 
-Your hooks should point to the new CLC location:
+Your hooks should point to the new CLC location. Replace `<HOME>` with your full home directory path (e.g., `/Users/username` on macOS, `/home/username` on Linux, or `C:\Users\username` on Windows):
 
 ```json
 {
@@ -22,7 +22,7 @@ Your hooks should point to the new CLC location:
       {
         "hooks": [
           {
-            "command": "python3 \"$HOME/.claude/clc/hooks/learning-loop/pre_tool_learning.py\"",
+            "command": "python3 \"<HOME>/.claude/clc/hooks/learning-loop/pre_tool_learning.py\"",
             "type": "command"
           }
         ],
@@ -33,7 +33,7 @@ Your hooks should point to the new CLC location:
       {
         "hooks": [
           {
-            "command": "python3 \"$HOME/.claude/clc/hooks/learning-loop/post_tool_learning.py\"",
+            "command": "python3 \"<HOME>/.claude/clc/hooks/learning-loop/post_tool_learning.py\"",
             "type": "command"
           }
         ],
