@@ -10,6 +10,8 @@ The CLC project has 23 test files in `tests/` but many have issues (missing impo
 
 **Handling Legacy Tests:** Delete the old, broken test files as they are replaced with new tests. The old tests have unresolvable dependency issues and keeping them around creates confusion about which tests are canonical. Clean deletion is preferred over archiving since the git history preserves the old tests if ever needed.
 
+**Legacy Test Mapping:** Each priority section below includes a list of legacy test files it replaces. Delete these files as the new tests are completed and verified.
+
 ## Background
 
 During PR #1 (rename emergent-learning to clc), we identified that:
@@ -22,6 +24,8 @@ During PR #1 (rename emergent-learning to clc), we identified that:
 Write new, focused tests starting with the most critical components:
 
 ### Priority 1: Query System (`query/query.py`)
+*Replaces: `tests/test_edge_cases.py`, `tests/test_edge_cases_v2.py`*
+
 - [ ] Test `build_context()` method (and relevance scoring)
 - [ ] Test `query_by_domain()`
 - [ ] Test `query_by_tags()`
@@ -40,6 +44,8 @@ Write new, focused tests starting with the most critical components:
 - [ ] Test CLI functionality in `main()`
 
 ### Priority 2: Learning Loop Hooks (`hooks/learning-loop/`)
+*Replaces: `tests/test_event_log.py`, `tests/test_event_log_dispatch.py`*
+
 - `pre_tool_learning.py`
   - [ ] Test domain extraction logic
   - [ ] Test complexity and risk scoring (`ComplexityScorer`)
@@ -54,6 +60,8 @@ Write new, focused tests starting with the most critical components:
   - [ ] Test explicit learning extraction (`extract_and_record_learnings`)
 
 ### Priority 3: Conductor (`conductor/`)
+*Replaces: `tests/test_conductor_workflow.py`, `tests/test_claim_chains.py`, `tests/test_claim_chains_comprehensive.py`*
+
 - [ ] Test workflow management (create, get, list)
 - [ ] Test node execution recording (start, completion, failure)
 - [ ] Test run status updates and context management
@@ -68,6 +76,8 @@ Write new, focused tests starting with the most critical components:
 - [ ] Test hot spot retrieval (`get_hot_spots`)
 
 ### Priority 4: Dashboard API (`dashboard-app/backend/`)
+*Replaces: `tests/test_fraud_detection.py`, `tests/test_fraud_outcomes.py`, `tests/test_blackboard_v2.py`*
+
 - [ ] Test WebSocket connection and real-time updates (`/ws`)
 - [ ] Test analytics router endpoints (`/api/analytics/*`):
   - [ ] Test `GET /stats`
@@ -154,11 +164,13 @@ Write new, focused tests starting with the most critical components:
 - Use `pytest` with `pytest-asyncio` for async tests
 - Use in-memory SQLite for database tests (no external dependencies)
 - Create proper fixtures in `conftest.py`
+- Create a strategy for managing test data (e.g., using factory functions or data generation helpers) to cover diverse scenarios and edge cases
 - Aim for tests that actually run in CI
 
 ## Acceptance Criteria
 
 - [ ] Achieve at least 80% test coverage for `query/query.py` (Priority 1)
+- [ ] Establish baseline performance benchmarks for critical queries in `query/query.py` to track performance over time
 - [ ] Achieve at least 75% test coverage for `hooks/learning-loop/` (Priority 2)
 - [ ] Achieve at least 70% test coverage for `conductor/` (Priority 3)
 - [ ] Achieve at least 70% test coverage for `dashboard-app/backend/` (Priority 4)
