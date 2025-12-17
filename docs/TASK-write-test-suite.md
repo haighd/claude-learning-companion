@@ -192,7 +192,7 @@ Write new, focused tests starting with the most critical components:
 - For database permission tests (os.chmod, icacls), use either:
   - Temporary file-based database to verify actual permission setting
   - Mock filesystem calls to verify correct arguments are passed
-- Create proper fixtures in `conftest.py` and organize tests by mirroring the application's directory structure (e.g., `tests/query/test_query.py`)
+- Create proper fixtures in `conftest.py` files. Use a root `tests/conftest.py` for global fixtures and consider nested `conftest.py` files (e.g., `tests/query/test_query.py`) for component-specific fixtures. This mirrors the application's directory structure and improves modularity.
 - Build shared, reusable fixtures for common data setups (e.g., `standard_user_session`, `complex_workflow_run`, `golden_heuristics_set`) to reduce boilerplate
 - Create a strategy for managing test data (e.g., using a library like `factory-boy` to create model factories) to cover diverse scenarios and edge cases
 - Mock external services (e.g., LLM APIs) to ensure tests are fast, deterministic, and don't rely on network access
