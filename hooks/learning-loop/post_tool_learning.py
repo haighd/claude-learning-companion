@@ -226,15 +226,26 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
     if not tool_output:
         return "unknown", "No output to analyze"
 
-    # Get content
+    # Get content - handle different tool response structures
     content = ""
     if isinstance(tool_output, dict):
-        content = tool_output.get("content", "") or ""
-        if isinstance(content, list):
-            content = "\n".join(
-                item.get("text", "") for item in content
-                if isinstance(item, dict)
-            )
+        # TaskOutput structure: tool_response.task.output or task.result
+        if "task" in tool_output and isinstance(tool_output["task"], dict):
+            task_data = tool_output["task"]
+            content = task_data.get("output", "") or task_data.get("result", "") or ""
+        # Task structure: tool_response.content (array of {type, text})
+        elif "content" in tool_output:
+            content = tool_output.get("content", "") or ""
+            if isinstance(content, list):
+                content = "\n".join(
+                    item.get("text", "") for item in content
+                    if isinstance(item, dict)
+                )
+        # Fallback: try common field names
+        else:
+            content = (tool_output.get("output", "") or
+                      tool_output.get("result", "") or
+                      tool_output.get("text", "") or "")
     elif isinstance(tool_output, str):
         content = tool_output
 
