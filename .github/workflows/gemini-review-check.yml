@@ -1,0 +1,61 @@
+name: Enforce Gemini Review Marker
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [main]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  ensure-gemini-comment:
+    runs-on: ubuntu-latest
+    env:
+      REQUIRED_MARKER: '/gemini review'
+    steps:
+      - name: Ensure `/gemini review` appears in the PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+            const requiredMarker = process.env.REQUIRED_MARKER;
+
+            const issueComments = await github.paginate(
+              github.rest.issues.listComments,
+              { owner, repo, issue_number: prNumber }
+            );
+
+            const reviewComments = await github.paginate(
+              github.rest.pulls.listReviewComments,
+              { owner, repo, pull_number: prNumber }
+            );
+
+            const allComments = [...issueComments, ...reviewComments];
+            const hasMarker = allComments.some((comment) => {
+              return comment.body && comment.body.toLowerCase().includes(requiredMarker);
+            });
+
+            if (hasMarker) {
+              core.info('Found `/gemini review` comment; skipping reminder.');
+              return;
+            }
+
+            const reminder = [
+              'Friendly reminder to trigger Gemini Code Assist for the most recent push.',
+              'This comment includes the required `/gemini review` marker so the workflow that watches for it can succeed.',
+              '',
+              requiredMarker
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: prNumber,
+              body: reminder
+            });
+
+            core.info('Posted `/gemini review` reminder comment.');
