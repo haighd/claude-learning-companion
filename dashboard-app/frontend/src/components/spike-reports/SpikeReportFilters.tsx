@@ -21,6 +21,7 @@ export default function SpikeReportFilters({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           className="bg-slate-700 text-sm text-white rounded-lg pl-9 pr-4 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500 w-64"
+          aria-label="Search spike findings"
         />
       </div>
 
@@ -30,6 +31,7 @@ export default function SpikeReportFilters({
           value={domainFilter}
           onChange={(e) => onDomainChange(e.target.value)}
           className="bg-slate-700 text-sm text-white rounded-md px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
+          aria-label="Filter by domain"
         >
           <option value="all">All Domains</option>
           {domains.map(domain => (
@@ -42,6 +44,7 @@ export default function SpikeReportFilters({
         value={tagFilter}
         onChange={(e) => onTagChange(e.target.value)}
         className="bg-slate-700 text-sm text-white rounded-md px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
+        aria-label="Filter by tag"
       >
         <option value="all">All Tags</option>
         {tags.map(tag => (

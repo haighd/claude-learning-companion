@@ -118,10 +118,11 @@ export function SettingsPanel() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-3" style={{ color: 'var(--theme-text-secondary)' }}>
+                    <label htmlFor="particle-density" className="block text-sm font-medium mb-3" style={{ color: 'var(--theme-text-secondary)' }}>
                       Particle Density: {particleCount}
                     </label>
                     <input
+                      id="particle-density"
                       type="range"
                       min="0"
                       max="300"
@@ -139,10 +140,11 @@ export function SettingsPanel() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-3" style={{ color: 'var(--theme-text-secondary)' }}>
+                    <label htmlFor="glass-opacity" className="block text-sm font-medium mb-3" style={{ color: 'var(--theme-text-secondary)' }}>
                       Glass Opacity: {Math.round(glassOpacity * 100)}%
                     </label>
                     <input
+                      id="glass-opacity"
                       type="range"
                       min="0"
                       max="1"
