@@ -14,7 +14,8 @@ The CLC project has 23 test files in `tests/` but many have issues (missing impo
 
 **Legacy Test Inventory (23 files):**
 - **To replace** (10 files): Listed in each priority section below
-- **To evaluate** (13 files): `test_baseline_refresh.py`, `test_crash_recovery.py`, `test_dependency_graph.py`, `test_destructive_edge_cases.py`, `test_domain_elasticity.py`, `test_integration_multiagent.py`, `test_lifecycle_adversarial.py`, `test_meta_observer.py`, `test_sqlite_edge_cases.py`, `test_stress.py`, `test_temporal_smoothing.py`, `conftest.py`, `__init__.py` - assess during implementation whether these can be salvaged or should be replaced
+- **To evaluate** (11 files): `test_baseline_refresh.py`, `test_crash_recovery.py`, `test_dependency_graph.py`, `test_destructive_edge_cases.py`, `test_domain_elasticity.py`, `test_integration_multiagent.py`, `test_lifecycle_adversarial.py`, `test_meta_observer.py`, `test_sqlite_edge_cases.py`, `test_stress.py`, `test_temporal_smoothing.py` - assess during implementation whether these can be salvaged or should be replaced
+- **Pytest infrastructure** (2 files): `conftest.py` (will be replaced with new fixtures), `__init__.py` (keep as package marker)
 
 ## Background
 
@@ -87,7 +88,7 @@ Write new, focused tests starting with the most critical components:
 **Note:** This priority is large. Consider implementing one router at a time for incremental progress.
 
 #### 4.1 Core Infrastructure
-- [ ] Test WebSocket connection and real-time updates (`/ws`)
+- [ ] Test WebSocket connection and real-time updates (`/ws`) - use FastAPI's `TestClient` which supports WebSocket testing
 - [ ] Test analytics router endpoints (`/api/analytics/*`):
   - [ ] Test `GET /stats`
   - [ ] Test `GET /timeline`
@@ -184,12 +185,13 @@ Write new, focused tests starting with the most critical components:
 - Mock external services (e.g., LLM APIs) to ensure tests are fast, deterministic, and don't rely on network access
 - Use `pytest.mark.parametrize` to reduce code duplication when testing similar functions or API endpoints
 - Consider using snapshot testing (e.g., `pytest-snapshot`) for asserting complex API responses, especially for Dashboard API endpoints
+- Use pytest markers (e.g., `@pytest.mark.unit`, `@pytest.mark.integration`) to categorize tests and enable selective test runs
 - Aim for tests that actually run in CI
 
 ## Acceptance Criteria
 
 - [ ] Achieve at least 80% test coverage for `query/query.py` (Priority 1)
-- [ ] Establish baseline performance benchmarks for critical queries in `query/query.py` to track performance over time
+- [ ] Establish baseline performance benchmarks for critical queries in `query/query.py` using `pytest-benchmark` to track performance over time
 - [ ] Achieve at least 75% test coverage for `hooks/learning-loop/` (Priority 2)
 - [ ] Achieve at least 70% test coverage for `conductor/` (Priority 3)
 - [ ] Achieve at least 70% test coverage for `dashboard-app/backend/` (Priority 4)
@@ -208,4 +210,5 @@ git checkout -b feat/core-test-suite
 
 # Start with query tests
 # Reference: tests/test_enhancements.py (has some useful patterns)
+# Also review: tests/test_edge_cases.py, tests/test_edge_cases_v2.py (legacy tests being replaced - may have reusable test scenarios)
 ```
