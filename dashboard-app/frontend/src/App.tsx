@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
+import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom'
 import { ThemeProvider, NotificationProvider, useNotificationContext, DataProvider, useDataContext, CosmicSettingsProvider, CosmicAudioProvider, useCosmicSettings, useTheme } from './context'
 import { DashboardLayout } from './layouts/DashboardLayout'
 import { useWebSocket, useAPI } from './hooks'
-import CosmicIntro from './components/CosmicIntro'
 import {
   StatsBar,
   HotspotVisualization,
@@ -22,15 +22,24 @@ import {
 import {
   TimelineEvent,
 } from './types'
+import { TabId, getTabFromPath, getPathFromTab } from './router'
 
 function AppContent() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'heuristics' | 'runs' | 'timeline' | 'query' | 'analytics' | 'graph' | 'sessions' | 'assumptions' | 'spikes' | 'invariants' | 'fraud'>('overview')
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  // Derive activeTab from URL
+  const activeTab = getTabFromPath(location.pathname)
+
+  // Navigate to a tab by updating URL
+  const setActiveTab = useCallback((tab: TabId) => {
+    const path = getPathFromTab(tab)
+    navigate(path)
+  }, [navigate])
+
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
-  // Intro disabled - set to true to re-enable
-  const [showIntro, setShowIntro] = useState(false)
-  const [introMode, setIntroMode] = useState<'full' | 'short'>('full')
 
   const api = useAPI()
   const notifications = useNotificationContext()
@@ -212,8 +221,6 @@ function AppContent() {
     { id: 'clearDomain', label: 'Clear Domain Filter', category: 'Actions', action: () => setSelectedDomain(null) },
     { id: 'toggleNotificationSound', label: notifications.soundEnabled ? 'Mute Notifications' : 'Unmute Notifications', category: 'Settings', action: notifications.toggleSound },
     { id: 'clearNotifications', label: 'Clear All Notifications', category: 'Actions', action: notifications.clearAll },
-    { id: 'playIntroFull', label: 'Play Intro (Full)', category: 'System', action: () => { setIntroMode('full'); setShowIntro(true); setCommandPaletteOpen(false); } },
-    { id: 'playIntroShort', label: 'Play Intro (Short)', category: 'System', action: () => { setIntroMode('short'); setShowIntro(true); setCommandPaletteOpen(false); } },
   ]
 
   return (
@@ -228,16 +235,6 @@ function AppContent() {
         onDomainSelect={setSelectedDomain}
         selectedDomain={selectedDomain}
       >
-        {/* Intro Layer */}
-        {showIntro && (
-          <div className="fixed inset-0 z-[100000] bg-black">
-            <CosmicIntro
-              mode={introMode}
-              onComplete={() => setShowIntro(false)}
-            />
-          </div>
-        )}
-
         <div className="space-y-6">
           {/* Stats Bar */}
           <StatsBar stats={statsForBar} />
@@ -339,17 +336,19 @@ function AppContent() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <NotificationProvider>
-        <DataProvider>
-          <CosmicSettingsProvider>
-            <CosmicAudioProvider>
-              <AppContent />
-            </CosmicAudioProvider>
-          </CosmicSettingsProvider>
-        </DataProvider>
-      </NotificationProvider>
-    </ThemeProvider>
+    <BrowserRouter>
+      <ThemeProvider>
+        <NotificationProvider>
+          <DataProvider>
+            <CosmicSettingsProvider>
+              <CosmicAudioProvider>
+                <AppContent />
+              </CosmicAudioProvider>
+            </CosmicSettingsProvider>
+          </DataProvider>
+        </NotificationProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   )
 }
 

@@ -17,8 +17,9 @@ export default function HeuristicEditForm({
   return (
     <div className="space-y-3 pt-2 border-t border-slate-600 mt-2">
       <div>
-        <label className="text-xs text-slate-400 block mb-1">Rule</label>
+        <label htmlFor="heuristic-rule" className="text-xs text-slate-400 block mb-1">Rule</label>
         <input
+          id="heuristic-rule"
           type="text"
           value={editForm.rule}
           onChange={(e) => onEditFormChange({ ...editForm, rule: e.target.value })}
@@ -27,8 +28,9 @@ export default function HeuristicEditForm({
         />
       </div>
       <div>
-        <label className="text-xs text-slate-400 block mb-1">Explanation</label>
+        <label htmlFor="heuristic-explanation" className="text-xs text-slate-400 block mb-1">Explanation</label>
         <textarea
+          id="heuristic-explanation"
           value={editForm.explanation}
           onChange={(e) => onEditFormChange({ ...editForm, explanation: e.target.value })}
           className="w-full bg-slate-600 text-white rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"
@@ -37,8 +39,9 @@ export default function HeuristicEditForm({
         />
       </div>
       <div>
-        <label className="text-xs text-slate-400 block mb-1">Domain</label>
+        <label htmlFor="heuristic-domain" className="text-xs text-slate-400 block mb-1">Domain</label>
         <input
+          id="heuristic-domain"
           type="text"
           value={editForm.domain}
           onChange={(e) => onEditFormChange({ ...editForm, domain: e.target.value })}

@@ -109,6 +109,7 @@ export function CosmicFilters({
                 value={selectedDomain || ''}
                 onChange={(e) => onDomainFilter(e.target.value || null)}
                 className="w-full rounded border border-slate-700 bg-slate-800 px-2 py-1.5 text-xs text-slate-300 focus:border-amber-500 focus:outline-none"
+                aria-label="Filter by directory"
               >
                 <option value="">All directories</option>
                 {domains.slice(0, 20).map((domain) => (

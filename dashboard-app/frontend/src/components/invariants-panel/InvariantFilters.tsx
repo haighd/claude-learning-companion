@@ -21,6 +21,7 @@ export default function InvariantFilters({
           value={severityFilter}
           onChange={(e) => onSeverityChange(e.target.value as SeverityFilter)}
           className="bg-slate-700 text-sm text-white rounded-md px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
+          aria-label="Filter by severity"
         >
           <option value="all">All Severity</option>
           <option value="error">Error</option>
@@ -34,6 +35,7 @@ export default function InvariantFilters({
         value={scopeFilter}
         onChange={(e) => onScopeChange(e.target.value as ScopeFilter)}
         className="bg-slate-700 text-sm text-white rounded-md px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
+        aria-label="Filter by scope"
       >
         <option value="all">All Scopes</option>
         <option value="codebase">Codebase</option>
@@ -47,6 +49,7 @@ export default function InvariantFilters({
         value={statusFilter}
         onChange={(e) => onStatusChange(e.target.value as StatusFilter)}
         className="bg-slate-700 text-sm text-white rounded-md px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
+        aria-label="Filter by status"
       >
         <option value="all">All Status</option>
         <option value="active">Active</option>
@@ -59,6 +62,7 @@ export default function InvariantFilters({
         value={domainFilter}
         onChange={(e) => onDomainChange(e.target.value)}
         className="bg-slate-700 text-sm text-white rounded-md px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
+        aria-label="Filter by domain"
       >
         <option value="all">All Domains</option>
         {domains.map(domain => (

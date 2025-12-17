@@ -18,6 +18,7 @@ export default function AssumptionFilters({
           value={statusFilter}
           onChange={(e) => onStatusChange(e.target.value as any)}
           className="bg-slate-700 text-sm text-white rounded-md px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
+          aria-label="Filter by status"
         >
           <option value="all">All Status</option>
           <option value="active">Active</option>
@@ -31,6 +32,7 @@ export default function AssumptionFilters({
         value={domainFilter}
         onChange={(e) => onDomainChange(e.target.value)}
         className="bg-slate-700 text-sm text-white rounded-md px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
+        aria-label="Filter by domain"
       >
         <option value="all">All Domains</option>
         {domains.map(domain => (
@@ -39,8 +41,9 @@ export default function AssumptionFilters({
       </select>
 
       <div className="flex items-center space-x-2">
-        <span className="text-xs text-slate-400">Min:</span>
+        <label htmlFor="min-confidence" className="text-xs text-slate-400">Min:</label>
         <input
+          id="min-confidence"
           type="range"
           min="0"
           max="100"

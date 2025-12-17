@@ -30,6 +30,7 @@ export default function SessionFilters({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="bg-slate-700 text-sm text-white rounded-lg pl-9 pr-4 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500 w-64"
+            aria-label="Search sessions"
           />
         </div>
 
@@ -40,6 +41,7 @@ export default function SessionFilters({
             value={projectFilter}
             onChange={(e) => onProjectFilterChange(e.target.value)}
             className="bg-slate-700 text-sm text-white rounded-md px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
+            aria-label="Filter by project"
           >
             <option value="all">All Projects</option>
             {projects.map(project => (
@@ -53,6 +55,7 @@ export default function SessionFilters({
           value={dateFilter}
           onChange={(e) => onDateFilterChange(e.target.value as any)}
           className="bg-slate-700 text-sm text-white rounded-md px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
+          aria-label="Filter by date range"
         >
           <option value="today">Today</option>
           <option value="7days">Last 7 days</option>

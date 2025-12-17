@@ -104,6 +104,7 @@ export default function TimelineView({ events, heuristics, onEventClick }: Timel
             value={speed}
             onChange={(e) => setSpeed(Number(e.target.value))}
             className="bg-slate-700 text-sm text-white rounded-md px-2 py-1 border border-slate-600"
+            aria-label="Playback speed"
           >
             <option value={0.5}>0.5x</option>
             <option value={1}>1x</option>
@@ -116,6 +117,7 @@ export default function TimelineView({ events, heuristics, onEventClick }: Timel
             value={filterType || ''}
             onChange={(e) => setFilterType(e.target.value || null)}
             className="bg-slate-700 text-sm text-white rounded-md px-3 py-1.5 border border-slate-600"
+            aria-label="Filter events by type"
           >
             <option value="">All Events</option>
             {Object.entries(eventConfig).map(([type, config]) => (
@@ -145,7 +147,7 @@ export default function TimelineView({ events, heuristics, onEventClick }: Timel
         {dates.map(date => (
           <div key={date}>
             <div className="sticky top-0 bg-slate-800 py-2 z-10">
-              <div className="text-sm font-medium text-slate-400">{format(new Date(date), 'EEEE, MMMM d, yyyy')}</div>
+              <h4 className="text-sm font-medium text-slate-400">{format(new Date(date), 'EEEE, MMMM d, yyyy')}</h4>
             </div>
 
             <div className="relative ml-4 border-l-2 border-slate-700">

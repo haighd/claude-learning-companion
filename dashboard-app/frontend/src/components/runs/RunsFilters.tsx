@@ -27,6 +27,7 @@ export default function RunsFilters({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="bg-slate-700 text-sm text-white rounded-lg pl-9 pr-4 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500 w-64"
+            aria-label="Search runs"
           />
         </div>
 
@@ -37,6 +38,7 @@ export default function RunsFilters({
             value={statusFilter}
             onChange={(e) => onStatusFilterChange(e.target.value as any)}
             className="bg-slate-700 text-sm text-white rounded-md px-3 py-1.5 border border-slate-600 focus:outline-none focus:ring-2 focus:ring-sky-500"
+            aria-label="Filter by status"
           >
             <option value="all">All Status</option>
             <option value="success">Success</option>

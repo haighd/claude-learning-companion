@@ -33,8 +33,9 @@ export default function NodeConfigPanel({
 
       <div className="space-y-3">
         <div>
-          <label className="text-xs text-slate-400 mb-1 block">Label</label>
+          <label htmlFor="node-label" className="text-xs text-slate-400 mb-1 block">Label</label>
           <input
+            id="node-label"
             type="text"
             value={selectedNode.label}
             onChange={(e) => {
@@ -50,8 +51,9 @@ export default function NodeConfigPanel({
 
         {selectedNode.type === 'trigger' && (
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">Trigger Type</label>
+            <label htmlFor="trigger-type" className="text-xs text-slate-400 mb-1 block">Trigger Type</label>
             <select
+              id="trigger-type"
               value={selectedNode.config.trigger_type || ''}
               onChange={(e) => {
                 const updated = { ...selectedNode, config: { ...selectedNode.config, trigger_type: e.target.value } }
@@ -71,8 +73,9 @@ export default function NodeConfigPanel({
 
         {selectedNode.type === 'action' && (
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">Action Type</label>
+            <label htmlFor="action-type" className="text-xs text-slate-400 mb-1 block">Action Type</label>
             <select
+              id="action-type"
               value={selectedNode.config.action_type || ''}
               onChange={(e) => {
                 const updated = { ...selectedNode, config: { ...selectedNode.config, action_type: e.target.value } }
@@ -92,8 +95,9 @@ export default function NodeConfigPanel({
 
         {selectedNode.type === 'condition' && (
           <div>
-            <label className="text-xs text-slate-400 mb-1 block">Condition</label>
+            <label htmlFor="condition-expression" className="text-xs text-slate-400 mb-1 block">Condition</label>
             <input
+              id="condition-expression"
               type="text"
               placeholder="e.g., confidence > 0.9"
               value={selectedNode.config.expression || ''}

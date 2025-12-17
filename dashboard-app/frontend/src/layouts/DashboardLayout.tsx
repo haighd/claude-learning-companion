@@ -4,14 +4,10 @@ import { ParticleBackground } from '../components/ParticleBackground'
 import { UfoCursor } from '../components/ui/UfoCursor'
 import { NotificationPanel } from '../components/NotificationPanel'
 import { CommandPalette } from '../components/CommandPalette'
-import SolarSystemView from '../components/solar-system/SolarSystemView'
 import { GridView } from '../components/overview/GridView'
 import { CosmicGraphView } from '../components/cosmic-view/CosmicGraphView'
 import { CosmicAnalyticsView } from '../components/cosmic-view/CosmicAnalyticsView'
-import AlertsPanel from '../components/AlertsPanel'
 import { useNotificationContext } from '../context/NotificationContext'
-import { useCosmicSettings } from '../context/CosmicSettingsContext'
-import { useDataContext } from '../context/DataContext'
 
 interface DashboardLayoutProps {
     children: React.ReactNode
@@ -33,19 +29,21 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     setCommandPaletteOpen,
     commands,
     onDomainSelect,
+    onTabChange,
     selectedDomain
 }) => {
     const notifications = useNotificationContext()
-    const { viewMode } = useCosmicSettings()
-    const { anomalies, heuristics, setAnomalies } = useDataContext()
-
-    // Get golden rules for alerts panel
-    const goldenRules = heuristics
-        .filter(h => h.is_golden)
-        .map(h => ({ ...h, id: String(h.id) }))
 
     return (
         <div className="min-h-screen relative overflow-hidden transition-colors duration-500" style={{ backgroundColor: "var(--theme-bg-primary)" }}>
+            {/* Skip link for keyboard users */}
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--theme-accent)] focus:text-[var(--theme-bg-primary)] focus:rounded-lg focus:font-medium focus:shadow-lg"
+            >
+                Skip to main content
+            </a>
+
             <div className="absolute inset-0 z-0 opacity-100 pointer-events-none">
                 <ParticleBackground />
             </div>
@@ -69,66 +67,28 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 <Header
                     isConnected={isConnected}
                     onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+                    activeTab={activeTab as any}
+                    onTabChange={onTabChange as any}
                 />
 
-                <main className={viewMode === 'cosmic' && activeTab === 'overview' && !selectedDomain ? "w-full h-screen pt-0 overflow-hidden bg-transparent" : "w-full min-h-screen"}>
-                    {/* Overview Tab Handling */}
+                <main id="main-content" className="w-full min-h-screen" tabIndex={-1}>
+                    {/* Overview Tab - Always Grid View */}
                     {activeTab === 'overview' && (
-                        <>
-                            {!selectedDomain ? (
-                                viewMode === 'cosmic' ? (
-                                    <>
-                                        <div className="fixed inset-0 z-0">
-                                            <SolarSystemView
-                                                onDomainSelect={onDomainSelect}
-                                                selectedDomain={selectedDomain}
-                                            />
-                                        </div>
-                                        {/* Alerts overlay for cosmic view */}
-                                        <div className="fixed top-24 right-6 z-20">
-                                            <AlertsPanel
-                                                anomalies={anomalies}
-                                                goldenRules={goldenRules as any}
-                                                onDismissAnomaly={(index) => setAnomalies(prev => prev.filter((_, i) => i !== index))}
-                                            />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <GridView onDomainSelect={onDomainSelect} />
-                                )
-                            ) : (
-                                viewMode === 'cosmic' ? (
-                                    <>
-                                        <div className="fixed inset-0 z-0">
-                                            <SolarSystemView
-                                                onDomainSelect={onDomainSelect}
-                                                selectedDomain={selectedDomain}
-                                            />
-                                        </div>
-                                        {/* Alerts overlay for cosmic view */}
-                                        <div className="fixed top-24 right-6 z-20">
-                                            <AlertsPanel
-                                                anomalies={anomalies}
-                                                goldenRules={goldenRules as any}
-                                                onDismissAnomaly={(index) => setAnomalies(prev => prev.filter((_, i) => i !== index))}
-                                            />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div
-                                        className="relative z-10 container mx-auto px-4 py-8 pt-24 h-screen max-h-screen overflow-y-auto custom-scrollbar cursor-default pb-24"
-                                        onClick={() => onDomainSelect?.(null as any)}
-                                    >
-                                        <div
-                                            className="glass-panel p-6 rounded-xl"
-                                            onClick={(e) => e.stopPropagation()}
-                                        >
-                                            {children}
-                                        </div>
-                                    </div>
-                                )
-                            )}
-                        </>
+                        !selectedDomain ? (
+                            <GridView onDomainSelect={onDomainSelect} />
+                        ) : (
+                            <div
+                                className="relative z-10 container mx-auto px-4 py-8 pt-24 h-screen max-h-screen overflow-y-auto custom-scrollbar cursor-default pb-24"
+                                onClick={() => onDomainSelect?.(null as any)}
+                            >
+                                <div
+                                    className="glass-panel p-6 rounded-xl"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {children}
+                                </div>
+                            </div>
+                        )
                     )}
 
                     {/* Cosmic Views */}

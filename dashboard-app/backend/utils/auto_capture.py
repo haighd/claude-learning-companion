@@ -21,6 +21,7 @@ Usage:
 """
 
 import asyncio
+import json
 import logging
 from datetime import datetime
 from typing import Optional
@@ -199,8 +200,24 @@ class AutoCapture:
                 summary_parts = []
                 if completed_nodes and total_nodes:
                     summary_parts.append(f"Completed {completed_nodes}/{total_nodes} nodes")
+
+                # Parse outcome from output_json if available
+                outcome = "unknown"
+                reason = ""
                 if output_json and output_json != '{}':
-                    # Truncate long output
+                    try:
+                        output_data = json.loads(output_json)
+                        outcome = output_data.get('outcome', 'unknown')
+                        reason = output_data.get('reason', '')
+                    except (json.JSONDecodeError, TypeError) as e:
+                        logger.warning(f"Could not parse output_json for run {run_id}: {e}")
+
+                if outcome != "unknown":
+                    summary_parts.append(f"Outcome: {outcome}")
+                    if reason:
+                        summary_parts.append(f"Reason: {reason}")
+                elif output_json and output_json != '{}':
+                    # Fallback: show truncated raw output if no parsed outcome
                     output_preview = output_json[:200] + "..." if len(output_json) > 200 else output_json
                     summary_parts.append(f"Output: {output_preview}")
 

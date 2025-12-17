@@ -86,16 +86,25 @@ export function CommandPalette({ isOpen, onClose, commands }: CommandPaletteProp
               onKeyDown={handleKeyDown}
               placeholder="Type a command..."
               className="w-full bg-transparent text-lg outline-none placeholder-gray-500 text-white"
+              role="combobox"
+              aria-expanded={filteredCommands.length > 0}
+              aria-autocomplete="list"
+              aria-controls="command-list"
+              aria-activedescendant={filteredCommands[selectedIndex]?.id}
+              aria-label="Search commands"
             />
           </div>
 
-          <div className="max-h-80 overflow-y-auto p-2">
+          <div id="command-list" role="listbox" className="max-h-80 overflow-y-auto p-2">
             {filteredCommands.length === 0 ? (
               <div className="p-4 text-center text-gray-500">No commands found</div>
             ) : (
               filteredCommands.map((cmd, index) => (
                 <button
                   key={cmd.id}
+                  id={cmd.id}
+                  role="option"
+                  aria-selected={index === selectedIndex}
                   onClick={() => {
                     cmd.action()
                     onClose()
