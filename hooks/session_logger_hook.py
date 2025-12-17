@@ -257,7 +257,9 @@ def main():
         # Extract fields (handle both naming conventions)
         tool_name = hook_input.get("tool_name") or hook_input.get("tool", "")
         tool_input = hook_input.get("tool_input") or hook_input.get("input", {})
-        tool_output = hook_input.get("tool_output") or hook_input.get("output", {})
+        tool_output = (hook_input.get("tool_response") or
+                       hook_input.get("tool_output") or
+                       hook_input.get("output", {}))
 
         if not tool_name:
             log_debug("No tool name provided, skipping")

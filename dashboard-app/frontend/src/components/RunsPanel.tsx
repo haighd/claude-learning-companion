@@ -41,7 +41,7 @@ export default function RunsPanel({ runs, onRetry, onOpenInEditor }: RunsPanelPr
     setLoadingDiff(runId)
     try {
       // Fetch diffs from backend
-      const response = await fetch(`http://localhost:8888/api/runs/${runId}/diff`)
+      const response = await fetch(`/api/runs/${runId}/diff`)
       if (!response.ok) {
         throw new Error('Failed to fetch diffs')
       }

@@ -516,7 +516,9 @@ def main():
 
     tool_name = hook_input.get("tool_name", hook_input.get("tool"))
     tool_input = hook_input.get("tool_input", hook_input.get("input", {}))
-    tool_output = hook_input.get("tool_output", hook_input.get("output", {}))
+    tool_output = hook_input.get("tool_response",
+                   hook_input.get("tool_output",
+                   hook_input.get("output", {})))
 
     if not tool_name:
         output_result({})

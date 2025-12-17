@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="assets/header.gif" alt="Claude Learning Companion" width="100%">
-</p>
-
 # Claude Learning Companion (CLC)
 
 > Persistent memory and pattern tracking for Claude Code sessions.
@@ -258,10 +254,6 @@ The run-dashboard.sh script will now detect this issue and warn you before faili
 ## License
 
 MIT License
-
-<a href="https://www.buymeacoffee.com/Spacehunterz">
-  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="150">
-</a>
 
 ## Development Status
 
