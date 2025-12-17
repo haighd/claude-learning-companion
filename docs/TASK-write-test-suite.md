@@ -40,6 +40,8 @@ Write new, focused tests starting with the most critical components:
 - [ ] Test `get_assumptions()`
 - [ ] Test `get_spike_reports()`
 - [ ] Test `find_similar_failures()`
+- [ ] Test `get_challenged_assumptions()`
+- [ ] Test `get_statistics()`
 - [ ] Test `validate_database()`
 - [ ] Test CLI functionality in `main()`
 
@@ -168,6 +170,7 @@ Write new, focused tests starting with the most critical components:
   - Mock filesystem calls to verify correct arguments are passed
 - Create proper fixtures in `conftest.py`
 - Create a strategy for managing test data (e.g., using a library like `factory-boy` to create model factories) to cover diverse scenarios and edge cases
+- Consider using snapshot testing (e.g., `pytest-snapshot`) for asserting complex API responses, especially for Dashboard API endpoints
 - Aim for tests that actually run in CI
 
 ## Acceptance Criteria
@@ -179,6 +182,7 @@ Write new, focused tests starting with the most critical components:
 - [ ] Achieve at least 70% test coverage for `dashboard-app/backend/` (Priority 4)
 - [ ] All new tests run successfully in GitHub Actions CI
 - [ ] New tests are documented with clear docstrings and cover important edge cases
+- [ ] Test suite completes within reasonable time (target: under 5 minutes) to maintain fast CI feedback
 - [ ] Legacy broken tests are deleted as new tests replace them
 
 ## To Start This Task
