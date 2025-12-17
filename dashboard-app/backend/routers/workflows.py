@@ -15,13 +15,13 @@ router = APIRouter(prefix="/api", tags=["workflows"])
 logger = logging.getLogger(__name__)
 
 # Path will be set from main.py
-EMERGENT_LEARNING_PATH = None
+CLC_PATH = None
 
 
-def set_paths(elf_path: Path):
+def set_paths(clc_path: Path):
     """Set the paths for workflow operations."""
-    global EMERGENT_LEARNING_PATH
-    EMERGENT_LEARNING_PATH = elf_path
+    global CLC_PATH
+    CLC_PATH = clc_path
 
 
 @router.get("/workflows")
@@ -43,10 +43,10 @@ async def get_workflows():
 async def create_workflow(workflow: WorkflowCreate) -> ActionResult:
     """Create a new workflow."""
     try:
-        if EMERGENT_LEARNING_PATH is None:
+        if CLC_PATH is None:
             return ActionResult(success=False, message="Paths not configured")
 
-        sys.path.insert(0, str(EMERGENT_LEARNING_PATH / "conductor"))
+        sys.path.insert(0, str(CLC_PATH / "conductor"))
         from conductor import Conductor
 
         conductor = Conductor()

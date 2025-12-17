@@ -19,14 +19,14 @@ except ImportError:
 
 # Resolve paths
 def get_base_path() -> Path:
-    """Get the base path for emergent-learning directory."""
+    """Get the base path for clc directory."""
     # Check environment variable first
-    env_path = os.environ.get('ELF_BASE_PATH')
+    env_path = os.environ.get('CLC_BASE_PATH')
     if env_path:
         return Path(env_path)
 
-    # Default to ~/.claude/emergent-learning
-    return Path.home() / '.claude' / 'emergent-learning'
+    # Default to ~/.claude/clc
+    return Path.home() / '.claude' / 'clc'
 
 
 BASE_PATH = get_base_path()

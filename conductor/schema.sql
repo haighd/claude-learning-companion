@@ -1,6 +1,6 @@
 -- Conductor Schema Additions for Agent Coordination
 -- These tables extend the existing index.db schema for workflow orchestration
--- Apply with: sqlite3 ~/.claude/emergent-learning/memory/index.db < schema.sql
+-- Apply with: sqlite3 ~/.claude/clc/memory/index.db < schema.sql
 
 -- ============================================================================
 -- WORKFLOW DEFINITIONS
