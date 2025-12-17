@@ -97,7 +97,7 @@ Replace:
 cp ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.migration-backup
 
 # Run replacements
-sed -i.bak -E \
+sed -i'.bak' -E \
   -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' \
   -e 's|~/.claude/elf/|~/.claude/clc/|g' \
   -e 's|\bemergent-learning\b|clc|g' \
@@ -113,7 +113,7 @@ For each project that references ELF/emergent-learning:
 ```bash
 # Find and automatically update all project CLAUDE.md files
 # Replace ~/Projects with the actual path to your projects directory
-find ~/Projects -name "CLAUDE.md" -type f -print0 | xargs -0 sed -i.bak -E \
+find ~/Projects -name "CLAUDE.md" -type f -print0 | xargs -0 sed -i'.bak' -E \
   -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' \
   -e 's|~/.claude/elf/|~/.claude/clc/|g' \
   -e 's|\bemergent-learning\b|clc|g' \
@@ -128,7 +128,7 @@ Check and update `~/.claude/commands/` for old paths:
 
 ```bash
 # Find and automatically update slash commands
-find ~/.claude/commands/ -type f -name "*.md" -print0 | xargs -0 sed -i.bak -E \
+find ~/.claude/commands/ -type f -name "*.md" -print0 | xargs -0 sed -i'.bak' -E \
   -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' \
   -e 's|~/.claude/elf/|~/.claude/clc/|g' \
   -e 's|\bemergent-learning\b|clc|g' \
