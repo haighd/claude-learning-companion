@@ -174,7 +174,7 @@ case "$MODE" in
         echo ""
 
         if [ -f "$CLAUDE_DIR/CLAUDE.md" ]; then
-            if grep -q "Claude Learning Companion" "$CLAUDE_DIR/CLAUDE.md" 2>/dev/null; then
+            if grep -q -e "Claude Learning Companion" -e "Emergent Learning Framework" "$CLAUDE_DIR/CLAUDE.md" 2>/dev/null; then
                 echo "CLC already configured in CLAUDE.md"
             else
                 echo "Existing CLAUDE.md found."

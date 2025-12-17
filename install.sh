@@ -408,7 +408,7 @@ if [ ! -f "$CLAUDE_MD_DST" ]; then
         cp "$CLAUDE_MD_SRC" "$CLAUDE_MD_DST"
         echo -e "  ${GREEN}Created CLAUDE.md${NC}"
     fi
-elif grep -q "Claude Learning Companion" "$CLAUDE_MD_DST" 2>/dev/null; then
+elif grep -q -e "Claude Learning Companion" -e "Emergent Learning Framework" "$CLAUDE_MD_DST" 2>/dev/null; then
     # Already has CLC instructions
     echo -e "  ${GREEN}CLAUDE.md already has CLC instructions${NC}"
 else

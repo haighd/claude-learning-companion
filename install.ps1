@@ -544,7 +544,7 @@ if (-not (Test-Path $claudeMdDst)) {
 } else {
     # Existing CLAUDE.md found - check if ELF already configured
     $existingContent = Get-Content $claudeMdDst -Raw
-    if ($existingContent -match "Claude Learning Companion") {
+    if ($existingContent -match "Claude Learning Companion" -or $existingContent -match "Emergent Learning Framework") {
         Write-Host "  CLAUDE.md already contains ELF configuration (skipped)" -ForegroundColor Green
     } else {
         # Existing config without ELF - prompt user for action
