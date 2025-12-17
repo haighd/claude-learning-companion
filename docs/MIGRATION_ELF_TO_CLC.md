@@ -27,7 +27,7 @@ This guide assumes the CLC code is available at `~/.claude/clc`.
 
 ## Step 1: Update ~/.claude/settings.json
 
-Your hooks should point to the new CLC location. Replace `<HOME>` with your full home directory path (e.g., `/Users/username` on macOS, `/home/username` on Linux, or `C:\\Users\\username` on Windows, noting the double backslashes for JSON escaping):
+Your hooks should point to the new CLC location. Replace `<HOME>` with your full home directory path (e.g., `/Users/username` on macOS, `/home/username` on Linux, or `C:\\Users\\username` on Windows). **On Windows, you should also replace the forward slashes (`/`) in the path with double backslashes (`\\`).**
 
 ```json
 {
@@ -83,6 +83,7 @@ For each project that references ELF/emergent-learning:
 
 ```bash
 # Find all project CLAUDE.md files with old references
+# Replace ~/Projects with the actual path to your projects directory
 find ~/Projects -name "CLAUDE.md" -exec grep -lE "emergent-learning|\.claude/elf" {} \;
 ```
 
