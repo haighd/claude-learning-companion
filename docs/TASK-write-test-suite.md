@@ -79,6 +79,8 @@ Write new, focused tests starting with the most critical components:
 
 - [ ] Achieve at least 80% test coverage for `query/query.py` (Priority 1)
 - [ ] Achieve at least 75% test coverage for `hooks/learning-loop/` (Priority 2)
+- [ ] Achieve at least 70% test coverage for `conductor/` (Priority 3)
+- [ ] Achieve at least 70% test coverage for `dashboard-app/backend/` (Priority 4)
 - [ ] All new tests run successfully in GitHub Actions CI
 - [ ] New tests are documented with clear docstrings and cover important edge cases
 - [ ] Legacy broken tests are deleted as new tests replace them
@@ -86,7 +88,7 @@ Write new, focused tests starting with the most critical components:
 ## To Start This Task
 
 ```bash
-cd ~/.claude/clc
+# Ensure you are in the root of the clc repository before running these commands.
 # Create a new branch
 git checkout main && git pull
 git checkout -b feat/core-test-suite
