@@ -55,7 +55,7 @@ bash ~/.claude/clc/setup/install.sh --mode merge
 Check `~/.claude/CLAUDE.md` for any old references:
 
 ```bash
-grep -n "emergent-learning\|\.claude/elf" ~/.claude/CLAUDE.md
+grep -nE "emergent-learning|\.claude/elf" ~/.claude/CLAUDE.md
 ```
 
 Replace:
@@ -69,7 +69,7 @@ For each project that references ELF/emergent-learning:
 
 ```bash
 # Find all project CLAUDE.md files with old references
-find ~/Projects -name "CLAUDE.md" -exec grep -l "emergent-learning\|\.claude/elf" {} \;
+find ~/Projects -name "CLAUDE.md" -exec grep -lE "emergent-learning|\.claude/elf" {} \;
 ```
 
 Update the paths in each file.
@@ -102,14 +102,23 @@ Expected output: Golden rules, heuristics, and recent learnings.
 The hooks can't find Python modules. Fix:
 ```bash
 cd ~/.claude/clc
-pip install -r requirements.txt
+pip install peewee  # Or other specific dependencies if needed
 ```
 
 ### Old dashboard still running
 Kill any old processes:
+
+**Mac/Linux**
 ```bash
 pkill -f "emergent-learning"
 pkill -f "dashboard-app"
+```
+
+**Windows (PowerShell)**
+```powershell
+# Stop processes by command line content
+Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*emergent-learning*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*dashboard-app*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
 ```
 
 Then start the new dashboard:
