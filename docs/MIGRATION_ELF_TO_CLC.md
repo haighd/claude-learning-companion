@@ -27,7 +27,11 @@ This guide assumes the CLC code is available at `~/.claude/clc`.
 
 ## Step 1: Update ~/.claude/settings.json
 
-Your hooks should point to the new CLC location. Replace `<HOME>` with your full home directory path (e.g., `/Users/username` on macOS, `/home/username` on Linux, or `C:\\Users\\username` on Windows). **On Windows, you should also replace the forward slashes (`/`) in the path with double backslashes (`\\`).**
+Your hooks should point to the new CLC location. Replace `<HOME>` with your full home directory path (e.g., `/Users/username` on macOS, `/home/username` on Linux).
+
+**On Windows:** The path must use double backslashes (`\\`) as path separators. A correct path would look like:
+`"C:\\Users\\username\\.claude\\clc\\hooks\\learning-loop\\pre_tool_learning.py"`
+We strongly recommend using the automated fix below to ensure paths are set correctly.
 
 ```json
 {
@@ -59,9 +63,18 @@ Your hooks should point to the new CLC location. Replace `<HOME>` with your full
 ```
 
 **Automated fix:**
+
+**Mac/Linux**
 ```bash
 # Re-run install to update settings.json
 bash ~/.claude/clc/setup/install.sh --mode merge
+```
+
+**Windows (PowerShell)**
+```powershell
+# Re-run install to update settings.json
+# Run from within the clc repository directory
+.\setup\install.ps1 --mode merge
 ```
 
 ## Step 2: Update Global CLAUDE.md
