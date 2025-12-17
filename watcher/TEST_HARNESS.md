@@ -46,7 +46,7 @@ Removes any test files from the coordination directory.
 python test_watcher.py --all --use-actual-dir
 ```
 
-**WARNING**: This runs tests against the actual `~/.claude/clc/.coordination/` directory instead of a temporary directory. Only use this if you understand the implications.
+**WARNING**: This runs tests against the actual `~/.claude/emergent-learning/.coordination/` directory instead of a temporary directory. Only use this if you understand the implications.
 
 ## Test Scenarios
 
@@ -270,11 +270,11 @@ Make sure you're NOT using `--use-actual-dir` flag. The default behavior uses te
 
 Make sure you're running from the watcher directory:
 ```bash
-cd ~/.claude/clc/watcher
+cd ~/.claude/emergent-learning/watcher
 python test_watcher.py --all
 ```
 
 Or use absolute path:
 ```bash
-python ~/.claude/clc/watcher/test_watcher.py --all
+python ~/.claude/emergent-learning/watcher/test_watcher.py --all
 ```

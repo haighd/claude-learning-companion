@@ -291,7 +291,7 @@ fi
 ## File Structure
 
 ```
-~/.claude/clc/
+~/.claude/emergent-learning/
 ├── scripts/
 │   ├── lib/
 │   │   ├── logging.sh                    # NEW - Structured logging
@@ -378,13 +378,13 @@ python query/dashboard.py
 ### Debugging
 ```bash
 # View today's logs
-tail -f ~/.claude/clc/logs/$(date +%Y%m%d).log
+tail -f ~/.claude/emergent-learning/logs/$(date +%Y%m%d).log
 
 # Search for errors
-grep ERROR ~/.claude/clc/logs/$(date +%Y%m%d).log
+grep ERROR ~/.claude/emergent-learning/logs/$(date +%Y%m%d).log
 
 # Query metrics for failed operations
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "SELECT * FROM metrics WHERE tags LIKE '%status:failure%' ORDER BY timestamp DESC LIMIT 20;"
 ```
 

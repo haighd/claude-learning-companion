@@ -231,7 +231,7 @@ acquire_git_lock() {
 Run this to verify concurrent operations work:
 
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 
 # Test with 10 concurrent calls
 for i in {1..10}; do
@@ -276,7 +276,7 @@ ls memory/.git/index.lock  # Should not exist (or is new)
 ### Full Regression Test
 
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 ./test-edge-cases-simple.sh
 
 # Expected after all fixes:

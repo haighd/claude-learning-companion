@@ -380,16 +380,16 @@ fi
 
 ```bash
 # Check WAL mode
-sqlite3 ~/.claude/clc/memory/index.db "PRAGMA journal_mode;"
+sqlite3 ~/.claude/emergent-learning/memory/index.db "PRAGMA journal_mode;"
 
 # Check busy timeout (must do per connection)
 python3 -c "import sqlite3; c=sqlite3.connect('memory/index.db'); c.execute('PRAGMA busy_timeout=10000'); print(c.execute('PRAGMA busy_timeout').fetchone())"
 
 # Test concurrent reads
-~/.claude/clc/simple-concurrency-test.sh 30
+~/.claude/emergent-learning/simple-concurrency-test.sh 30
 
 # Check for orphaned files/records
-~/.claude/clc/scripts/sync-db-markdown.sh
+~/.claude/emergent-learning/scripts/sync-db-markdown.sh
 ```
 
 ---

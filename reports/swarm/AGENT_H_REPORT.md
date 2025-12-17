@@ -302,17 +302,17 @@ Backup System
 1. Set up cron jobs:
    ```bash
    # Daily backup at 2 AM
-   0 2 * * * ~/.claude/clc/scripts/backup.sh
+   0 2 * * * ~/.claude/emergent-learning/scripts/backup.sh
 
    # Weekly verification on Sundays at 3 AM
-   0 3 * * 0 ~/.claude/clc/scripts/verify-backup.sh --alert-on-fail
+   0 3 * * 0 ~/.claude/emergent-learning/scripts/verify-backup.sh --alert-on-fail
    ```
 
 2. Configure remote backup:
    ```bash
-   export REMOTE_BACKUP_DEST="user@server:/backups/clc"
+   export REMOTE_BACKUP_DEST="user@server:/backups/emergent-learning"
    # or
-   export REMOTE_BACKUP_DEST="remote:cloud-backups/clc"
+   export REMOTE_BACKUP_DEST="remote:cloud-backups/emergent-learning"
    ```
 
 ### Regular
@@ -390,7 +390,7 @@ Backup System
 ## Files Created
 
 ```
-~/.claude/clc/
+~/.claude/emergent-learning/
 ├── scripts/
 │   ├── backup.sh                  (153 lines)
 │   ├── restore.sh                 (335 lines)

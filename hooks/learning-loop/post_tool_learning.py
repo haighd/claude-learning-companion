@@ -32,8 +32,8 @@ except ImportError:
     def lay_trails(*args, **kwargs): pass
 
 # Paths - using Path.home() for portability
-CLC_PATH = Path.home() / ".claude" / "clc"
-DB_PATH = CLC_PATH / "memory" / "index.db"
+EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "emergent-learning"
+DB_PATH = EMERGENT_LEARNING_PATH / "memory" / "index.db"
 STATE_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
 PENDING_TASKS_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "pending-tasks.json"
 
@@ -49,28 +49,6 @@ except ImportError:
         ],
         'file_operations': []
     }
-
-
-def get_conductor_and_node():
-    """Initialize and return a Conductor instance and Node class.
-
-    Centralizes conductor initialization to avoid code duplication.
-    Returns (None, None) if conductor module is not available.
-    """
-    try:
-        conductor_path = CLC_PATH / 'conductor'
-        if str(conductor_path) not in sys.path:
-            sys.path.insert(0, str(conductor_path))
-
-        from conductor import Conductor, Node
-        conductor = Conductor(
-            base_path=str(CLC_PATH),
-            project_root=str(CLC_PATH)
-        )
-        return conductor, Node
-    except ImportError:
-        sys.stderr.write("[LEARNING_LOOP] Conductor module not found. Skipping conductor integration.\n")
-        return None, None
 
 
 class AdvisoryVerifier:
@@ -669,7 +647,7 @@ def main():
                 # Normalize path
                 file_path = file_path.replace('\\', '/')
                 # Extract relative path from common markers
-                for marker in ['.claude/clc/', 'clc/', 'dashboard-app/']:
+                for marker in ['.claude/emergent-learning/', 'emergent-learning/', 'dashboard-app/']:
                     if marker in file_path:
                         file_path = file_path[file_path.index(marker):]
                         break
@@ -723,9 +701,13 @@ def main():
         if pending and pending.get('run_id') and pending.get('exec_id'):
             # Complete the existing workflow run
             try:
-                conductor, _ = get_conductor_and_node()
-                if conductor is None:
-                    raise ImportError("Conductor not available")
+                sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
+                from conductor import Conductor
+
+                conductor = Conductor(
+                    base_path=str(Path.home() / '.claude' / 'emergent-learning'),
+                    project_root=str(Path.home() / '.claude' / 'emergent-learning')
+                )
 
                 run_id = pending['run_id']
                 exec_id = pending['exec_id']
@@ -753,9 +735,13 @@ def main():
             # No pending task found - create new workflow record
             sys.stderr.write(f"[LEARNING_LOOP] No pending task for {task_id}, creating new workflow record\n")
             try:
-                conductor, Node = get_conductor_and_node()
-                if conductor is None:
-                    raise ImportError("Conductor not available")
+                sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
+                from conductor import Conductor, Node
+
+                conductor = Conductor(
+                    base_path=str(Path.home() / '.claude' / 'emergent-learning'),
+                    project_root=str(Path.home() / '.claude' / 'emergent-learning')
+                )
 
                 run_id = conductor.start_run(
                     workflow_name=f"taskoutput-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
@@ -814,9 +800,13 @@ def main():
 
             # Create workflow run and record as pending
             try:
-                conductor, Node = get_conductor_and_node()
-                if conductor is None:
-                    raise ImportError("Conductor not available")
+                sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
+                from conductor import Conductor, Node
+
+                conductor = Conductor(
+                    base_path=str(Path.home() / '.claude' / 'emergent-learning'),
+                    project_root=str(Path.home() / '.claude' / 'emergent-learning')
+                )
 
                 description = tool_input.get('description', 'Background task')
                 run_id = conductor.start_run(
@@ -862,9 +852,13 @@ def main():
             outcome, reason = determine_outcome(tool_output)
 
             try:
-                conductor, Node = get_conductor_and_node()
-                if conductor is None:
-                    raise ImportError("Conductor not available")
+                sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
+                from conductor import Conductor, Node
+
+                conductor = Conductor(
+                    base_path=str(Path.home() / '.claude' / 'emergent-learning'),
+                    project_root=str(Path.home() / '.claude' / 'emergent-learning')
+                )
 
                 description = tool_input.get('description', 'Unknown task')
                 run_id = conductor.start_run(

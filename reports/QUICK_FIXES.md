@@ -154,7 +154,7 @@ Create and run this script once:
 #!/bin/bash
 # enable-wal-mode.sh
 
-DB_PATH="$HOME/.claude/clc/memory/index.db"
+DB_PATH="$HOME/.claude/emergent-learning/memory/index.db"
 
 echo "Enabling WAL mode..."
 
@@ -220,7 +220,7 @@ After applying fixes, run this test:
 #!/bin/bash
 # verify-fixes.sh
 
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 
 echo "Testing 20 concurrent writes..."
 

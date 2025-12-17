@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 # Add query directory to path
-sys.path.insert(0, str(Path.home() / ".claude" / "clc" / "query"))
+sys.path.insert(0, str(Path.home() / ".claude" / "emergent-learning" / "query"))
 
 from fraud_detector import FraudDetector
 from fraud_outcomes import FraudOutcomeTracker

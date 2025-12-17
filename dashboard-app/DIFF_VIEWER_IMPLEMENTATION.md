@@ -135,7 +135,7 @@ This ensures API routes are processed before the frontend catch-all.
 ### Endpoint Testing:
 ```bash
 # Test the endpoint logic
-cd ~/.claude/clc/dashboard-app/backend
+cd ~/.claude/emergent-learning/dashboard-app/backend
 python3 test_diff_endpoint.py
 
 # Test via API (requires backend restart)
@@ -145,7 +145,7 @@ curl http://localhost:8888/api/runs/45/diff
 ### Frontend Testing:
 ```bash
 # Build frontend
-cd ~/.claude/clc/dashboard-app/frontend
+cd ~/.claude/emergent-learning/dashboard-app/frontend
 bun run build
 
 # Frontend is now updated with the diff viewer

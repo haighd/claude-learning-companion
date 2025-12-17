@@ -6,44 +6,44 @@
 
 ### View System Health
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 ./scripts/dashboard-simple.sh
 ```
 
 ### View Live Logs
 ```bash
-tail -f ~/.claude/clc/logs/$(date +%Y%m%d).log
+tail -f ~/.claude/emergent-learning/logs/$(date +%Y%m%d).log
 ```
 
 ### Search Logs by Correlation ID
 ```bash
 # After an operation, search for all related logs
-grep "correlation_id=\"YOUR-CORRELATION-ID\"" ~/.claude/clc/logs/*.log
+grep "correlation_id=\"YOUR-CORRELATION-ID\"" ~/.claude/emergent-learning/logs/*.log
 ```
 
 ### Query Metrics
 ```bash
 # Recent metrics
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 sqlite3 memory/index.db "SELECT datetime(timestamp, 'localtime'), metric_name, metric_value FROM metrics ORDER BY timestamp DESC LIMIT 20;"
 ```
 
 ### Check Active Alerts
 ```bash
-ls -lh ~/.claude/clc/alerts/*.alert
+ls -lh ~/.claude/emergent-learning/alerts/*.alert
 ```
 
 ### Run Health Checks
 ```bash
-cd ~/.claude/clc/scripts
+cd ~/.claude/emergent-learning/scripts
 source lib/alerts.sh
-alerts_init "$HOME/.claude/clc"
+alerts_init "$HOME/.claude/emergent-learning"
 alert_health_check
 ```
 
 ### Rotate Logs
 ```bash
-~/.claude/clc/scripts/rotate-logs.sh
+~/.claude/emergent-learning/scripts/rotate-logs.sh
 ```
 
 ---
@@ -185,7 +185,7 @@ Automatically determined by metric name:
 ## Files & Directories
 
 ```
-~/.claude/clc/
+~/.claude/emergent-learning/
 ├── logs/                          # Log files (date-based)
 │   ├── 20251201.log              # Today's logs
 │   └── *.log.gz                  # Compressed old logs
@@ -275,39 +275,39 @@ ORDER BY avg_latency_ms DESC;
 ### No Logs Appearing
 ```bash
 # Check if logging is initialized
-source ~/.claude/clc/scripts/lib/logging.sh
+source ~/.claude/emergent-learning/scripts/lib/logging.sh
 log_init "test-script"
 log_info "Test message"
 
 # Check log file
-tail ~/.claude/clc/logs/$(date +%Y%m%d).log
+tail ~/.claude/emergent-learning/logs/$(date +%Y%m%d).log
 ```
 
 ### Metrics Not Recording
 ```bash
 # Check database exists
-ls -lh ~/.claude/clc/memory/index.db
+ls -lh ~/.claude/emergent-learning/memory/index.db
 
 # Check table exists
-sqlite3 ~/.claude/clc/memory/index.db "SELECT name FROM sqlite_master WHERE type='table';"
+sqlite3 ~/.claude/emergent-learning/memory/index.db "SELECT name FROM sqlite_master WHERE type='table';"
 
 # Initialize if needed
-source ~/.claude/clc/scripts/lib/metrics.sh
-metrics_init ~/.claude/clc/memory/index.db
+source ~/.claude/emergent-learning/scripts/lib/metrics.sh
+metrics_init ~/.claude/emergent-learning/memory/index.db
 ```
 
 ### Alerts Not Working
 ```bash
 # Check alerts directory
-ls -lh ~/.claude/clc/alerts/
+ls -lh ~/.claude/emergent-learning/alerts/
 
 # Create if missing
-mkdir -p ~/.claude/clc/alerts
-mkdir -p ~/.claude/clc/ceo-inbox
+mkdir -p ~/.claude/emergent-learning/alerts
+mkdir -p ~/.claude/emergent-learning/ceo-inbox
 
 # Test alert
-source ~/.claude/clc/scripts/lib/alerts.sh
-alerts_init ~/.claude/clc
+source ~/.claude/emergent-learning/scripts/lib/alerts.sh
+alerts_init ~/.claude/emergent-learning
 alert_trigger "info" "Test alert"
 ```
 
@@ -318,7 +318,7 @@ alert_trigger "info" "Test alert"
 Run the full observability demo:
 
 ```bash
-~/.claude/clc/scripts/demo-observability.sh
+~/.claude/emergent-learning/scripts/demo-observability.sh
 ```
 
 This demonstrates:
@@ -336,7 +336,7 @@ This demonstrates:
 Verify 10/10 observability:
 
 ```bash
-~/.claude/clc/scripts/verify-observability.sh
+~/.claude/emergent-learning/scripts/verify-observability.sh
 ```
 
 Expected output:

@@ -230,7 +230,7 @@ tests/
 
 **Usage**:
 ```bash
-cd ~/.claude/clc/tests/patches
+cd ~/.claude/emergent-learning/tests/patches
 
 # Dry run (see what would be applied)
 bash APPLY_ALL_SECURITY_FIXES.sh --dry-run
@@ -332,13 +332,13 @@ See `SECURITY_QUICK_REFERENCE.md` for examples.
 
 ### Option 1: Apply All at Once (Recommended)
 ```bash
-cd ~/.claude/clc/tests/patches
+cd ~/.claude/emergent-learning/tests/patches
 bash APPLY_ALL_SECURITY_FIXES.sh
 ```
 
 ### Option 2: Apply Individually
 ```bash
-cd ~/.claude/clc/tests/patches
+cd ~/.claude/emergent-learning/tests/patches
 
 # Apply TOCTOU fix
 bash HIGH_toctou_symlink_fix.patch
@@ -361,7 +361,7 @@ bash MEDIUM_hardlink_attack_fix.patch
 
 ```bash
 # Run full security test suite
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 bash tests/advanced_security_tests.sh
 
 # Expected: All tests PASS

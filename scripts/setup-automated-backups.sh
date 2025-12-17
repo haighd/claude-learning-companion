@@ -17,7 +17,7 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FRAMEWORK_DIR="$HOME/.claude/clc"
+FRAMEWORK_DIR="$HOME/.claude/emergent-learning"
 LOG_DIR="$HOME/.claude/backups/logs"
 
 # Create log directory
@@ -41,7 +41,7 @@ REM Emergent Learning Framework - Windows Backup Wrapper
 REM Run this script with Windows Task Scheduler
 
 set LOGFILE=%USERPROFILE%\.claude\backups\logs\backup-%date:~-4,4%%date:~-10,2%%date:~-7,2%.log
-bash "%USERPROFILE%\.claude\clc\scripts\backup.sh" >> "%LOGFILE%" 2>&1
+bash "%USERPROFILE%\.claude\emergent-learning\scripts\backup.sh" >> "%LOGFILE%" 2>&1
 EOF
 
     log_success "Created Windows wrapper script: $WRAPPER_SCRIPT"
@@ -59,7 +59,7 @@ EOF
     echo "For weekly verification, create another task:"
     echo ""
     echo "Create: verify-backup-windows.bat"
-    echo "Content: bash ~/.claude/clc/scripts/verify-backup.sh --alert-on-fail"
+    echo "Content: bash ~/.claude/emergent-learning/scripts/verify-backup.sh --alert-on-fail"
     echo "Schedule: Weekly on Sunday at 3:00 AM"
     echo ""
     exit 0
@@ -92,10 +92,10 @@ trap "rm -f $TEMP_CRON" EXIT
 # Export current crontab
 crontab -l 2>/dev/null > "$TEMP_CRON" || echo "" > "$TEMP_CRON"
 
-# Remove any existing clc backup jobs
-sed -i.bak '/clc.*backup/d' "$TEMP_CRON" 2>/dev/null || \
-    sed -i '' '/clc.*backup/d' "$TEMP_CRON" 2>/dev/null || \
-    grep -v 'clc.*backup' "$TEMP_CRON" > "${TEMP_CRON}.new" && mv "${TEMP_CRON}.new" "$TEMP_CRON"
+# Remove any existing emergent-learning backup jobs
+sed -i.bak '/emergent-learning.*backup/d' "$TEMP_CRON" 2>/dev/null || \
+    sed -i '' '/emergent-learning.*backup/d' "$TEMP_CRON" 2>/dev/null || \
+    grep -v 'emergent-learning.*backup' "$TEMP_CRON" > "${TEMP_CRON}.new" && mv "${TEMP_CRON}.new" "$TEMP_CRON"
 
 # Add new backup jobs
 cat >> "$TEMP_CRON" << EOF
@@ -143,7 +143,7 @@ cat > "$MONITOR_SCRIPT" << 'EOFMONITOR'
 #!/bin/bash
 # Check if backups are running successfully
 
-BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/clc}"
+BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/emergent-learning}"
 LOG_DIR="$HOME/.claude/backups/logs"
 
 echo "Backup Health Check"

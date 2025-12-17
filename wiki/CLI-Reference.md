@@ -90,33 +90,33 @@ Type `/search` followed by any question in plain English. Claude will search you
 
 ```bash
 # Record a failure
-~/.claude/clc/scripts/record-failure.sh
+~/.claude/emergent-learning/scripts/record-failure.sh
 
 # Record a heuristic
-~/.claude/clc/scripts/record-heuristic.sh
+~/.claude/emergent-learning/scripts/record-heuristic.sh
 
 # Start an experiment
-~/.claude/clc/scripts/start-experiment.sh
+~/.claude/emergent-learning/scripts/start-experiment.sh
 ```
 
 ## Conductor Commands
 
 ```bash
 # List workflow runs
-python ~/.claude/clc/conductor/query_conductor.py --workflows
+python ~/.claude/emergent-learning/conductor/query_conductor.py --workflows
 
 # Show specific run
-python ~/.claude/clc/conductor/query_conductor.py --workflow 123
+python ~/.claude/emergent-learning/conductor/query_conductor.py --workflow 123
 
 # Show failures
-python ~/.claude/clc/conductor/query_conductor.py --failures
+python ~/.claude/emergent-learning/conductor/query_conductor.py --failures
 
 # Show hotspots
-python ~/.claude/clc/conductor/query_conductor.py --hotspots
+python ~/.claude/emergent-learning/conductor/query_conductor.py --hotspots
 
 # Show trails by scent
-python ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
+python ~/.claude/emergent-learning/conductor/query_conductor.py --trails --scent blocker
 
 # Statistics
-python ~/.claude/clc/conductor/query_conductor.py --stats
+python ~/.claude/emergent-learning/conductor/query_conductor.py --stats
 ```

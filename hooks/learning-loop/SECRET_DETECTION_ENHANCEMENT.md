@@ -1,7 +1,7 @@
 # Secret Detection Enhancement - Implementation Report
 
 **Date:** 2025-12-11
-**File Modified:** `C:~/.claude/clc/hooks/learning-loop/post_tool_learning.py`
+**File Modified:** `C:~/.claude/emergent-learning/hooks/learning-loop/post_tool_learning.py`
 **Status:** ✓ Complete, All Tests Passing
 
 ## Summary

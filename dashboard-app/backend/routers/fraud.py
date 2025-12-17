@@ -14,22 +14,22 @@ router = APIRouter(prefix="/api", tags=["fraud"])
 logger = logging.getLogger(__name__)
 
 # Path will be set from main.py
-CLC_PATH = None
+EMERGENT_LEARNING_PATH = None
 
 
 def set_paths(elf_path: Path):
     """Set the paths for fraud operations."""
-    global CLC_PATH
-    CLC_PATH = elf_path
+    global EMERGENT_LEARNING_PATH
+    EMERGENT_LEARNING_PATH = elf_path
 
 
 def get_fraud_reviewer():
     """Get a FraudReviewer instance."""
-    if CLC_PATH is None:
+    if EMERGENT_LEARNING_PATH is None:
         raise HTTPException(status_code=500, detail="Paths not configured")
 
     # Import FraudReviewer from the query directory
-    sys.path.insert(0, str(CLC_PATH / "query"))
+    sys.path.insert(0, str(EMERGENT_LEARNING_PATH / "query"))
     from fraud_review import FraudReviewer
     return FraudReviewer()
 

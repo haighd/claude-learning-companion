@@ -5,8 +5,8 @@
 set -euo pipefail
 
 # Configuration
-FRAMEWORK_DIR="$HOME/.claude/clc"
-BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/clc}"
+FRAMEWORK_DIR="$HOME/.claude/emergent-learning"
+BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/emergent-learning}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -236,7 +236,7 @@ if [[ "$NO_BACKUP" != true ]] && [[ -d "$FRAMEWORK_DIR" ]]; then
     log_info "Creating safety backup of current state: $SAFETY_BACKUP"
 
     cd "$HOME/.claude"
-    tar -czf "$SAFETY_BACKUP" clc/
+    tar -czf "$SAFETY_BACKUP" emergent-learning/
     log_success "Safety backup created"
 fi
 

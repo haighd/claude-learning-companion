@@ -36,14 +36,14 @@ class ProposalIntegrator:
         Initialize the integrator.
 
         Args:
-            base_path: Base path to clc directory
+            base_path: Base path to emergent-learning directory
             debug: Enable debug output
         """
         self.debug = debug
 
         if base_path is None:
             home = Path.home()
-            self.base_path = home / ".claude" / "clc"
+            self.base_path = home / ".claude" / "emergent-learning"
         else:
             self.base_path = Path(base_path)
 
@@ -443,7 +443,7 @@ def main():
         description="Integrate approved proposals into the Emergent Learning Framework"
     )
     parser.add_argument('proposal_path', help='Path to approved proposal file')
-    parser.add_argument('--base-path', help='Base path to clc directory')
+    parser.add_argument('--base-path', help='Base path to emergent-learning directory')
     parser.add_argument('--debug', action='store_true', help='Enable debug output')
 
     args = parser.parse_args()

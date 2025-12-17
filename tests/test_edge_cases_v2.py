@@ -30,7 +30,7 @@ class EdgeCaseTesterV2:
     """Test suite for database edge cases with better connection management"""
 
     def __init__(self):
-        self.base_path = Path.home() / ".claude" / "clc"
+        self.base_path = Path.home() / ".claude" / "emergent-learning"
         self.db_path = self.base_path / "memory" / "index.db"
         self.test_results = []
 

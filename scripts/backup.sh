@@ -6,8 +6,8 @@
 set -euo pipefail
 
 # Configuration
-FRAMEWORK_DIR="$HOME/.claude/clc"
-BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/clc}"
+FRAMEWORK_DIR="$HOME/.claude/emergent-learning"
+BACKUP_ROOT="${BACKUP_ROOT:-$HOME/.claude/backups/emergent-learning}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_DIR="$BACKUP_ROOT/$TIMESTAMP"
 RETENTION_DAILY=7

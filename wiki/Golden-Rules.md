@@ -32,7 +32,7 @@ Golden Rules are constitutional principles all agents follow.
 When a heuristic has proven itself (confidence > 0.9, validations > 10):
 
 1. Check confidence: `python query.py --context | grep "pattern"`
-2. Edit `~/.claude/clc/memory/golden-rules.md`
+2. Edit `~/.claude/emergent-learning/memory/golden-rules.md`
 3. Update CLAUDE.md to reference it
 
 ## Best Practices

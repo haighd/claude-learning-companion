@@ -149,7 +149,7 @@ class QuerySystem(
         Use QuerySystem.create() instead for proper async initialization.
 
         Args:
-            base_path: Base path to the clc directory.
+            base_path: Base path to the emergent-learning directory.
             debug: Enable debug logging
             session_id: Optional session ID for query logging
             agent_id: Optional agent ID for query logging
@@ -159,7 +159,7 @@ class QuerySystem(
         self.agent_id = agent_id or os.environ.get('CLAUDE_AGENT_ID')
 
         if base_path is None:
-            self.base_path = Path.home() / ".claude" / "clc"
+            self.base_path = Path.home() / ".claude" / "emergent-learning"
         else:
             self.base_path = Path(base_path)
 
@@ -174,8 +174,8 @@ class QuerySystem(
         Async factory method to create a QuerySystem instance.
 
         Args:
-            base_path: Base path to the clc directory.
-                      Defaults to ~/.claude/clc
+            base_path: Base path to the emergent-learning directory.
+                      Defaults to ~/.claude/emergent-learning
             debug: Enable debug logging
             session_id: Optional session ID for query logging
             agent_id: Optional agent ID for query logging
@@ -189,7 +189,7 @@ class QuerySystem(
         if base_path:
             base_path = Path(base_path)
         else:
-            base_path = Path.home() / ".claude" / "clc"
+            base_path = Path.home() / ".claude" / "emergent-learning"
 
         # Create instance
         instance = cls(base_path, debug, session_id, agent_id)

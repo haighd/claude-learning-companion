@@ -356,15 +356,15 @@ None - all enhancements are additive to avoid breaking existing system
 ### Phase 1: Apply Fixes (Non-Breaking)
 ```bash
 # 1. Backup current database
-cp ~/.claude/clc/memory/index.db \
-   ~/.claude/clc/memory/index.db.backup_$(date +%Y%m%d)
+cp ~/.claude/emergent-learning/memory/index.db \
+   ~/.claude/emergent-learning/memory/index.db.backup_$(date +%Y%m%d)
 
 # 2. Apply fixes
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 python scripts/apply-db-fixes.py
 
 # 3. Verify integrity
-sqlite3 ~/.claude/clc/memory/index.db "PRAGMA integrity_check"
+sqlite3 ~/.claude/emergent-learning/memory/index.db "PRAGMA integrity_check"
 ```
 
 ### Phase 2: Test Query System
@@ -384,7 +384,7 @@ cp query/query_robust.py query/query.py
 ### Phase 4: Monitor
 ```bash
 # Check logs for errors
-tail -f ~/.claude/clc/logs/$(date +%Y%m%d).log
+tail -f ~/.claude/emergent-learning/logs/$(date +%Y%m%d).log
 ```
 
 ---

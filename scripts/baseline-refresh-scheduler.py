@@ -76,7 +76,7 @@ def run_scheduled_refresh():
             print(f"  {error}")
 
     # Log results to file
-    log_file = Path.home() / ".claude" / "clc" / "logs" / "baseline-refresh.log"
+    log_file = Path.home() / ".claude" / "emergent-learning" / "logs" / "baseline-refresh.log"
     log_file.parent.mkdir(parents=True, exist_ok=True)
 
     with open(log_file, 'a', encoding='utf-8') as f:

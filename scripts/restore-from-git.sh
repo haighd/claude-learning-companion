@@ -5,7 +5,7 @@
 set -euo pipefail
 
 # Configuration
-FRAMEWORK_DIR="$HOME/.claude/clc"
+FRAMEWORK_DIR="$HOME/.claude/emergent-learning"
 
 # Colors for output
 RED='\033[0;31m'

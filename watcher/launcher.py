@@ -31,7 +31,7 @@ Opus is for the Handler: "what should we do about it?"
 
 WATCHER_PROMPT = '''You are monitoring a multi-agent swarm.
 
-Check the coordination state at: ~/.claude/clc/.coordination/
+Check the coordination state at: ~/.claude/emergent-learning/.coordination/
 
 Read:
 - blackboard.json (agent states, task queue)
@@ -53,7 +53,7 @@ HANDLER_PROMPT = '''You are an intervention agent. The watcher detected an issue
 
 {escalation}
 
-Read full context at ~/.claude/clc/.coordination/
+Read full context at ~/.claude/emergent-learning/.coordination/
 
 Decide on action:
 - RESTART: Reset stuck agent, let it retry

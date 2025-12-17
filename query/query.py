@@ -144,8 +144,8 @@ class QuerySystem:
         Initialize the query system.
 
         Args:
-            base_path: Base path to the clc directory.
-                      Defaults to ~/.claude/clc
+            base_path: Base path to the emergent-learning directory.
+                      Defaults to ~/.claude/emergent-learning
             debug: Enable debug logging
             session_id: Optional session ID for query logging (fallback to CLAUDE_SESSION_ID env var)
             agent_id: Optional agent ID for query logging (fallback to CLAUDE_AGENT_ID env var)
@@ -158,7 +158,7 @@ class QuerySystem:
 
         if base_path is None:
             home = Path.home()
-            self.base_path = home / ".claude" / "clc"
+            self.base_path = home / ".claude" / "emergent-learning"
         else:
             self.base_path = Path(base_path)
 
@@ -2198,7 +2198,7 @@ Error Codes:
     )
 
     # Basic arguments
-    parser.add_argument('--base-path', type=str, help='Base path to clc directory')
+    parser.add_argument('--base-path', type=str, help='Base path to emergent-learning directory')
     parser.add_argument('--context', action='store_true', help='Build full context for agents')
     parser.add_argument('--depth', choices=['minimal', 'standard', 'deep'], default='standard',
                        help='Context depth: minimal (golden rules only ~500 tokens), '

@@ -203,7 +203,7 @@ The single limitation (Windows timeout) is a known platform constraint that does
 
 ### Run Tests
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 python tests/test_edge_cases.py
 ```
 

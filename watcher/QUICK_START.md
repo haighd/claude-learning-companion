@@ -11,20 +11,20 @@ export ANTHROPIC_API_KEY="your-key-here"
 
 ```bash
 # Interactive (Ctrl+C to stop)
-~/.claude/clc/scripts/start-watcher.sh
+~/.claude/emergent-learning/scripts/start-watcher.sh
 
 # Daemon mode (background)
-~/.claude/clc/scripts/start-watcher.sh --daemon
+~/.claude/emergent-learning/scripts/start-watcher.sh --daemon
 ```
 
 ## Monitor Activity
 
 ```bash
 # Watch all logs
-tail -f ~/.claude/clc/.coordination/*.log
+tail -f ~/.claude/emergent-learning/.coordination/*.log
 
 # Just the orchestrator
-tail -f ~/.claude/clc/.coordination/launcher.log
+tail -f ~/.claude/emergent-learning/.coordination/launcher.log
 ```
 
 ## What to Expect
@@ -52,7 +52,7 @@ tail -f ~/.claude/clc/.coordination/launcher.log
 
 ## Configuration
 
-Edit `~/.claude/clc/watcher/config.py`:
+Edit `~/.claude/emergent-learning/watcher/config.py`:
 
 ```python
 POLL_INTERVAL = 30              # Seconds between checks
@@ -71,13 +71,13 @@ export ANTHROPIC_API_KEY="your-key-here"
 **Problem**: Watcher keeps restarting
 ```bash
 # Check the logs for errors
-cat ~/.claude/clc/.coordination/launcher.log
+cat ~/.claude/emergent-learning/.coordination/launcher.log
 ```
 
 **Problem**: Opus never invoked
 ```bash
 # Verify Haiku is detecting issues
-grep "intervention_needed" ~/.claude/clc/.coordination/haiku_watcher.log
+grep "intervention_needed" ~/.claude/emergent-learning/.coordination/haiku_watcher.log
 ```
 
 ## Full Documentation

@@ -372,7 +372,7 @@ Run the following commands to verify 10/10 status:
 
 ```bash
 # 1. Run full test suite
-cd ~/.claude/clc/query
+cd ~/.claude/emergent-learning/query
 python test_query.py
 
 # Expected output: ALL TESTS PASSED - 10/10 ROBUSTNESS CONFIRMED

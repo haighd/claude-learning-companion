@@ -242,7 +242,7 @@ Additional verification test for circular dependencies:
 
 To run tests:
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 python tests/test_dependency_graph.py
 ```
 

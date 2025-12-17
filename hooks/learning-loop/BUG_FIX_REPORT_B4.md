@@ -3,8 +3,8 @@
 **Status:** FIXED ✓
 **Date:** 2025-12-11
 **Files Modified:**
-- `~/.claude/clc/hooks/learning-loop/trail_helper.py`
-- `~/.claude/clc/hooks/learning-loop/post_tool_learning.py`
+- `~/.claude\emergent-learning\hooks\learning-loop\trail_helper.py`
+- `~/.claude\emergent-learning\hooks\learning-loop\post_tool_learning.py`
 
 ---
 
@@ -148,7 +148,7 @@ Created comprehensive test suite: `test_trail_laying.py`
 - ✓ No files (edge case)
 
 ### Database Insertion: PASS
-```bash
+```
 ✓ Successfully laid 3 trails
 Verification: Found 3 trails in database
   - test/file3.md (discovery, strength=1.0, agent=test_agent)
@@ -157,7 +157,7 @@ Verification: Found 3 trails in database
 ```
 
 ### Deduplication: PASS
-```text
+```
 Before: ['src/components/Header.tsx', 'Header.tsx', 'components/Header.tsx']
 After:  ['src/components/Header.tsx']
 ```

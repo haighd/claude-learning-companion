@@ -23,7 +23,7 @@ from typing import Optional, Dict, Any, List
 from collections import Counter
 
 # Paths
-ELF_DIR = Path.home() / ".claude" / "clc"
+ELF_DIR = Path.home() / ".claude" / "emergent-learning"
 PROJECTS_DIR = Path.home() / ".claude" / "projects"
 DB_PATH = ELF_DIR / "memory" / "index.db"
 

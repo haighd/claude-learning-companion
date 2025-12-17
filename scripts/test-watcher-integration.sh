@@ -18,7 +18,7 @@ else
     exit 1
 fi
 
-PROJECT_DIR="$HOME/.claude/clc"
+PROJECT_DIR="$HOME/.claude/emergent-learning"
 WATCHER_DIR="$PROJECT_DIR/watcher"
 COORD_DIR="$PROJECT_DIR/.coordination"
 

@@ -16,7 +16,7 @@
 ## Apply Fixes (One Command)
 
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 python scripts/apply-db-fixes.py
 ```
 
@@ -32,20 +32,20 @@ This will:
 
 ```bash
 # Check integrity
-sqlite3 ~/.claude/clc/memory/index.db "PRAGMA integrity_check"
+sqlite3 ~/.claude/emergent-learning/memory/index.db "PRAGMA integrity_check"
 
 # Check WAL mode enabled
-sqlite3 ~/.claude/clc/memory/index.db "PRAGMA journal_mode"
+sqlite3 ~/.claude/emergent-learning/memory/index.db "PRAGMA journal_mode"
 
 # Check for duplicates (should be 0)
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "SELECT COUNT(*) FROM (SELECT filepath, COUNT(*) as c FROM learnings GROUP BY filepath HAVING c > 1)"
 ```
 
 ## Test Edge Cases
 
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 python tests/test_sqlite_edge_cases.py
 ```
 
@@ -112,21 +112,21 @@ severity INTEGER CHECK(severity >= 1 AND severity <= 5)
 
 ```bash
 # Restore from backup
-cp ~/.claude/clc/memory/index.db.backup_YYYYMMDD_HHMMSS \
-   ~/.claude/clc/memory/index.db
+cp ~/.claude/emergent-learning/memory/index.db.backup_YYYYMMDD_HHMMSS \
+   ~/.claude/emergent-learning/memory/index.db
 ```
 
 ## Monitoring
 
 ```bash
 # Watch for errors
-tail -f ~/.claude/clc/logs/$(date +%Y%m%d).log | grep ERROR
+tail -f ~/.claude/emergent-learning/logs/$(date +%Y%m%d).log | grep ERROR
 
 # Check database size
-ls -lh ~/.claude/clc/memory/index.db*
+ls -lh ~/.claude/emergent-learning/memory/index.db*
 
 # Check freelist (should be < 100 after VACUUM)
-sqlite3 ~/.claude/clc/memory/index.db "PRAGMA freelist_count"
+sqlite3 ~/.claude/emergent-learning/memory/index.db "PRAGMA freelist_count"
 ```
 
 ## Performance Expectations

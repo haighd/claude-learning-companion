@@ -9,7 +9,7 @@
 **Query the building. Now. Before reading further.**
 
 ```bash
-python ~/.claude/clc/query/query.py --context
+python ~/.claude/emergent-learning/query/query.py --context
 ```
 
 This is enforced by hooks. If you skip it, you will be blocked after 3 tool uses.
@@ -35,11 +35,11 @@ At the START of every conversation, before responding to the user:
 
 1. **QUERY THE BUILDING:**
    ```bash
-   python ~/.claude/clc/query/query.py --context
+   python ~/.claude/emergent-learning/query/query.py --context
    ```
    For domain-specific work:
    ```bash
-   python ~/.claude/clc/query/query.py --domain [domain]
+   python ~/.claude/emergent-learning/query/query.py --domain [domain]
    ```
 
 2. **VERIFY YOU HAVE QUERIED:**
@@ -60,7 +60,7 @@ At the START of every conversation, before responding to the user:
 
    Start command (handles port detection, skips if already running):
    ```bash
-   bash ~/.claude/clc/dashboard-app/run-dashboard.sh
+   bash ~/.claude/emergent-learning/dashboard-app/run-dashboard.sh
    ```
 
 **This protocol is MANDATORY. Query before acting. Every single time.**
@@ -97,12 +97,12 @@ Do NOT categorize tasks. Do NOT decide "this is trivial." Do NOT skip because:
 
 **Standard query (REQUIRED for most tasks):**
 ```bash
-python ~/.claude/clc/query/query.py --context
+python ~/.claude/emergent-learning/query/query.py --context
 ```
 
 **Domain-specific query:**
 ```bash
-python ~/.claude/clc/query/query.py --domain [domain]
+python ~/.claude/emergent-learning/query/query.py --domain [domain]
 ```
 
 **After querying, you MUST:**
@@ -124,10 +124,10 @@ This is a REMINDER to query, but you should have already done so automatically.
 
 ### Recording to the Building
 
-- **Failure:** `~/.claude/clc/scripts/record-failure.sh`
+- **Failure:** `~/.claude/emergent-learning/scripts/record-failure.sh`
 - **Success:** Create file in `memory/successes/` following template
-- **Heuristic:** `~/.claude/clc/scripts/record-heuristic.sh`
-- **Experiment:** `~/.claude/clc/scripts/start-experiment.sh`
+- **Heuristic:** `~/.claude/emergent-learning/scripts/record-heuristic.sh`
+- **Experiment:** `~/.claude/emergent-learning/scripts/start-experiment.sh`
 - **CEO Decision:** Create file in `ceo-inbox/` following template
 
 ### Golden Rules (Always Follow)
@@ -159,7 +159,7 @@ For Claude Code subagents, use Basic Memory coordination:
 
 ## Agent Personas (for complex problems)
 
-Read personality files at `~/.claude/clc/agents/` when needed:
+Read personality files at `~/.claude/emergent-learning/agents/` when needed:
 
 | Agent | Role | Trigger |
 |-------|------|---------|
@@ -194,7 +194,7 @@ Escalate to human (create file in ceo-inbox/) when:
 If you realize mid-task that you did NOT query the building:
 
 1. **STOP immediately**
-2. **Query now:** `python ~/.claude/clc/query/query.py --context`
+2. **Query now:** `python ~/.claude/emergent-learning/query/query.py --context`
 3. **Review the results** - adjust your approach based on learnings
 4. **Continue with corrected approach**
 
@@ -213,7 +213,7 @@ When you see `[SessionStart] SUMMARIZE_PREVIOUS: /path/to/session.jsonl` in the 
    - **CRITICAL: Always capture the LAST 3 exchanges (user prompt + assistant response pairs)**
    - Generate a ~300-500 token summary with: title, topics, what Claude did, files modified, key learnings
    - Include a "## Last Exchange" section with the final user question and Claude's answer (verbatim or close paraphrase)
-   - Save to `~/.claude/clc/memory/sessions/YYYY-MM-DD-HH-MM-topic-slug.md`
+   - Save to `~/.claude/emergent-learning/memory/sessions/YYYY-MM-DD-HH-MM-topic-slug.md`
 
 **Example spawn command:**
 ```
@@ -221,7 +221,7 @@ Task tool with:
 - subagent_type: "general-purpose"
 - model: "haiku"
 - run_in_background: true
-- prompt: "Summarize the session at [path]. Read the JSONL, extract messages. IMPORTANT: You MUST include a 'Last Exchange' section capturing the final 3 user prompts and Claude responses verbatim - this is critical for session continuity. Write markdown summary to ~/.claude/clc/memory/sessions/"
+- prompt: "Summarize the session at [path]. Read the JSONL, extract messages. IMPORTANT: You MUST include a 'Last Exchange' section capturing the final 3 user prompts and Claude responses verbatim - this is critical for session continuity. Write markdown summary to ~/.claude/emergent-learning/memory/sessions/"
 ```
 
 This gives you memory of what happened in previous sessions. The `/search` command will then show these summaries.

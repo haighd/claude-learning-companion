@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "query"))
 
 from fraud_detector import FraudDetector
 
-DB_PATH = Path.home() / ".claude" / "clc" / "memory" / "index.db"
+DB_PATH = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
 
 
 def test_database_schema():
@@ -217,7 +217,7 @@ def test_cli_commands():
             result = subprocess.run(
                 full_cmd,
                 shell=True,
-                cwd=Path.home() / ".claude" / "clc",
+                cwd=Path.home() / ".claude" / "emergent-learning",
                 capture_output=True,
                 text=True,
                 timeout=10

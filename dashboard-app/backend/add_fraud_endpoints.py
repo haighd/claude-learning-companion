@@ -12,7 +12,7 @@ MAIN_PY = Path(__file__).parent / "main.py"
 # Code to add after session_index import
 IMPORT_CODE = """
 # Import fraud review module
-sys.path.insert(0, str(CLC_PATH / "query"))
+sys.path.insert(0, str(EMERGENT_LEARNING_PATH / "query"))
 from fraud_review import FraudReviewer
 """
 
