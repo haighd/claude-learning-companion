@@ -13,11 +13,7 @@ The CLC project has 23 test files in `tests/` but many have issues (missing impo
 **Legacy Test Mapping:** Each priority section below includes a list of legacy test files it replaces. Delete these files as the new tests are completed and verified.
 
 **Legacy Test Inventory (23 files):**
-- **To replace** (10 files): Listed in each priority section below
-- **Mapped to priorities** (6 files):
-  - Priority 1 (Query): `test_sqlite_edge_cases.py`, `test_meta_observer.py` - database edge cases and observability
-  - Priority 3 (Conductor): `test_crash_recovery.py`, `test_dependency_graph.py` - workflow resilience
-  - Priority 5 (Non-Functional): `test_stress.py`, `test_lifecycle_adversarial.py` - performance and security
+- **To be replaced** (16 files): These files will be replaced by the new test suite and are listed under the `Replaces:` directive in each priority section below.
 - **To evaluate** (5 files): `test_baseline_refresh.py`, `test_destructive_edge_cases.py`, `test_domain_elasticity.py`, `test_integration_multiagent.py`, `test_temporal_smoothing.py` - assess during implementation whether these can be salvaged or should be replaced
 - **Pytest infrastructure** (2 files): `conftest.py` (will be replaced with new fixtures), `__init__.py` (keep as package marker)
 
