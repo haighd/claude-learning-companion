@@ -2,6 +2,20 @@
 
 This guide covers converting existing projects that use the old `emergent-learning` or `elf` paths to the new `clc` (Claude Learning Companion) structure.
 
+## Prerequisites
+
+Before you begin, ensure you have cloned the new Claude Learning Companion (CLC) repository. The recommended location is `~/.claude/clc`. If you haven't, you can clone it via:
+
+```bash
+# Ensure the parent directory exists
+mkdir -p ~/.claude
+
+# Clone the repository
+git clone <your-clc-repo-url> ~/.claude/clc
+```
+
+This guide assumes the CLC code is available at `~/.claude/clc`.
+
 ## Quick Summary
 
 | Old Path/Reference | New Path/Reference |
@@ -13,7 +27,7 @@ This guide covers converting existing projects that use the old `emergent-learni
 
 ## Step 1: Update ~/.claude/settings.json
 
-Your hooks should point to the new CLC location. Replace `<HOME>` with your full home directory path (e.g., `/Users/username` on macOS, `/home/username` on Linux, or `C:\Users\username` on Windows):
+Your hooks should point to the new CLC location. Replace `<HOME>` with your full home directory path (e.g., `/Users/username` on macOS, `/home/username` on Linux, or `C:\\Users\\username` on Windows, noting the double backslashes for JSON escaping):
 
 ```json
 {
