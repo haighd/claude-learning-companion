@@ -22,7 +22,7 @@ Your hooks should point to the new CLC location:
       {
         "hooks": [
           {
-            "command": "python3 \"~/.claude/clc/hooks/learning-loop/pre_tool_learning.py\"",
+            "command": "python3 ~/.claude/clc/hooks/learning-loop/pre_tool_learning.py",
             "type": "command"
           }
         ],
@@ -33,7 +33,7 @@ Your hooks should point to the new CLC location:
       {
         "hooks": [
           {
-            "command": "python3 \"~/.claude/clc/hooks/learning-loop/post_tool_learning.py\"",
+            "command": "python3 ~/.claude/clc/hooks/learning-loop/post_tool_learning.py",
             "type": "command"
           }
         ],
