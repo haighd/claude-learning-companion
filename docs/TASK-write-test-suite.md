@@ -87,7 +87,7 @@ Write new, focused tests starting with the most critical components:
 
 **Note:** This priority is large. Consider implementing one router at a time for incremental progress.
 
-#### 4.1 Core Infrastructure
+#### API Endpoints & Utilities
 - [ ] Test WebSocket connection and real-time updates (`/ws`) - use FastAPI's `TestClient` which supports WebSocket testing
 - [ ] Test analytics router endpoints (`/api/analytics/*`):
   - [ ] Test `GET /stats`
@@ -186,6 +186,7 @@ Write new, focused tests starting with the most critical components:
 - Use `pytest.mark.parametrize` to reduce code duplication when testing similar functions or API endpoints
 - Consider using snapshot testing (e.g., `pytest-snapshot`) for asserting complex API responses, especially for Dashboard API endpoints
 - Use pytest markers (e.g., `@pytest.mark.unit`, `@pytest.mark.integration`) to categorize tests and enable selective test runs
+- Consider `pytest-xdist` for parallel test execution to achieve the < 5 minute CI target
 - Aim for tests that actually run in CI
 
 ## Acceptance Criteria
@@ -197,6 +198,7 @@ Write new, focused tests starting with the most critical components:
 - [ ] Achieve at least 70% test coverage for `dashboard-app/backend/` (Priority 4)
 - [ ] All new tests run successfully in GitHub Actions CI
 - [ ] New tests are documented with clear docstrings and cover important edge cases
+- [ ] Create a `tests/README.md` documenting test organization, how to run tests, and guidelines for contributors
 - [ ] Test suite completes within reasonable time (target: under 5 minutes) to maintain fast CI feedback
 - [ ] Legacy broken tests are deleted as new tests replace them
 
@@ -209,6 +211,5 @@ git checkout main && git pull
 git checkout -b feat/core-test-suite
 
 # Start with query tests
-# Reference: tests/test_enhancements.py (has some useful patterns)
-# Also review: tests/test_edge_cases.py, tests/test_edge_cases_v2.py (legacy tests being replaced - may have reusable test scenarios)
+# Review: tests/test_edge_cases.py, tests/test_edge_cases_v2.py (legacy tests being replaced - may have reusable test scenarios)
 ```
