@@ -13,6 +13,8 @@ logs/
 failure-analysis/
 
 # Custom user configurations (keep templates, ignore actual configs)
+settings.local.json
+*.local.json
 custom/config.yaml
 custom/golden-rules.md
 custom/parties.yaml

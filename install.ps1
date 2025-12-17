@@ -100,7 +100,7 @@ Write-Host ""
 $ExistingVersionFile = Join-Path $env:USERPROFILE ".claude\clc\VERSION"
 if (Test-Path $ExistingVersionFile) {
     $InstalledVersion = (Get-Content $ExistingVersionFile -Raw).Trim()
-    Write-Host "[!] ELF is already installed (version $InstalledVersion)" -ForegroundColor Yellow
+    Write-Host "[!] CLC is already installed (version $InstalledVersion)" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Running install.ps1 again will overwrite your existing installation,"
     Write-Host "including any customizations you've made."
@@ -416,8 +416,8 @@ try {
     Write-Host "  Claude Code: $claudeVersion" -ForegroundColor Green
 } catch {
     Write-Host "  WARNING: Claude Code not found (optional for now)" -ForegroundColor Yellow
-    Write-Host "  Note: ELF requires Claude Code to work. Install from: https://claude.ai/download" -ForegroundColor Yellow
-    Write-Host "  Installation will continue, but ELF won't be functional until you install Claude Code." -ForegroundColor Yellow
+    Write-Host "  Note: CLC requires Claude Code to work. Install from: https://claude.ai/download" -ForegroundColor Yellow
+    Write-Host "  Installation will continue, but CLC won't be functional until you install Claude Code." -ForegroundColor Yellow
 }
 
 # === CONFIGURE SETTINGS.JSON ===
@@ -455,7 +455,7 @@ if (-not $settings.ContainsKey("hooks")) {
     $settings["hooks"] = @{}
 }
 
-# Create ELF hooks - use detected python command
+# Create CLC hooks - use detected python command
 $clcPreHook = @{
     "matcher" = "Task"
     "hooks" = @(
@@ -495,7 +495,7 @@ if (-not $settings["hooks"].ContainsKey("PostToolUse")) {
     $settings["hooks"]["PostToolUse"] = @()
 }
 
-# Remove any existing ELF hooks (to avoid duplicates on reinstall)
+# Remove any existing CLC hooks (to avoid duplicates on reinstall)
 # Remove hooks where command contains "learning-loop"
 $settings["hooks"]["PreToolUse"] = @($settings["hooks"]["PreToolUse"] | Where-Object {
     -not ($_.hooks -and ($_.hooks | Where-Object { $_.command -like "*learning-loop*" }))
@@ -504,7 +504,7 @@ $settings["hooks"]["PostToolUse"] = @($settings["hooks"]["PostToolUse"] | Where-
     -not ($_.hooks -and ($_.hooks | Where-Object { $_.command -like "*learning-loop*" }))
 })
 
-# Add ELF hooks using ArrayList to avoid nested array issues
+# Add CLC hooks using ArrayList to avoid nested array issues
 [System.Collections.ArrayList]$preHooks = @($settings["hooks"]["PreToolUse"])
 $preHooks.Add($clcPreHook) | Out-Null
 $settings["hooks"]["PreToolUse"] = $preHooks
@@ -542,18 +542,18 @@ if (-not (Test-Path $claudeMdDst)) {
         Write-Host "  Created CLAUDE.md" -ForegroundColor Green
     }
 } else {
-    # Existing CLAUDE.md found - check if ELF already configured
+    # Existing CLAUDE.md found - check if CLC already configured
     $existingContent = Get-Content $claudeMdDst -Raw
     if ($existingContent -match "Claude Learning Companion" -or $existingContent -match "Emergent Learning Framework") {
-        Write-Host "  CLAUDE.md already contains ELF configuration (skipped)" -ForegroundColor Green
+        Write-Host "  CLAUDE.md already contains CLC configuration (skipped)" -ForegroundColor Green
     } else {
-        # Existing config without ELF - prompt user for action
+        # Existing config without CLC - prompt user for action
         Write-Host ""
         Write-Host "  Existing CLAUDE.md detected!" -ForegroundColor Yellow
         Write-Host ""
-        Write-Host "  How would you like to add ELF configuration?" -ForegroundColor Cyan
-        Write-Host "    [1] Merge    - Keep your config, add ELF below (Recommended)" -ForegroundColor White
-        Write-Host "    [2] Replace  - Use ELF only (your config backed up)" -ForegroundColor White
+        Write-Host "  How would you like to add CLC configuration?" -ForegroundColor Cyan
+        Write-Host "    [1] Merge    - Keep your config, add CLC below (Recommended)" -ForegroundColor White
+        Write-Host "    [2] Replace  - Use CLC only (your config backed up)" -ForegroundColor White
         Write-Host "    [3] Skip     - Don't modify CLAUDE.md" -ForegroundColor White
         Write-Host ""
 
@@ -561,7 +561,7 @@ if (-not (Test-Path $claudeMdDst)) {
 
         switch ($choice) {
             "1" {
-                # Merge: Keep existing + append ELF
+                # Merge: Keep existing + append CLC
                 $backupFile = Join-Path $ClaudeDir "CLAUDE.md.backup"
                 Copy-Item -Path $claudeMdDst -Destination $backupFile -Force
 
@@ -589,7 +589,7 @@ $clcContent
             "3" {
                 # Skip: Don't modify
                 Write-Host "  Skipped CLAUDE.md modification" -ForegroundColor Yellow
-                Write-Host "  Note: ELF may not function correctly without CLAUDE.md instructions" -ForegroundColor Yellow
+                Write-Host "  Note: CLC may not function correctly without CLAUDE.md instructions" -ForegroundColor Yellow
             }
             default {
                 Write-Host "  Invalid choice. Skipping CLAUDE.md modification." -ForegroundColor Yellow

@@ -1,8 +1,0 @@
-{
-  "model": "claude-opus",
-  "askBeforeRunningTool": false,
-  "permissions": {
-    "defaultMode": "acceptEdits", 
-    "allow": ["Write", "Edit"]
-    }
-}
