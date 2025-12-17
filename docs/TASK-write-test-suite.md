@@ -200,7 +200,7 @@ Write new, focused tests starting with the most critical components:
 - Consider using snapshot testing (e.g., `pytest-snapshot`) for asserting complex API responses, especially for Dashboard API endpoints
 - Use pytest markers (e.g., `@pytest.mark.unit`, `@pytest.mark.integration`) to categorize tests and enable selective test runs
 - Consider `pytest-xdist` for parallel test execution to achieve the < 5 minute CI target
-- Aim for tests that actually run in CI
+- Use `pytest-benchmark` to establish and track performance benchmarks for critical code paths
 
 ## Acceptance Criteria
 
