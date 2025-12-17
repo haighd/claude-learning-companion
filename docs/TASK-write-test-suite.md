@@ -51,6 +51,7 @@ Write new, focused tests starting with the most critical components:
   - [ ] Test advisory verification for risky patterns (`AdvisoryVerifier`)
   - [ ] Test trail laying functionality
   - [ ] Test `get_conductor_and_node()` helper
+  - [ ] Test explicit learning extraction (`extract_and_record_learnings`)
 
 ### Priority 3: Conductor (`conductor/`)
 - [ ] Test workflow management (create, get, list)
@@ -68,17 +69,41 @@ Write new, focused tests starting with the most critical components:
 
 ### Priority 4: Dashboard API (`dashboard-app/backend/`)
 - [ ] Test WebSocket connection and real-time updates (`/ws`)
-- Test analytics router endpoints (`/api/analytics/*`):
+- [ ] Test analytics router endpoints (`/api/analytics/*`):
   - [ ] Test `GET /stats`
   - [ ] Test `GET /timeline`
   - [ ] Test `GET /learning-velocity`
   - [ ] Test `GET /events`
   - [ ] Test `GET /domains`
   - [ ] Test `GET /anomalies`
-- [ ] Test heuristics router endpoints (`/api/heuristics/*`)
-- [ ] Test runs and knowledge routers (`/api/runs/*`, `/api/knowledge/*`)
-- [ ] Test query and session routers (`/api/queries/*`, `/api/sessions/*`)
-- [ ] Test admin and workflow routers (`/api/admin/*`, `/api/workflows/*`)
+- [ ] Test heuristics router endpoints (`/api/heuristics/*`):
+  - [ ] Test `GET /heuristics` (list all)
+  - [ ] Test `GET /heuristics/{id}` (get single)
+  - [ ] Test `POST /heuristics/{id}/promote`
+  - [ ] Test `PUT /heuristics/{id}` (update)
+  - [ ] Test `DELETE /heuristics/{id}`
+- [ ] Test runs router endpoints (`/api/runs/*`):
+  - [ ] Test `GET /runs` (list runs)
+  - [ ] Test `GET /runs/{id}` (get single run)
+  - [ ] Test `GET /runs/{id}/nodes` (get run nodes)
+- [ ] Test knowledge router endpoints (`/api/knowledge/*`):
+  - [ ] Test `GET /knowledge` (list knowledge items)
+  - [ ] Test `GET /knowledge/{id}` (get single item)
+- [ ] Test query router endpoints (`/api/queries/*`):
+  - [ ] Test `POST /queries` (execute query)
+  - [ ] Test `GET /queries/history` (query history)
+- [ ] Test session router endpoints (`/api/sessions/*`):
+  - [ ] Test `GET /sessions` (list sessions)
+  - [ ] Test `GET /sessions/{id}` (get session details)
+  - [ ] Test `GET /sessions/{id}/events` (session events)
+- [ ] Test admin router endpoints (`/api/admin/*`):
+  - [ ] Test `GET /admin/config` (get config)
+  - [ ] Test `POST /admin/config` (update config)
+  - [ ] Test `POST /admin/reindex` (trigger reindex)
+- [ ] Test workflow router endpoints (`/api/workflows/*`):
+  - [ ] Test `GET /workflows` (list workflows)
+  - [ ] Test `GET /workflows/{id}` (get workflow)
+  - [ ] Test `POST /workflows` (create workflow)
 - [ ] Test database utilities
 
 ## Technical Notes
