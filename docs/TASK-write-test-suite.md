@@ -163,8 +163,11 @@ Write new, focused tests starting with the most critical components:
 
 - Use `pytest` with `pytest-asyncio` for async tests
 - Use in-memory SQLite for database tests (no external dependencies)
+- For database permission tests (os.chmod, icacls), use either:
+  - Temporary file-based database to verify actual permission setting
+  - Mock filesystem calls to verify correct arguments are passed
 - Create proper fixtures in `conftest.py`
-- Create a strategy for managing test data (e.g., using factory functions or data generation helpers) to cover diverse scenarios and edge cases
+- Create a strategy for managing test data (e.g., using a library like `factory-boy` to create model factories) to cover diverse scenarios and edge cases
 - Aim for tests that actually run in CI
 
 ## Acceptance Criteria
