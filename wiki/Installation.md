@@ -49,7 +49,7 @@ The installer has three components:
 ~/.claude/
 ├── CLAUDE.md                    # Agent instructions
 ├── settings.json                # Hook configurations
-├── clc/
+├── emergent-learning/
 │   ├── query/query.py          # Query system
 │   ├── memory/
 │   │   ├── index.db            # SQLite database
@@ -85,7 +85,7 @@ cat ~/.claude/settings.json | grep learning-loop
 **Database errors:**
 ```bash
 # Validate database
-python ~/.claude/clc/query/query.py --validate
+python ~/.claude/emergent-learning/query/query.py --validate
 ```
 
 **Dashboard won't start:**
@@ -95,6 +95,6 @@ lsof -i :8888  # Backend
 lsof -i :3001  # Frontend
 
 # Manual start
-cd ~/.claude/clc/dashboard-app
+cd ~/.claude/emergent-learning/dashboard-app
 ./run-dashboard.sh
 ```

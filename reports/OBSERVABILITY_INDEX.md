@@ -228,7 +228,7 @@ All core framework scripts now have full observability:
 
 ### Automated Testing
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 ./scripts/verify-observability.sh
 ```
 
@@ -279,7 +279,7 @@ tail -f logs/$(date +%Y%m%d).log
 
 # Health check
 source scripts/lib/alerts.sh
-alerts_init ~/.claude/clc
+alerts_init ~/.claude/emergent-learning
 alert_health_check
 ```
 
@@ -329,7 +329,7 @@ Dashboard → Real-time display
 
 ### Directory Structure
 ```
-~/.claude/clc/
+~/.claude/emergent-learning/
 ├── logs/                      # Log files
 │   ├── 20251201.log          # Current day
 │   └── *.log.gz              # Compressed archives

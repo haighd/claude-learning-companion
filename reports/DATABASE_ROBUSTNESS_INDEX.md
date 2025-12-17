@@ -6,7 +6,7 @@
 ## TL;DR - One Command
 
 ```bash
-python3 ~/.claude/clc/scripts/apply_10_10_robustness.py
+python3 ~/.claude/emergent-learning/scripts/apply_10_10_robustness.py
 ```
 
 Expected: `FINAL SCORE: 11/10`
@@ -80,7 +80,7 @@ Expected: `FINAL SCORE: 11/10`
 
 ### Verify Score
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 python3 scripts/apply_10_10_robustness.py | grep "FINAL SCORE"
 ```
 

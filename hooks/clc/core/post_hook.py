@@ -35,8 +35,8 @@ except ImportError:
         def lay_trails(*args, **kwargs): return 0
 
 # Paths - using Path.home() for portability
-CLC_PATH = Path.home() / ".claude" / "clc"
-DB_PATH = CLC_PATH / "memory" / "index.db"
+EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "emergent-learning"
+DB_PATH = EMERGENT_LEARNING_PATH / "memory" / "index.db"
 STATE_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
 
 # Import security patterns
@@ -559,7 +559,7 @@ def main():
             file_path = tool_input.get('file_path') or tool_input.get('path', '')
             if file_path:
                 file_path = file_path.replace('\\', '/')
-                for marker in ['.claude/clc/', 'clc/', 'dashboard-app/']:
+                for marker in ['.claude/emergent-learning/', 'emergent-learning/', 'dashboard-app/']:
                     if marker in file_path:
                         file_path = file_path[file_path.index(marker):]
                         break
@@ -608,12 +608,12 @@ def main():
 
     # Record to conductor for dashboard visibility
     try:
-        sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
+        sys.path.insert(0, str(Path.home() / '.claude' / 'emergent-learning' / 'conductor'))
         from conductor import Conductor, Node
 
         conductor = Conductor(
-            base_path=str(Path.home() / '.claude' / 'clc'),
-            project_root=str(Path.home() / '.claude' / 'clc')
+            base_path=str(Path.home() / '.claude' / 'emergent-learning'),
+            project_root=str(Path.home() / '.claude' / 'emergent-learning')
         )
 
         description = tool_input.get('description', 'Unknown task')

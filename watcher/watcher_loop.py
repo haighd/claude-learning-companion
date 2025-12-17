@@ -31,7 +31,7 @@ from pathlib import Path
 from typing import Dict, Any
 
 # Paths
-COORDINATION_DIR = Path.home() / ".claude" / "clc" / ".coordination"
+COORDINATION_DIR = Path.home() / ".claude" / "emergent-learning" / ".coordination"
 BLACKBOARD_FILE = COORDINATION_DIR / "blackboard.json"
 WATCHER_LOG = COORDINATION_DIR / "watcher-log.md"
 STOP_FILE = COORDINATION_DIR / "watcher-stop"
@@ -117,7 +117,7 @@ Based on analysis, your status is one of:
 import json
 from pathlib import Path
 
-bb_path = Path.home() / ".claude" / "clc" / ".coordination" / "blackboard.json"
+bb_path = Path.home() / ".claude" / "emergent-learning" / ".coordination" / "blackboard.json"
 bb = json.loads(bb_path.read_text())
 
 # Mark agent for restart
@@ -131,14 +131,14 @@ bb_path.write_text(json.dumps(bb, indent=2))
 
 **For `complete` - create stop file to end monitoring:**
 ```bash
-touch ~/.claude/clc/.coordination/watcher-stop
+touch ~/.claude/emergent-learning/.coordination/watcher-stop
 ```
 
 ## Step 4: Log Your Findings
 
 Append to watcher-log.md:
 ```bash
-echo "<timestamp> | STATUS: <status> | NOTES: <brief observation>" >> ~/.claude/clc/.coordination/watcher-log.md
+echo "<timestamp> | STATUS: <status> | NOTES: <brief observation>" >> ~/.claude/emergent-learning/.coordination/watcher-log.md
 ```
 
 ## Step 5: Output Summary
@@ -196,8 +196,8 @@ The regular watcher detected something that needs deeper analysis.
 ### 1. Gather Full Context
 
 Read these files to understand the situation:
-- `~/.claude/clc/.coordination/blackboard.json` - agent states
-- `~/.claude/clc/.coordination/watcher-log.md` - monitoring history
+- `~/.claude/emergent-learning/.coordination/blackboard.json` - agent states
+- `~/.claude/emergent-learning/.coordination/watcher-log.md` - monitoring history
 - Any `agent_*.md` files in `.coordination/` - agent outputs
 
 ### 2. Analyze the Situation
@@ -214,11 +214,11 @@ Available actions (pick one):
 |--------|-------------|----------------|
 | **RESTART** | Agent stuck but task valid | Update blackboard: status="restarting" |
 | **ABANDON** | Task is invalid/impossible | Update blackboard: status="abandoned" |
-| **ESCALATE** | Need human decision | Write to `~/.claude/clc/ceo-inbox/` |
+| **ESCALATE** | Need human decision | Write to `~/.claude/emergent-learning/ceo-inbox/` |
 
 ### 4. Document Your Decision
 
-Write to `~/.claude/clc/.coordination/decision.md`:
+Write to `~/.claude/emergent-learning/.coordination/decision.md`:
 
 ```markdown
 ## [timestamp] HANDLER DECISION

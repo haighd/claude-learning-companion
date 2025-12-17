@@ -217,13 +217,13 @@ WHERE needs_refresh = 1
 
 ```bash
 # Refresh all domains
-python ~/.claude/clc/query/fraud_detector.py refresh-all
+python ~/.claude/emergent-learning/query/fraud_detector.py refresh-all
 
 # Refresh specific domain
-python ~/.claude/clc/query/fraud_detector.py update-baseline --domain agent-behavior
+python ~/.claude/emergent-learning/query/fraud_detector.py update-baseline --domain agent-behavior
 
 # Check results
-python ~/.claude/clc/query/fraud_detector.py baseline-history --limit 5
+python ~/.claude/emergent-learning/query/fraud_detector.py baseline-history --limit 5
 ```
 
 ### Scheduled Refresh (Automated)
@@ -231,29 +231,29 @@ python ~/.claude/clc/query/fraud_detector.py baseline-history --limit 5
 **Option 1: Windows Task Scheduler (Recommended)**
 ```bash
 # Get setup instructions
-python ~/.claude/clc/scripts/baseline-refresh-scheduler.py --setup-task-scheduler
+python ~/.claude/emergent-learning/scripts/baseline-refresh-scheduler.py --setup-task-scheduler
 
 # Configure schedule
-python ~/.claude/clc/scripts/baseline-refresh-scheduler.py --setup-schedule --interval-days 30
+python ~/.claude/emergent-learning/scripts/baseline-refresh-scheduler.py --setup-schedule --interval-days 30
 ```
 
 **Option 2: Python Daemon**
 ```bash
 # Run daemon (checks hourly)
-python ~/.claude/clc/scripts/baseline-refresh-scheduler.py --daemon
+python ~/.claude/emergent-learning/scripts/baseline-refresh-scheduler.py --daemon
 ```
 
 ### Drift Alert Management
 
 ```bash
 # Check for drift alerts
-python ~/.claude/clc/query/fraud_detector.py drift-alerts
+python ~/.claude/emergent-learning/query/fraud_detector.py drift-alerts
 
 # View details
-python ~/.claude/clc/scripts/baseline-refresh-scheduler.py --drift-alerts
+python ~/.claude/emergent-learning/scripts/baseline-refresh-scheduler.py --drift-alerts
 
 # Acknowledge alert
-python ~/.claude/clc/scripts/baseline-refresh-scheduler.py \
+python ~/.claude/emergent-learning/scripts/baseline-refresh-scheduler.py \
   --ack-alert 3 --ack-user ceo --ack-notes "Seasonal variance expected"
 ```
 
@@ -344,7 +344,7 @@ Results: 6 passed, 0 failed
 
 ```bash
 # 1. Verify migration applied
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "SELECT name FROM sqlite_master WHERE name LIKE '%baseline%';"
 
 # 2. Check refresh schedule

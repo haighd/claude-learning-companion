@@ -56,7 +56,7 @@ error_recovery_hook_filesystem() {
 # ============================================
 # Ensure LOG_FILE is set by caller, or use default
 if [ -z "$LOG_FILE" ]; then
-    LOGS_DIR="${LOGS_DIR:-$HOME/.claude/clc/logs}"
+    LOGS_DIR="${LOGS_DIR:-$HOME/.claude/emergent-learning/logs}"
     mkdir -p "$LOGS_DIR" 2>/dev/null || true
     LOG_FILE="$LOGS_DIR/$(date +%Y%m%d).log"
 fi

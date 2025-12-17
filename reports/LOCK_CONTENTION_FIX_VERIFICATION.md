@@ -1,6 +1,6 @@
 # Git Lock Contention Fix Verification Report
 **Date:** 2025-12-01  
-**Framework:** Emergent Learning Framework (~/.claude/clc)
+**Framework:** Emergent Learning Framework (~/.claude/emergent-learning)
 
 ---
 
@@ -48,7 +48,7 @@ Success Rate: 100%
 
 ### Database File Status
 ```
-Path: /c~/.claude/clc/memory/index.db
+Path: /c~/.claude/emergent-learning/memory/index.db
 Size: 208K
 Permissions: -rw-r--r--
 Status: Accessible ✓

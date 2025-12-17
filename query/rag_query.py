@@ -92,7 +92,7 @@ class RAGQuerySystem:
 
     def __init__(self, base_path: Optional[str] = None):
         if base_path is None:
-            self.base_path = Path.home() / ".claude" / "clc"
+            self.base_path = Path.home() / ".claude" / "emergent-learning"
         else:
             self.base_path = Path(base_path)
 

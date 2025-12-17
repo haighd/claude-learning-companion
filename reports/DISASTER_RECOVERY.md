@@ -23,19 +23,19 @@ This document provides step-by-step procedures for recovering from various failu
 
 ```bash
 # List available backups
-~/.claude/clc/scripts/restore.sh list
+~/.claude/emergent-learning/scripts/restore.sh list
 
 # Restore latest backup
-~/.claude/clc/scripts/restore.sh latest
+~/.claude/emergent-learning/scripts/restore.sh latest
 
 # Restore specific backup
-~/.claude/clc/scripts/restore.sh YYYYMMDD_HHMMSS
+~/.claude/emergent-learning/scripts/restore.sh YYYYMMDD_HHMMSS
 
 # Restore to git commit
-~/.claude/clc/scripts/restore-from-git.sh HEAD~5
+~/.claude/emergent-learning/scripts/restore-from-git.sh HEAD~5
 
 # Verify backups
-~/.claude/clc/scripts/verify-backup.sh
+~/.claude/emergent-learning/scripts/verify-backup.sh
 ```
 
 ### Backup Schedule
@@ -47,7 +47,7 @@ This document provides step-by-step procedures for recovering from various failu
 ### Critical Files
 
 ```
-~/.claude/clc/
+~/.claude/emergent-learning/
 ├── memory/
 │   ├── index.db           # Main knowledge database
 │   └── vectors.db         # Vector embeddings
@@ -72,16 +72,16 @@ Set up automated daily backups with cron:
 crontab -e
 
 # Add daily backup at 2 AM
-0 2 * * * ~/.claude/clc/scripts/backup.sh >> ~/.claude/backups/backup.log 2>&1
+0 2 * * * ~/.claude/emergent-learning/scripts/backup.sh >> ~/.claude/backups/backup.log 2>&1
 
 # Add weekly verification on Sundays at 3 AM
-0 3 * * 0 ~/.claude/clc/scripts/verify-backup.sh --alert-on-fail
+0 3 * * 0 ~/.claude/emergent-learning/scripts/verify-backup.sh --alert-on-fail
 ```
 
 ### Manual Backup
 
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 ./scripts/backup.sh
 ```
 
@@ -91,11 +91,11 @@ Configure remote backup destination:
 
 ```bash
 # Using rsync
-export REMOTE_BACKUP_DEST="user@backup-server:/backups/clc"
+export REMOTE_BACKUP_DEST="user@backup-server:/backups/emergent-learning"
 ./scripts/backup.sh
 
 # Using rclone (cloud storage)
-export REMOTE_BACKUP_DEST="remote:clc-backups"
+export REMOTE_BACKUP_DEST="remote:emergent-learning-backups"
 ./scripts/backup.sh
 ```
 
@@ -123,7 +123,7 @@ Each backup includes:
 
 1. **Verify the corruption:**
    ```bash
-   cd ~/.claude/clc
+   cd ~/.claude/emergent-learning
    sqlite3 memory/index.db "PRAGMA integrity_check;"
    sqlite3 memory/vectors.db "PRAGMA integrity_check;"
    ```
@@ -160,7 +160,7 @@ Each backup includes:
 
 1. **If files are git-tracked:**
    ```bash
-   cd ~/.claude/clc
+   cd ~/.claude/emergent-learning
 
    # Check what was deleted
    git status
@@ -199,7 +199,7 @@ Each backup includes:
 
 1. **Check recent commits:**
    ```bash
-   cd ~/.claude/clc
+   cd ~/.claude/emergent-learning
    ./scripts/restore-from-git.sh list
    ```
 
@@ -242,14 +242,14 @@ Each backup includes:
    ```bash
    mkdir -p ~/.claude
    cd ~/.claude
-   git clone <repository-url> clc
+   git clone <repository-url> emergent-learning
    # OR if no git remote:
-   mkdir clc
+   mkdir emergent-learning
    ```
 
 2. **Restore from backup:**
    ```bash
-   cd clc
+   cd emergent-learning
    ./scripts/restore.sh latest
    ```
 
@@ -318,7 +318,7 @@ Each backup includes:
 
 1. **Sync databases with markdown files:**
    ```bash
-   cd ~/.claude/clc
+   cd ~/.claude/emergent-learning
    ./scripts/sync-db-markdown.sh
    ```
 
@@ -349,7 +349,7 @@ Each backup includes:
 
 1. **Export what you can:**
    ```bash
-   cd ~/.claude/clc
+   cd ~/.claude/emergent-learning
    sqlite3 memory/index.db .dump > manual_export.sql
    ```
 
@@ -385,7 +385,7 @@ Each backup includes:
 
 1. **Check for safety backup:**
    ```bash
-   ls -lah ~/.claude/backups/clc/pre-restore-*.tar.gz
+   ls -lah ~/.claude/backups/emergent-learning/pre-restore-*.tar.gz
    ```
 
 2. **Restore from safety backup:**
@@ -422,7 +422,7 @@ Each backup includes:
 ```
 
 **Environment Variables:**
-- `BACKUP_ROOT`: Backup destination (default: `~/.claude/backups/clc`)
+- `BACKUP_ROOT`: Backup destination (default: `~/.claude/backups/emergent-learning`)
 - `REMOTE_BACKUP_DEST`: Remote backup location (optional)
 
 **Features:**
@@ -568,7 +568,7 @@ Test restoration without affecting production:
 
 ```bash
 # Create test environment
-export BACKUP_ROOT=~/.claude/backups/clc
+export BACKUP_ROOT=~/.claude/backups/emergent-learning
 export FRAMEWORK_DIR=/tmp/test-restore
 
 # Create test structure
@@ -577,7 +577,7 @@ cd "$FRAMEWORK_DIR"
 git init
 
 # Test restore
-~/.claude/clc/scripts/restore.sh --force latest
+~/.claude/emergent-learning/scripts/restore.sh --force latest
 
 # Verify
 sqlite3 memory/index.db "PRAGMA integrity_check;"
@@ -594,13 +594,13 @@ Add to monitoring system:
 
 ```bash
 # Daily backup success check
-if [ ! -f ~/.claude/backups/clc/$(date +%Y%m%d)*.tar.gz ]; then
+if [ ! -f ~/.claude/backups/emergent-learning/$(date +%Y%m%d)*.tar.gz ]; then
     echo "ERROR: No backup created today"
     # Send alert
 fi
 
 # Weekly verification
-0 3 * * 0 ~/.claude/clc/scripts/verify-backup.sh --alert-on-fail --email admin@example.com
+0 3 * * 0 ~/.claude/emergent-learning/scripts/verify-backup.sh --alert-on-fail --email admin@example.com
 ```
 
 ---

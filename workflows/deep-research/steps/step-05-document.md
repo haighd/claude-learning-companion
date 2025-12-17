@@ -46,7 +46,7 @@ Based on research outcomes:
 
 **If heuristics were identified:**
 ```bash
-python ~/.claude/clc/scripts/record-heuristic.py \
+python ~/.claude/emergent-learning/scripts/record-heuristic.py \
   --domain "[domain]" \
   --rule "[the rule]" \
   --explanation "[why it works]" \
@@ -60,7 +60,7 @@ python ~/.claude/clc/scripts/record-heuristic.py \
 
 **If failures were encountered:**
 ```bash
-bash ~/.claude/clc/scripts/record-failure.sh
+bash ~/.claude/emergent-learning/scripts/record-failure.sh
 ```
 
 ### 4. Update Related Documents
@@ -126,6 +126,6 @@ Congratulations! This research workflow is now complete.
 
 **To start a new research workflow:**
 ```bash
-python ~/.claude/clc/scripts/run-workflow.py \
+python ~/.claude/emergent-learning/scripts/run-workflow.py \
   --workflow deep-research --start
 ```

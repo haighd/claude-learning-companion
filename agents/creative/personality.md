@@ -39,7 +39,7 @@ interaction_mode: collaborative # inquiry | assertion | collaborative
 ## Before Acting
 ```bash
 # Look for past creative solutions
-python ~/.claude/clc/query/query.py --tags creative,novel,unconventional
+python ~/.claude/emergent-learning/query/query.py --tags creative,novel,unconventional
 ```
 
 ## Output Format

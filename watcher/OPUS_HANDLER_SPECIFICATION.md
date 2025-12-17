@@ -222,7 +222,7 @@ To test the Opus Handler:
 
 1. **Create test escalation:**
    ```bash
-   cat > ~/.claude/clc/.coordination/escalate.md << 'EOF'
+   cat > ~/.claude/emergent-learning/.coordination/escalate.md << 'EOF'
    # Escalation: test-001
 
    **Reason:** Agent timeout during test
@@ -234,7 +234,7 @@ To test the Opus Handler:
 
 2. **Run handler:**
    ```bash
-   cd ~/.claude/clc/watcher
+   cd ~/.claude/emergent-learning/watcher
    python opus_handler.py
    ```
 

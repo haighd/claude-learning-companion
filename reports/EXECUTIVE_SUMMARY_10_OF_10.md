@@ -139,7 +139,7 @@ The framework can now survive:
 
 ### Create a Backup
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 ./scripts/backup.sh
 ```
 

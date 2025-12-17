@@ -4,7 +4,7 @@
 ## One-Command Verification
 
 ```bash
-python3 ~/.claude/clc/scripts/apply_10_10_robustness.py
+python3 ~/.claude/emergent-learning/scripts/apply_10_10_robustness.py
 ```
 
 Expected output: `FINAL SCORE: 11/10`
@@ -28,34 +28,34 @@ Expected output: `FINAL SCORE: 11/10`
 
 ### Schema Version
 ```bash
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "SELECT MAX(version) FROM schema_version"
 ```
 Expected: `2` or higher
 
 ### Database Health
 ```bash
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "PRAGMA integrity_check"
 ```
 Expected: `ok`
 
 ### Validation Triggers
 ```bash
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "SELECT COUNT(*) FROM sqlite_master WHERE type='trigger'"
 ```
 Expected: `4` or more
 
 ### Last Maintenance
 ```bash
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "SELECT last_vacuum, total_vacuums FROM db_operations WHERE id=1"
 ```
 
 ### Database Size
 ```bash
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "PRAGMA page_count; PRAGMA freelist_count"
 ```
 Bloat = freelist / pages (should be < 10%)
@@ -66,18 +66,18 @@ Bloat = freelist / pages (should be < 10%)
 
 ### Manual VACUUM
 ```bash
-sqlite3 ~/.claude/clc/memory/index.db "VACUUM; ANALYZE"
+sqlite3 ~/.claude/emergent-learning/memory/index.db "VACUUM; ANALYZE"
 ```
 
 ### Check WAL Mode
 ```bash
-sqlite3 ~/.claude/clc/memory/index.db "PRAGMA journal_mode"
+sqlite3 ~/.claude/emergent-learning/memory/index.db "PRAGMA journal_mode"
 ```
 Expected: `wal`
 
 ### Test Validation (should fail)
 ```bash
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "INSERT INTO learnings (type, filepath, title, severity) \
    VALUES ('failure', '/test.md', 'Test', 0)"
 ```
@@ -185,14 +185,14 @@ Verify 4 triggers exist, re-run script if missing
 
 ### Restore from backup
 ```bash
-cd ~/.claude/clc/memory
+cd ~/.claude/emergent-learning/memory
 ls -lt index.db.backup_* | head -1  # Find latest backup
 cp index.db.backup_YYYYMMDD_HHMMSS index.db
 ```
 
 ### Reset to factory
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 git checkout HEAD -- memory/index.db
 python3 scripts/apply_10_10_robustness.py
 ```

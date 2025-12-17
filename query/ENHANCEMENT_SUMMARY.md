@@ -24,7 +24,7 @@ Enhanced the Emergent Learning Framework query system (`query.py`) with Context-
 - **Max score:** Capped at 1.0
 
 **Formula:**
-```text
+```
 score = base_score * recency_factor * domain_factor * validation_factor
 score = min(score, 1.0)  # Cap at 1.0
 ```
@@ -49,10 +49,9 @@ score = min(score, 1.0)  # Cap at 1.0
 **Algorithm:**
 - **Keyword extraction:** Words longer than 3 characters
 - **Similarity metric:** Jaccard similarity
-  ```text
+  ```
   similarity = |keywords_A ∩ keywords_B| / |keywords_A ∪ keywords_B|
   ```
-
 - **Default threshold:** 0.3 (30% overlap)
 - **Search window:** Last 30 days, up to 50 failures
 - **Result limit:** Top 5 by default (configurable)
@@ -107,7 +106,7 @@ score = min(score, 1.0)  # Cap at 1.0
 ## Example Output
 
 ### Before Enhancements
-```text
+```
 # TIER 2: Relevant Knowledge
 
 ## Domain: debugging
@@ -118,7 +117,7 @@ score = min(score, 1.0)  # Cap at 1.0
 ```
 
 ### After Enhancements
-```text
+```
 ## ⚠️ Similar Failures Detected
 
 - **[33% match] Database connection timeout**
@@ -259,18 +258,18 @@ context = qs.build_context('debugging python imports', domain='python')
 ## Files Modified
 
 ### Primary Changes
-- **~/.claude/clc/query/query.py**
+- **~/.claude\emergent-learning\query\query.py**
   - Added `_calculate_relevance_score()` method (lines 1219-1267)
   - Added `find_similar_failures()` method (lines 1269-1314)
   - Enhanced `build_context()` method (lines 1455-1527)
 
 ### Test Files Added
-- **~/.claude/clc/query/test_enhancements.py**
+- **~/.claude\emergent-learning\query\test_enhancements.py**
   - Comprehensive test suite for new features
   - Mock data for database-independent testing
 
 ### Documentation Added
-- **~/.claude/clc/query/ENHANCEMENT_SUMMARY.md**
+- **~/.claude\emergent-learning\query\ENHANCEMENT_SUMMARY.md**
   - This file
 
 ---
@@ -278,7 +277,7 @@ context = qs.build_context('debugging python imports', domain='python')
 ## Validation
 
 ### Test Results
-```text
+```
 ======================================================================
 TEST SUMMARY
 ======================================================================

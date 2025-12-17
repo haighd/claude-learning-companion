@@ -4,7 +4,7 @@
 
 ### Full Test Suite (54 tests)
 ```bash
-cd ~/.claude/clc/hooks/learning-loop
+cd ~/.claude/emergent-learning/hooks/learning-loop
 
 # Run integration tests (13 tests)
 python test_integration_phase4.py
@@ -17,12 +17,12 @@ python test_enhanced_patterns.py
 
 ### Quick Validation (Integration Only)
 ```bash
-cd ~/.claude/clc/hooks/learning-loop
+cd ~/.claude/emergent-learning/hooks/learning-loop
 python test_integration_phase4.py
 ```
 
 Expected output:
-```text
+```
 Total Passed: 13
 Total Failed: 0
 Success Rate: 13/13 (100.0%)
@@ -97,7 +97,7 @@ Success Rate: 13/13 (100.0%)
 ## Interpreting Results
 
 ### Success
-```text
+```
 [PASS] Test N: Description
 ...
 Total Passed: N
@@ -106,7 +106,7 @@ Success Rate: N/N (100.0%)
 ```
 
 ### Failure
-```text
+```
 [FAIL] Test N: Description
 AssertionError: ...
 ```
@@ -139,7 +139,7 @@ If any test fails:
 To add to CI/CD pipeline:
 ```bash
 #!/bin/bash
-cd ~/.claude/clc/hooks/learning-loop
+cd ~/.claude/emergent-learning/hooks/learning-loop
 
 # Run all tests
 python test_integration_phase4.py || exit 1
@@ -157,14 +157,14 @@ echo "All tests passed!"
 ### "No such table: metrics"
 Database not initialized. Run:
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 python -c "from conductor.database import initialize_database; initialize_database()"
 ```
 
 ### "Module not found: post_tool_learning"
 Wrong directory. Ensure you're in:
 ```bash
-cd ~/.claude/clc/hooks/learning-loop
+cd ~/.claude/emergent-learning/hooks/learning-loop
 ```
 
 ### Tests hang or timeout
@@ -206,8 +206,8 @@ Add to `run_all_tests()` in test_integration_phase4.py
 ## Test Files Location
 
 All test files are in:
-```text
-~/.claude/clc/hooks/learning-loop/
+```
+~/.claude\emergent-learning\hooks\learning-loop\
 ├── test_integration_phase4.py  (NEW - Phase 4)
 ├── test_advisory.py
 ├── test_comment_filter.py

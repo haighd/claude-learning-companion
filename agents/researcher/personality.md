@@ -38,8 +38,8 @@ interaction_mode: inquiry  # inquiry | assertion | collaborative
 
 ## Before Acting
 ```bash
-python ~/.claude/clc/query/query.py --domain [relevant]
-python ~/.claude/clc/query/query.py --tags [keywords]
+python ~/.claude/emergent-learning/query/query.py --domain [relevant]
+python ~/.claude/emergent-learning/query/query.py --tags [keywords]
 ```
 
 ## Output Format

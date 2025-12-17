@@ -16,7 +16,7 @@ if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 # Add query directory to path
-sys.path.insert(0, str(Path.home() / ".claude" / "clc" / "query"))
+sys.path.insert(0, str(Path.home() / ".claude" / "emergent-learning" / "query"))
 
 from fraud_outcomes import FraudOutcomeTracker, OutcomeType
 from fraud_detector import FraudDetector

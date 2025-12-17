@@ -5,7 +5,7 @@ This folder contains the configuration files needed to fully use the Emergent Le
 ## Quick Install
 
 ```bash
-cd ~/.claude/clc/setup
+cd ~/.claude/emergent-learning/setup
 chmod +x install.sh
 ./install.sh
 ```

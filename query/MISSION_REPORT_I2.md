@@ -234,7 +234,7 @@ python query.py --recent 2000
 To verify 10/10 status:
 
 ```bash
-cd ~/.claude/clc/query
+cd ~/.claude/emergent-learning/query
 
 # 1. Run comprehensive test suite
 python test_query.py

@@ -84,7 +84,7 @@ qs = QuerySystem(debug=True)
 **Output:**
 ```
 [DEBUG] QuerySystem initialized
-[DEBUG] Base path: /path/to/clc
+[DEBUG] Base path: /path/to/emergent-learning
 [DEBUG] DB path: /path/to/index.db
 [DEBUG] Timeout: 30s
 [DEBUG] Readonly mode: False

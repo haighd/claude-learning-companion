@@ -51,7 +51,7 @@ declare -A LOG_TIMERS=()
 #
 # Args:
 #   $1 - Script name (required)
-#   $2 - Log directory (optional, defaults to ~/.claude/clc/logs)
+#   $2 - Log directory (optional, defaults to ~/.claude/emergent-learning/logs)
 #
 log_init() {
     local script_name="$1"
@@ -68,9 +68,9 @@ log_init() {
     if [ -z "$log_dir" ]; then
         local home_dir="${HOME:-$USERPROFILE}"
         if [ -n "$home_dir" ]; then
-            LOG_DIR="$home_dir/.claude/clc/logs"
+            LOG_DIR="$home_dir/.claude/emergent-learning/logs"
         else
-            LOG_DIR="/tmp/clc/logs"
+            LOG_DIR="/tmp/emergent-learning/logs"
         fi
     else
         LOG_DIR="$log_dir"

@@ -280,7 +280,7 @@ YOUR_INPUT=$(python -c "print('A' * 1000)") bash your_script.sh
 
 ```bash
 # Run security test suite
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 bash tests/advanced_security_tests.sh
 ```
 

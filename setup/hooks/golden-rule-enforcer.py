@@ -4,7 +4,7 @@ Golden Rule Enforcer Hook
 Enforces Golden Rule #1: "Query Before Acting"
 
 This PreToolUse hook blocks investigation tools (Grep, Read, Bash, Task, Glob)
-until the building has been queried via clc/query/query.py
+until the building has been queried via emergent-learning/query/query.py
 """
 
 import json
@@ -53,7 +53,7 @@ def is_building_query(tool_name, tool_input):
         return False
 
     command = tool_input.get("command", "")
-    return "clc/query/query.py" in command
+    return "emergent-learning/query/query.py" in command
 
 def is_in_cooldown(last_query_time):
     """Check if we're still in cooldown period after a query."""
@@ -113,10 +113,10 @@ The building contains institutional knowledge that could:
 - Guide your approach with hard-won lessons
 
 Query the building first:
-  python ~/.claude/clc/query/query.py --context
+  python ~/.claude/emergent-learning/query/query.py --context
 
 Or for domain-specific guidance:
-  python ~/.claude/clc/query/query.py --domain [domain]
+  python ~/.claude/emergent-learning/query/query.py --domain [domain]
 
 Override (emergency only): export {OVERRIDE_ENV_VAR}=1{time_info}"""
 

@@ -12,7 +12,7 @@
 Run this command to verify all fixes are in place:
 
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 bash test-perfect-security.sh
 ```
 
@@ -160,19 +160,19 @@ Result: ALL ATTACKS BLOCKED
 
 ### Quick Check
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 bash test-perfect-security.sh
 ```
 
 ### Attack Test
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 bash test-attack-vectors.sh
 ```
 
 ### Full Security Suite
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 bash tests/advanced_security_tests.sh
 ```
 

@@ -37,7 +37,7 @@ Four specialized personas for different thinking styles:
 | **Skeptic** | Breaking things, finding edge cases | "Is this robust?" |
 | **Creative** | Novel solutions, alternative approaches | "We're stuck on X" |
 
-Personality definitions are in `~/.claude/clc/agents/*/personality.md`.
+Personality definitions are in `~/.claude/emergent-learning/agents/*/personality.md`.
 
 ### Finding Types
 
@@ -192,5 +192,5 @@ The blackboard handles real-time coordination; Basic Memory provides persistent 
 ## See Also
 
 - [Swarm Commands](/commands/swarm.md) - `/swarm` slash command for orchestrated multi-agent work
-- [Conductor](/src/clc/conductor/) - Workflow orchestration for complex tasks
-- [Agent Personas](/src/clc/agents/) - Personality definitions for each agent type
+- [Conductor](/src/emergent-learning/conductor/) - Workflow orchestration for complex tasks
+- [Agent Personas](/src/emergent-learning/agents/) - Personality definitions for each agent type

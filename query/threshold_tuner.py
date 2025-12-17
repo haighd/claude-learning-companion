@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 
-DB_PATH = Path.home() / ".claude" / "clc" / "memory" / "index.db"
+DB_PATH = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
 
 @dataclass
 class ThresholdRecommendation:

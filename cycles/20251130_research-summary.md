@@ -59,9 +59,9 @@ Key challenges that became teachable moments:
 ## Files Created
 
 All heuristics recorded in:
-- `~/.claude/clc/memory/heuristics/file-write-safety.md` (H-10, H-11, H-12)
-- `~/.claude/clc/memory/heuristics/service-coordination.md` (H-13, H-14)
-- `~/.claude/clc/memory/heuristics/gpu-resource-patterns.md` (H-15)
+- `~/.claude/emergent-learning/memory/heuristics/file-write-safety.md` (H-10, H-11, H-12)
+- `~/.claude/emergent-learning/memory/heuristics/service-coordination.md` (H-13, H-14)
+- `~/.claude/emergent-learning/memory/heuristics/gpu-resource-patterns.md` (H-15)
 
 ---
 

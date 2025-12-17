@@ -41,7 +41,7 @@ An attacker can supply `domain="../../../tmp/evil"` to write files anywhere on t
 
 **Proof of Concept**:
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 export HEURISTIC_DOMAIN="../../../tmp/pwned"
 export HEURISTIC_RULE="malicious content"
 export HEURISTIC_EXPLANATION="attack"
@@ -109,7 +109,7 @@ cat > "$filepath" <<EOF
 
 **Proof of Concept**:
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 mkdir -p /tmp/attacker-target
 
 # Terminal 1: Start the script
@@ -181,7 +181,7 @@ Scripts don't check if a file has multiple hardlinks before overwriting it. An a
 
 **Proof of Concept**:
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 
 # Attacker creates hardlink
 touch memory/failures/20251201_target.md
@@ -518,7 +518,7 @@ fi
 All fixes can be verified using the test suite:
 
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 bash tests/advanced_security_tests.sh
 ```
 

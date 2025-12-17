@@ -1,6 +1,6 @@
 # Claude Learning Companion (CLC) - Integration Guide
 
-**Location:** `~/.claude/clc/`
+**Location:** `~/.claude/emergent-learning/`
 
 ---
 
@@ -32,9 +32,9 @@ Use AskUserQuestion with:
 ```
 
 **After user selects**, run:
-- Merge: `bash ~/.claude/clc/setup/install.sh --mode merge`
-- Replace: `bash ~/.claude/clc/setup/install.sh --mode replace`
-- Skip: `bash ~/.claude/clc/setup/install.sh --mode skip`
+- Merge: `bash ~/.claude/emergent-learning/setup/install.sh --mode merge`
+- Replace: `bash ~/.claude/emergent-learning/setup/install.sh --mode replace`
+- Skip: `bash ~/.claude/emergent-learning/setup/install.sh --mode skip`
 
 ### What Gets Installed
 - Global CLAUDE.md (tells you to query CLC)
@@ -81,21 +81,21 @@ TRY → BREAK → ANALYZE → LEARN → NEXT
 ### Step 1: Check for Relevant Patterns
 ```bash
 # Search for patterns related to your task
-find ~/.claude/clc/patterns -name "*.md" -type f
+find ~/.claude\emergent-learning\patterns -name "*.md" -type f
 # Or use grep to search content
-grep -r "relevant-keyword" ~/.claude/clc/patterns
+grep -r "relevant-keyword" ~/.claude\emergent-learning\patterns
 ```
 
 ### Step 2: Review Golden Rules
 ```bash
 # Check the golden rules - these are hard-won lessons
-cat ~/.claude/clc/golden-rules/RULES.md
+cat ~/.claude\emergent-learning\golden-rules\RULES.md
 ```
 
 ### Step 3: Check Recent Failures
 ```bash
 # See what broke recently - learn from past mistakes
-ls -lt ~/.claude/clc/failure-analysis | head -10
+ls -lt ~/.claude\emergent-learning\failure-analysis | head -10
 ```
 
 **If you find relevant context:** Read those files and apply their lessons to your current task.
@@ -321,7 +321,7 @@ If a rule seems wrong:
 ## File Structure Quick Reference
 
 ```text
-clc/
+emergent-learning/
 ├── CLAUDE.md              ← You are here
 ├── README.md              ← Framework overview
 ├── golden-rules/

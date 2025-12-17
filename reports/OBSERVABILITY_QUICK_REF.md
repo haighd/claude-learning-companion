@@ -135,26 +135,26 @@ fi
 
 ```bash
 # View today's logs
-tail -f ~/.claude/clc/logs/$(date +%Y%m%d).log
+tail -f ~/.claude/emergent-learning/logs/$(date +%Y%m%d).log
 
 # Search for errors
-grep ERROR ~/.claude/clc/logs/$(date +%Y%m%d).log
+grep ERROR ~/.claude/emergent-learning/logs/$(date +%Y%m%d).log
 
 # Query failed operations
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "SELECT * FROM metrics WHERE tags LIKE '%status:failure%' ORDER BY timestamp DESC LIMIT 20;"
 
 # Check database integrity
-sqlite3 ~/.claude/clc/memory/index.db "PRAGMA integrity_check;"
+sqlite3 ~/.claude/emergent-learning/memory/index.db "PRAGMA integrity_check;"
 
 # Find stale locks
-find ~/.claude/clc/.git -name "*.dir" -type d -mmin +30
+find ~/.claude/emergent-learning/.git -name "*.dir" -type d -mmin +30
 ```
 
 ## File Locations
 
 ```
-~/.claude/clc/
+~/.claude/emergent-learning/
 ├── scripts/lib/logging.sh      # Logging library
 ├── scripts/lib/metrics.sh      # Metrics library
 ├── scripts/health-check.sh     # Health monitoring

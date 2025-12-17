@@ -23,7 +23,7 @@ CREATE TABLE violations (
 ### Quick Recording Script
 
 ```bash
-~/.claude/clc/scripts/record-violation.sh <rule_number> "description"
+~/.claude/emergent-learning/scripts/record-violation.sh <rule_number> "description"
 ```
 
 **Example:**
@@ -43,7 +43,7 @@ The script will:
 ### Accountability Banner
 
 ```bash
-python ~/.claude/clc/query/query.py --accountability-banner
+python ~/.claude/emergent-learning/query/query.py --accountability-banner
 ```
 
 Displays a visually distinct banner with:
@@ -56,7 +56,7 @@ Displays a visually distinct banner with:
 ### Violation Summary
 
 ```bash
-python ~/.claude/clc/query/query.py --violations --violation-days 7
+python ~/.claude/emergent-learning/query/query.py --violations --violation-days 7
 ```
 
 Returns structured data:
@@ -68,7 +68,7 @@ Returns structured data:
 ### Statistics
 
 ```bash
-python ~/.claude/clc/query/query.py --stats
+python ~/.claude/emergent-learning/query/query.py --stats
 ```
 
 Includes violation statistics in overall framework statistics.
@@ -149,14 +149,14 @@ python query.py --stats
 To acknowledge violations (e.g., after CEO review):
 
 ```bash
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "UPDATE violations SET acknowledged = 1 WHERE violation_date >= datetime('now', '-7 days');"
 ```
 
 Or acknowledge specific violations:
 
 ```bash
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "UPDATE violations SET acknowledged = 1 WHERE id = <violation_id>;"
 ```
 
@@ -167,7 +167,7 @@ sqlite3 ~/.claude/clc/memory/index.db \
 Check violations when querying the building:
 
 ```bash
-python ~/.claude/clc/query/query.py --context
+python ~/.claude/emergent-learning/query/query.py --context
 # Shows accountability banner if violations exist
 ```
 
@@ -217,11 +217,11 @@ After CEO reviews and corrective action is taken:
 
 ```bash
 # Acknowledge all recent violations
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "UPDATE violations SET acknowledged = 1 WHERE acknowledged = 0;"
 
 # Or delete old violations (use with caution)
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "DELETE FROM violations WHERE violation_date < datetime('now', '-30 days');"
 ```
 

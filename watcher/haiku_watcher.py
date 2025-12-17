@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 
 # Paths
-COORDINATION_DIR = Path.home() / ".claude" / "clc" / ".coordination"
+COORDINATION_DIR = Path.home() / ".claude" / "emergent-learning" / ".coordination"
 BLACKBOARD_FILE = COORDINATION_DIR / "blackboard.json"
 WATCHER_LOG = COORDINATION_DIR / "watcher-log.md"
 

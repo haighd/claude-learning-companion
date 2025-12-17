@@ -121,7 +121,7 @@ Busy timeout: 0ms
 **Evidence**:
 ```bash
 === Record Failure (non-interactive) ===
-Created: /c~/.claude/clc/memory/failures/20251201_stress6.md
+Created: /c~/.claude/emergent-learning/memory/failures/20251201_stress6.md
 SQLite busy, retry 1/5...
 Database record created (ID: 0)  # <-- BUG!
 [master f07256f] failure: Stress_6
@@ -406,11 +406,11 @@ jobs:
 ## Test Artifacts
 
 All test logs and scripts available at:
-- `/c~/.claude/clc/stress-test.sh`
-- `/c~/.claude/clc/precise-stress-test.sh`
-- `/c~/.claude/clc/final-stress-report.sh`
-- `/c~/.claude/clc/resource-exhaustion-test.sh`
-- `/c~/.claude/clc/test-sqlite-retry-bug.sh`
+- `/c~/.claude/emergent-learning/stress-test.sh`
+- `/c~/.claude/emergent-learning/precise-stress-test.sh`
+- `/c~/.claude/emergent-learning/final-stress-report.sh`
+- `/c~/.claude/emergent-learning/resource-exhaustion-test.sh`
+- `/c~/.claude/emergent-learning/test-sqlite-retry-bug.sh`
 
 Log files:
 - `/tmp/stress_*.log`

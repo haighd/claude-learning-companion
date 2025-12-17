@@ -7,22 +7,22 @@
 
 ```bash
 # Load context before any task
-python ~/.claude/clc/query/query.py --context
+python ~/.claude/emergent-learning/query/query.py --context
 
 # Check domain-specific knowledge
-python ~/.claude/clc/query/query.py --domain coordination
+python ~/.claude/emergent-learning/query/query.py --domain coordination
 
 # Record a failure
-~/.claude/clc/scripts/record-failure.sh
+~/.claude/emergent-learning/scripts/record-failure.sh
 
 # Start an experiment
-~/.claude/clc/scripts/start-experiment.sh
+~/.claude/emergent-learning/scripts/start-experiment.sh
 ```
 
 ## Architecture
 
 ```
-~/.claude/clc/
+~/.claude/emergent-learning/
 ├── FRAMEWORK.md              # This file
 ├── agents/                   # Agent personalities
 │   ├── researcher/           # Deep investigation

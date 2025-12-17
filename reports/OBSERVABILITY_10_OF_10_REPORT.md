@@ -30,7 +30,7 @@ The Emergent Learning Framework has achieved **PERFECT 10/10 observability** thr
 ### 1. Core Libraries
 
 #### logging.sh
-**Location**: `~/.claude/clc/scripts/lib/logging.sh`
+**Location**: `~/.claude/emergent-learning/scripts/lib/logging.sh`
 
 **Features**:
 - Multiple output formats (text, JSON)
@@ -58,7 +58,7 @@ log_timer_stop "operation_name" status="success"
 ```
 
 #### metrics.sh
-**Location**: `~/.claude/clc/scripts/lib/metrics.sh`
+**Location**: `~/.claude/emergent-learning/scripts/lib/metrics.sh`
 
 **Features**:
 - Record metrics to SQLite database
@@ -97,7 +97,7 @@ CREATE TABLE metrics (
 ```
 
 #### alerts.sh
-**Location**: `~/.claude/clc/scripts/lib/alerts.sh`
+**Location**: `~/.claude/emergent-learning/scripts/lib/alerts.sh`
 
 **Features**:
 - Alert severity levels (info, warning, critical, emergency)
@@ -132,7 +132,7 @@ alert_check_error_rate 10 1   # Alert if > 10% in last hour
 ### 2. Observability Tools
 
 #### Health Dashboard
-**Location**: `~/.claude/clc/scripts/dashboard-simple.sh`
+**Location**: `~/.claude/emergent-learning/scripts/dashboard-simple.sh`
 
 **Features**:
 - System status (database, disk space, logs)
@@ -171,7 +171,7 @@ METRICS (Last 24 hours)
 ```
 
 #### Log Rotation
-**Location**: `~/.claude/clc/scripts/rotate-logs.sh`
+**Location**: `~/.claude/emergent-learning/scripts/rotate-logs.sh`
 
 **Features**:
 - Compress logs older than 7 days (gzip -9)
@@ -405,7 +405,7 @@ STORAGE PROJECTION (30 days)
 6. Health checks
 
 **Evidence**:
-- Log file: `~/.claude/clc/logs/20251201.log`
+- Log file: `~/.claude/emergent-learning/logs/20251201.log`
 - Metrics in database: 5+ metrics recorded
 - Alerts created: 3 alerts (info, warning, critical)
 - CEO escalation: 1 alert in ceo-inbox
@@ -441,7 +441,7 @@ STORAGE PROJECTION (30 days)
 
 ## CEO Escalation Example
 
-**File**: `~/.claude/clc/ceo-inbox/alert_20251201_182914.md`
+**File**: `~/.claude/emergent-learning/ceo-inbox/alert_20251201_182914.md`
 
 ```markdown
 # ALERT: critical

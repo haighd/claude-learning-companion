@@ -4,7 +4,7 @@ Session Logger Module for Emergent Learning Framework.
 
 Provides comprehensive session logging functionality:
 - Appends tool usage to JSONL files
-- Format: ~/.claude/clc/sessions/logs/YYYY-MM-DD_session.jsonl
+- Format: ~/.claude/emergent-learning/sessions/logs/YYYY-MM-DD_session.jsonl
 - Tracks tool invocations, observations, and decisions
 - Auto-creates directories as needed
 - Handles session rotation (30-day retention)
@@ -24,8 +24,8 @@ import hashlib
 # Configuration
 MAX_SUMMARY_LENGTH = 500
 RETENTION_DAYS = 30
-LOGS_DIR = Path.home() / ".claude" / "clc" / "sessions" / "logs"
-PROCESSED_FILE = Path.home() / ".claude" / "clc" / "sessions" / ".processed"
+LOGS_DIR = Path.home() / ".claude" / "emergent-learning" / "sessions" / "logs"
+PROCESSED_FILE = Path.home() / ".claude" / "emergent-learning" / "sessions" / ".processed"
 
 
 # Thread-safe file writing lock
@@ -51,7 +51,7 @@ class SessionLogger:
         Initialize the session logger.
 
         Args:
-            logs_dir: Custom logs directory (default: ~/.claude/clc/sessions/logs)
+            logs_dir: Custom logs directory (default: ~/.claude/emergent-learning/sessions/logs)
         """
         self.logs_dir = logs_dir or LOGS_DIR
         self._ensure_dirs()

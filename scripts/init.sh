@@ -152,7 +152,7 @@ A systematic approach to learning from failures, extracting heuristics, and runn
 ## Directory Structure
 
 ```
-clc/
+emergent-learning/
 ├── memory/              # The knowledge base
 │   ├── failures/        # Documented failures
 │   ├── successes/       # Documented successes

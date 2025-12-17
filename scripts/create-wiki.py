@@ -3,7 +3,7 @@
 
 from pathlib import Path
 
-wiki_dir = Path.home() / ".claude" / "clc" / "wiki"
+wiki_dir = Path.home() / ".claude" / "emergent-learning" / "wiki"
 wiki_dir.mkdir(exist_ok=True)
 
 # Home.md - Wiki landing page
@@ -99,7 +99,7 @@ The installer has three components:
 ~/.claude/
 ├── CLAUDE.md                    # Agent instructions
 ├── settings.json                # Hook configurations
-├── clc/
+├── emergent-learning/
 │   ├── query/query.py          # Query system
 │   ├── memory/
 │   │   ├── index.db            # SQLite database
@@ -135,7 +135,7 @@ cat ~/.claude/settings.json | grep learning-loop
 **Database errors:**
 ```bash
 # Validate database
-python ~/.claude/clc/query/query.py --validate
+python ~/.claude/emergent-learning/query/query.py --validate
 ```
 
 **Dashboard won't start:**
@@ -145,7 +145,7 @@ lsof -i :8888  # Backend
 lsof -i :3001  # Frontend
 
 # Manual start
-cd ~/.claude/clc/dashboard-app
+cd ~/.claude/emergent-learning/dashboard-app
 ./run-dashboard.sh
 ```
 """
@@ -224,7 +224,7 @@ dashboard = """# Dashboard Guide
 
 **Manual Start:**
 ```bash
-cd ~/.claude/clc/dashboard-app
+cd ~/.claude/emergent-learning/dashboard-app
 ./run-dashboard.ps1  # Windows
 ./run-dashboard.sh   # Mac/Linux
 ```
@@ -257,7 +257,7 @@ The top bar shows real-time metrics:
 - **Frontend:** React 18 + TypeScript + Vite + Tailwind CSS
 - **Backend:** FastAPI (Python) with WebSocket updates
 - **Visualization:** D3.js for treemaps
-- **Database:** Reads from `~/.claude/clc/memory/index.db`
+- **Database:** Reads from `~/.claude/emergent-learning/memory/index.db`
 - **Themes:** 10 cosmic themes (black-hole, nebula, aurora, etc.)
 
 The dashboard operates **without consuming API tokens** - it reads directly from your local SQLite database.
@@ -325,7 +325,7 @@ Agents coordinate through shared SQLite database:
 
 ## Agent Personalities
 
-Defined in `~/.claude/clc/agents/`:
+Defined in `~/.claude/emergent-learning/agents/`:
 
 **Researcher:** Thorough, methodical, breadth-first
 **Architect:** Top-down, structural, considers extensions
@@ -335,10 +335,10 @@ Defined in `~/.claude/clc/agents/`:
 ## Query Conductor
 
 ```bash
-python ~/.claude/clc/conductor/query_conductor.py --workflows
-python ~/.claude/clc/conductor/query_conductor.py --failures
-python ~/.claude/clc/conductor/query_conductor.py --hotspots
-python ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
+python ~/.claude/emergent-learning/conductor/query_conductor.py --workflows
+python ~/.claude/emergent-learning/conductor/query_conductor.py --failures
+python ~/.claude/emergent-learning/conductor/query_conductor.py --hotspots
+python ~/.claude/emergent-learning/conductor/query_conductor.py --trails --scent blocker
 ```
 
 ## When to Use Swarm
@@ -355,60 +355,60 @@ cli_ref = """# CLI Reference
 
 ```bash
 # Build full context (what agents see)
-python ~/.claude/clc/query/query.py --context
+python ~/.claude/emergent-learning/query/query.py --context
 
 # Query by domain
-python ~/.claude/clc/query/query.py --domain testing
+python ~/.claude/emergent-learning/query/query.py --domain testing
 
 # Query by tags
-python ~/.claude/clc/query/query.py --tags api,error
+python ~/.claude/emergent-learning/query/query.py --tags api,error
 
 # Get recent learnings
-python ~/.claude/clc/query/query.py --recent 10
+python ~/.claude/emergent-learning/query/query.py --recent 10
 
 # View statistics
-python ~/.claude/clc/query/query.py --stats
+python ~/.claude/emergent-learning/query/query.py --stats
 
 # Validate database
-python ~/.claude/clc/query/query.py --validate
+python ~/.claude/emergent-learning/query/query.py --validate
 
 # Export learnings
-python ~/.claude/clc/query/query.py --export > backup.json
+python ~/.claude/emergent-learning/query/query.py --export > backup.json
 ```
 
 ## Recording Scripts
 
 ```bash
 # Record a failure
-~/.claude/clc/scripts/record-failure.sh
+~/.claude/emergent-learning/scripts/record-failure.sh
 
 # Record a heuristic
-~/.claude/clc/scripts/record-heuristic.sh
+~/.claude/emergent-learning/scripts/record-heuristic.sh
 
 # Start an experiment
-~/.claude/clc/scripts/start-experiment.sh
+~/.claude/emergent-learning/scripts/start-experiment.sh
 ```
 
 ## Conductor Commands
 
 ```bash
 # List workflow runs
-python ~/.claude/clc/conductor/query_conductor.py --workflows
+python ~/.claude/emergent-learning/conductor/query_conductor.py --workflows
 
 # Show specific run
-python ~/.claude/clc/conductor/query_conductor.py --workflow 123
+python ~/.claude/emergent-learning/conductor/query_conductor.py --workflow 123
 
 # Show failures
-python ~/.claude/clc/conductor/query_conductor.py --failures
+python ~/.claude/emergent-learning/conductor/query_conductor.py --failures
 
 # Show hotspots
-python ~/.claude/clc/conductor/query_conductor.py --hotspots
+python ~/.claude/emergent-learning/conductor/query_conductor.py --hotspots
 
 # Show trails by scent
-python ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
+python ~/.claude/emergent-learning/conductor/query_conductor.py --trails --scent blocker
 
 # Statistics
-python ~/.claude/clc/conductor/query_conductor.py --stats
+python ~/.claude/emergent-learning/conductor/query_conductor.py --stats
 ```
 """
 
@@ -447,7 +447,7 @@ Golden Rules are constitutional principles all agents follow.
 When a heuristic has proven itself (confidence > 0.9, validations > 10):
 
 1. Check confidence: `python query.py --context | grep "pattern"`
-2. Edit `~/.claude/clc/memory/golden-rules.md`
+2. Edit `~/.claude/emergent-learning/memory/golden-rules.md`
 3. Update CLAUDE.md to reference it
 
 ## Best Practices
@@ -530,14 +530,14 @@ Add your custom CLAUDE.md content AFTER the ELF section.
 ```bash
 claude
 # Say "check in" - should query building
-python ~/.claude/clc/query/query.py --stats
+python ~/.claude/emergent-learning/query/query.py --stats
 ```
 
 ## Upgrading Versions
 
 ```bash
 # 1. Backup
-cp ~/.claude/clc/memory/index.db ~/elf-backup.db
+cp ~/.claude/emergent-learning/memory/index.db ~/elf-backup.db
 
 # 2. Pull latest
 cd /path/to/ELF-repo && git pull
@@ -546,7 +546,7 @@ cd /path/to/ELF-repo && git pull
 ./install.sh
 
 # 4. Validate
-python ~/.claude/clc/query/query.py --validate
+python ~/.claude/emergent-learning/query/query.py --validate
 ```
 
 ## Team Setup
@@ -568,7 +568,7 @@ python query.py --import-heuristics team-heuristics.json
 
 **Full uninstall:**
 1. Remove hooks from settings.json
-2. Delete `~/.claude/clc/`
+2. Delete `~/.claude/emergent-learning/`
 3. Restore CLAUDE.md.backup
 
 **Partial disable:**
@@ -624,12 +624,12 @@ architecture = """# Architecture
 |------|---------|
 | `~/.claude/CLAUDE.md` | Agent instructions |
 | `~/.claude/settings.json` | Hook configurations |
-| `~/.claude/clc/memory/index.db` | SQLite database |
-| `~/.claude/clc/query/query.py` | Query system |
+| `~/.claude/emergent-learning/memory/index.db` | SQLite database |
+| `~/.claude/emergent-learning/query/query.py` | Query system |
 | `~/.claude/hooks/learning-loop/` | Hook scripts |
-| `~/.claude/clc/dashboard-app/` | React dashboard |
-| `~/.claude/clc/conductor/` | Swarm orchestration |
-| `~/.claude/clc/agents/` | Agent personalities |
+| `~/.claude/emergent-learning/dashboard-app/` | React dashboard |
+| `~/.claude/emergent-learning/conductor/` | Swarm orchestration |
+| `~/.claude/emergent-learning/agents/` | Agent personalities |
 
 ## Hooks System
 

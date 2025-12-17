@@ -78,7 +78,7 @@ RESULTS:
 
 ## 2. Sample Log Output
 
-**File**: `~/.claude/clc/logs/20251201.log`
+**File**: `~/.claude/emergent-learning/logs/20251201.log`
 
 **Structured Logging Examples**:
 
@@ -138,7 +138,7 @@ RESULTS:
 
 **Search Command**:
 ```bash
-grep "000192bb-14e4" ~/.claude/clc/logs/20251201.log | wc -l
+grep "000192bb-14e4" ~/.claude/emergent-learning/logs/20251201.log | wc -l
 ```
 
 **Result**: 20+ log entries with same correlation ID
@@ -161,7 +161,7 @@ grep "000192bb-14e4" ~/.claude/clc/logs/20251201.log | wc -l
 
 **Command**:
 ```sql
-sqlite3 ~/.claude/clc/memory/index.db "SELECT * FROM metrics ORDER BY timestamp DESC LIMIT 10;"
+sqlite3 ~/.claude/emergent-learning/memory/index.db "SELECT * FROM metrics ORDER BY timestamp DESC LIMIT 10;"
 ```
 
 **Schema**:
@@ -200,7 +200,7 @@ CREATE TABLE metrics (
 
 **Alert Files Created**:
 ```
-~/.claude/clc/alerts/
+~/.claude/emergent-learning/alerts/
 ├── alert_1764635353_103099.alert  (info)
 ├── alert_1764635354_103099.alert  (warning)
 └── .active_alerts                 (index)
@@ -217,7 +217,7 @@ STATUS: active
 
 **CEO Escalation**:
 ```
-~/.claude/clc/ceo-inbox/alert_20251201_182914.md
+~/.claude/emergent-learning/ceo-inbox/alert_20251201_182914.md
 ```
 
 **CEO Alert Content**:
@@ -315,7 +315,7 @@ Updated: 2025-12-01 18:33:01
 
 **Grep for observability integration**:
 ```bash
-grep -A5 "CORRELATION_ID.*log_get_correlation_id" ~/.claude/clc/scripts/record-failure.sh
+grep -A5 "CORRELATION_ID.*log_get_correlation_id" ~/.claude/emergent-learning/scripts/record-failure.sh
 ```
 
 **Output**:
@@ -367,7 +367,7 @@ log_get_correlation_id
 
 **Verification**:
 ```bash
-source ~/.claude/clc/scripts/lib/logging.sh
+source ~/.claude/emergent-learning/scripts/lib/logging.sh
 declare -F | grep "^declare -f log_"
 ```
 
@@ -437,14 +437,14 @@ test_op_duration_ms|102.3|95.1|115.7|3
 
 **Files Created**:
 ```bash
-ls -lh ~/.claude/clc/scripts/rotate-logs.sh
+ls -lh ~/.claude/emergent-learning/scripts/rotate-logs.sh
 ```
 
 **Permissions**: `-rwxr-xr-x` (executable) ✅
 
 **Key Features Verified**:
 ```bash
-grep -E "(gzip|mtime.*90|log_dir_size)" ~/.claude/clc/scripts/rotate-logs.sh
+grep -E "(gzip|mtime.*90|log_dir_size)" ~/.claude/emergent-learning/scripts/rotate-logs.sh
 ```
 
 **Output**:
@@ -485,7 +485,7 @@ Anyone can verify this implementation:
 
 ```bash
 # 1. Run verification test
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 ./scripts/verify-observability.sh
 
 # 2. Run live demo
@@ -495,7 +495,7 @@ cd ~/.claude/clc
 ./scripts/dashboard-simple.sh
 
 # 4. Check logs
-tail ~/.claude/clc/logs/$(date +%Y%m%d).log
+tail ~/.claude/emergent-learning/logs/$(date +%Y%m%d).log
 
 # 5. Query metrics
 sqlite3 memory/index.db "SELECT COUNT(*) FROM metrics;"

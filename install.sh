@@ -17,7 +17,7 @@ echo -e "${CYAN}============================================${NC}"
 echo ""
 
 # Check for existing installation
-EXISTING_VERSION_FILE="$HOME/.claude/clc/VERSION"
+EXISTING_VERSION_FILE="$HOME/.claude/emergent-learning/VERSION"
 if [ -f "$EXISTING_VERSION_FILE" ]; then
     INSTALLED_VERSION=$(cat "$EXISTING_VERSION_FILE")
     echo -e "${YELLOW}⚠️  ELF is already installed (version $INSTALLED_VERSION)${NC}"
@@ -60,7 +60,7 @@ echo ""
 # Get paths
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLAUDE_DIR="$HOME/.claude"
-CLC_DIR="$CLAUDE_DIR/clc"
+EMERGENT_LEARNING_DIR="$CLAUDE_DIR/emergent-learning"
 HOOKS_DIR="$CLAUDE_DIR/hooks"
 SETTINGS_FILE="$CLAUDE_DIR/settings.json"
 
@@ -158,18 +158,18 @@ echo -e "${YELLOW}[Step 2/5]${NC} Creating directory structure..."
 
 # Create directories
 mkdir -p "$CLAUDE_DIR"
-mkdir -p "$CLC_DIR/memory/failures"
-mkdir -p "$CLC_DIR/memory/successes"
-mkdir -p "$CLC_DIR/query"
-mkdir -p "$CLC_DIR/ceo-inbox"
+mkdir -p "$EMERGENT_LEARNING_DIR/memory/failures"
+mkdir -p "$EMERGENT_LEARNING_DIR/memory/successes"
+mkdir -p "$EMERGENT_LEARNING_DIR/query"
+mkdir -p "$EMERGENT_LEARNING_DIR/ceo-inbox"
 mkdir -p "$HOOKS_DIR/learning-loop"
 
 if [ "$INSTALL_SWARM" = true ]; then
-    mkdir -p "$CLC_DIR/agents/researcher"
-    mkdir -p "$CLC_DIR/agents/architect"
-    mkdir -p "$CLC_DIR/agents/skeptic"
-    mkdir -p "$CLC_DIR/agents/creative"
-    mkdir -p "$CLC_DIR/conductor"
+    mkdir -p "$EMERGENT_LEARNING_DIR/agents/researcher"
+    mkdir -p "$EMERGENT_LEARNING_DIR/agents/architect"
+    mkdir -p "$EMERGENT_LEARNING_DIR/agents/skeptic"
+    mkdir -p "$EMERGENT_LEARNING_DIR/agents/creative"
+    mkdir -p "$EMERGENT_LEARNING_DIR/conductor"
 fi
 
 echo -e "  ${GREEN}Created directory structure (7 directories for core)${NC}"
@@ -181,10 +181,10 @@ echo -e "${YELLOW}[Step 3/5]${NC} Installing core components..."
 SRC_DIR="$SCRIPT_DIR"
 
 # Copy core files
-cp "$SRC_DIR/query/query.py" "$CLC_DIR/query/query.py"
-cp "$SRC_DIR/query/models.py" "$CLC_DIR/query/models.py" 2>/dev/null || true
-cp "$SRC_DIR/templates/golden-rules.md" "$CLC_DIR/memory/golden-rules.md"
-cp "$SRC_DIR/templates/init_db.sql" "$CLC_DIR/memory/init_db.sql"
+cp "$SRC_DIR/query/query.py" "$EMERGENT_LEARNING_DIR/query/query.py"
+cp "$SRC_DIR/query/models.py" "$EMERGENT_LEARNING_DIR/query/models.py" 2>/dev/null || true
+cp "$SRC_DIR/templates/golden-rules.md" "$EMERGENT_LEARNING_DIR/memory/golden-rules.md"
+cp "$SRC_DIR/templates/init_db.sql" "$EMERGENT_LEARNING_DIR/memory/init_db.sql"
 echo -e "  ${GREEN}Copied query system${NC}"
 
 # Install core Python dependencies
@@ -192,24 +192,24 @@ pip install -q peewee 2>&1 || pip3 install -q peewee 2>&1
 echo -e "  ${GREEN}Installed Python dependencies (peewee)${NC}"
 
 # Copy hooks
-# Hooks stay in clc directory (not copied to ~/.claude/hooks/)
+# Hooks stay in emergent-learning directory (not copied to ~/.claude/hooks/)
 echo -e "  ${GREEN}Copied learning hooks${NC}"
 
 # Copy scripts
-mkdir -p "$CLC_DIR/scripts"
-cp "$SRC_DIR/scripts/"*.sh "$CLC_DIR/scripts/" 2>&1 || echo -e "  ${YELLOW}Warning: Some scripts not copied (may not exist)${NC}"
-chmod +x "$CLC_DIR/scripts/"*.sh 2>&1 || echo -e "  ${YELLOW}Warning: Could not set execute permissions on some scripts${NC}"
+mkdir -p "$EMERGENT_LEARNING_DIR/scripts"
+cp "$SRC_DIR/scripts/"*.sh "$EMERGENT_LEARNING_DIR/scripts/" 2>&1 || echo -e "  ${YELLOW}Warning: Some scripts not copied (may not exist)${NC}"
+chmod +x "$EMERGENT_LEARNING_DIR/scripts/"*.sh 2>&1 || echo -e "  ${YELLOW}Warning: Could not set execute permissions on some scripts${NC}"
 echo -e "  ${GREEN}Copied recording scripts${NC}"
 
 # Initialize database
-DB_PATH="$CLC_DIR/memory/index.db"
-SQL_FILE="$CLC_DIR/memory/init_db.sql"
+DB_PATH="$EMERGENT_LEARNING_DIR/memory/index.db"
+SQL_FILE="$EMERGENT_LEARNING_DIR/memory/init_db.sql"
 
 if [ ! -f "$DB_PATH" ]; then
     if command -v sqlite3 &> /dev/null; then
         sqlite3 "$DB_PATH" < "$SQL_FILE"
     else
-        $PYTHON_CMD "$CLC_DIR/query/query.py" --validate > /dev/null 2>&1 || true
+        $PYTHON_CMD "$EMERGENT_LEARNING_DIR/query/query.py" --validate > /dev/null 2>&1 || true
     fi
     echo -e "  ${GREEN}Initialized database${NC}"
 else
@@ -222,14 +222,14 @@ if [ "$INSTALL_SWARM" = true ]; then
     echo -e "${YELLOW}[Installing]${NC} Swarm components..."
 
     # Copy conductor
-    cp "$SRC_DIR/conductor/"*.py "$CLC_DIR/conductor/" 2>&1 || echo -e "  ${YELLOW}Warning: Some conductor .py files not copied${NC}"
-    cp "$SRC_DIR/conductor/"*.sql "$CLC_DIR/conductor/" 2>&1 || echo -e "  ${YELLOW}Warning: Some conductor .sql files not copied${NC}"
+    cp "$SRC_DIR/conductor/"*.py "$EMERGENT_LEARNING_DIR/conductor/" 2>&1 || echo -e "  ${YELLOW}Warning: Some conductor .py files not copied${NC}"
+    cp "$SRC_DIR/conductor/"*.sql "$EMERGENT_LEARNING_DIR/conductor/" 2>&1 || echo -e "  ${YELLOW}Warning: Some conductor .sql files not copied${NC}"
     echo -e "  ${GREEN}Copied conductor module${NC}"
 
     # Copy agent personas
     for agent in researcher architect skeptic creative; do
         if [ -d "$SRC_DIR/agents/$agent" ]; then
-            cp "$SRC_DIR/agents/$agent/"* "$CLC_DIR/agents/$agent/" 2>&1 || echo -e "  ${YELLOW}Warning: Some $agent files not copied${NC}"
+            cp "$SRC_DIR/agents/$agent/"* "$EMERGENT_LEARNING_DIR/agents/$agent/" 2>&1 || echo -e "  ${YELLOW}Warning: Some $agent files not copied${NC}"
         fi
     done
     echo -e "  ${GREEN}Copied agent personas${NC}"
@@ -254,7 +254,7 @@ if [ "$INSTALL_DASHBOARD" = true ]; then
     echo -e "${YELLOW}[Installing]${NC} Dashboard..."
 
     DASHBOARD_SRC="$SRC_DIR/dashboard-app"
-    DASHBOARD_DST="$CLC_DIR/dashboard-app"
+    DASHBOARD_DST="$EMERGENT_LEARNING_DIR/dashboard-app"
 
     if [ -d "$DASHBOARD_SRC" ]; then
         rm -rf "$DASHBOARD_DST"
@@ -314,8 +314,8 @@ echo -e "  - Preserving your existing hooks (if any)"
 echo -e "  - Creating backup at settings.json.backup${NC}"
 echo ""
 
-PRE_HOOK="$CLC_DIR/hooks/learning-loop/pre_tool_learning.py"
-POST_HOOK="$CLC_DIR/hooks/learning-loop/post_tool_learning.py"
+PRE_HOOK="$EMERGENT_LEARNING_DIR/hooks/learning-loop/pre_tool_learning.py"
+POST_HOOK="$EMERGENT_LEARNING_DIR/hooks/learning-loop/post_tool_learning.py"
 
 # Backup existing settings if present
 if [ -f "$SETTINGS_FILE" ]; then
@@ -450,7 +450,7 @@ fi
 
 # === VERSION FILE ===
 # Create VERSION file for update tracking
-VERSION_FILE="$CLC_DIR/VERSION"
+VERSION_FILE="$EMERGENT_LEARNING_DIR/VERSION"
 if [ ! -f "$VERSION_FILE" ]; then
     echo "1.0.0" > "$VERSION_FILE"
     echo -e "  ${GREEN}✓${NC} Created VERSION file (1.0.0)"
@@ -474,11 +474,11 @@ echo "  cat ~/.claude/CLAUDE.md"
 echo ""
 if [ "$INSTALL_DASHBOARD" = true ]; then
     echo "  # 2. Start the dashboard:"
-    echo "  cd ~/.claude/clc/dashboard-app && ./run-dashboard.sh"
+    echo "  cd ~/.claude/emergent-learning/dashboard-app && ./run-dashboard.sh"
     echo ""
 fi
 echo "  # 3. Test the query system:"
-echo "  $PYTHON_CMD ~/.claude/clc/query/query.py --context"
+echo "  $PYTHON_CMD ~/.claude/emergent-learning/query/query.py --context"
 echo ""
 echo "  # 4. Start using Claude Code (it will now query the building automatically!)"
 echo "  claude"

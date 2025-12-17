@@ -60,7 +60,7 @@ class SessionIndex:
         self.projects_dir = projects_dir or Path.home() / ".claude" / "projects"
         self._index: Dict[str, SessionMetadata] = {}
         self._last_scan: Optional[datetime] = None
-        self._db_path = Path.home() / ".claude" / "clc" / "memory" / "index.db"
+        self._db_path = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
 
     # Tools that commonly have large inputs (file contents)
     LARGE_INPUT_TOOLS = {"Read", "Write", "Edit", "NotebookEdit"}

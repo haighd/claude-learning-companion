@@ -12,7 +12,7 @@ The baseline refresh system automatically recalculates domain baselines used in 
 
 ### Step 1: Configure Schedule
 ```bash
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 python scripts/baseline-refresh-scheduler.py --setup-schedule --interval-days 30
 ```
 
@@ -156,14 +156,14 @@ python scripts/baseline-refresh-scheduler.py --setup-schedule --interval-days 7 
 
 ### View All Schedules
 ```bash
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "SELECT domain, interval_days, next_refresh FROM baseline_refresh_schedule;"
 ```
 
 ### Check Drift Trends
 ```bash
 # Domains with most drift in last 30 days
-sqlite3 ~/.claude/clc/memory/index.db \
+sqlite3 ~/.claude/emergent-learning/memory/index.db \
   "SELECT * FROM domains_with_drift ORDER BY max_drift DESC LIMIT 10;"
 ```
 
@@ -195,7 +195,7 @@ The baseline refresh system stores data that can be visualized:
 
 **Check logs:**
 ```bash
-cat ~/.claude/clc/logs/baseline-refresh.log
+cat ~/.claude/emergent-learning/logs/baseline-refresh.log
 ```
 
 **Run tests:**

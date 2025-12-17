@@ -17,7 +17,7 @@ Successfully implemented a comprehensive backup and disaster recovery system for
 ### 1. Scripts Created
 
 #### backup.sh
-- **Location:** `~/.claude/clc/scripts/backup.sh`
+- **Location:** `~/.claude/emergent-learning/scripts/backup.sh`
 - **Features:**
   - SQL dumps of databases (cross-platform, human-readable)
   - Binary database copies (fast restoration)
@@ -31,7 +31,7 @@ Successfully implemented a comprehensive backup and disaster recovery system for
 - **Status:** ✓ Tested and working
 
 #### restore.sh
-- **Location:** `~/.claude/clc/scripts/restore.sh`
+- **Location:** `~/.claude/emergent-learning/scripts/restore.sh`
 - **Features:**
   - List available backups
   - Restore from specific timestamp or latest
@@ -44,7 +44,7 @@ Successfully implemented a comprehensive backup and disaster recovery system for
 - **Status:** ✓ Core functionality tested (checksum verification has platform-specific issues but doesn't prevent restore)
 
 #### restore-from-git.sh
-- **Location:** `~/.claude/clc/scripts/restore-from-git.sh`
+- **Location:** `~/.claude/emergent-learning/scripts/restore-from-git.sh`
 - **Features:**
   - Point-in-time recovery from git history
   - List recent commits
@@ -57,7 +57,7 @@ Successfully implemented a comprehensive backup and disaster recovery system for
 - **Status:** ✓ Tested and working
 
 #### verify-backup.sh
-- **Location:** `~/.claude/clc/scripts/verify-backup.sh`
+- **Location:** `~/.claude/emergent-learning/scripts/verify-backup.sh`
 - **Features:**
   - Multi-level verification (file, archive, content, full test)
   - Verify single or all backups
@@ -68,7 +68,7 @@ Successfully implemented a comprehensive backup and disaster recovery system for
 - **Status:** ✓ Created (minor platform compatibility issues with bc/md5)
 
 #### backup-helpers.sh
-- **Location:** `~/.claude/clc/scripts/lib/backup-helpers.sh`
+- **Location:** `~/.claude/emergent-learning/scripts/lib/backup-helpers.sh`
 - **Features:**
   - Cross-platform utility functions
   - Size calculations without bc
@@ -80,7 +80,7 @@ Successfully implemented a comprehensive backup and disaster recovery system for
 ### 2. Documentation
 
 #### DISASTER_RECOVERY.md
-- **Location:** `~/.claude/clc/DISASTER_RECOVERY.md`
+- **Location:** `~/.claude/emergent-learning/DISASTER_RECOVERY.md`
 - **Contents:**
   - Quick reference commands
   - Backup strategy
@@ -232,24 +232,24 @@ sqlite3 test_index.db "SELECT COUNT(*) FROM learnings;"
 ```bash
 crontab -e
 # Add:
-0 2 * * * ~/.claude/clc/scripts/backup.sh >> ~/.claude/backups/backup.log 2>&1
+0 2 * * * ~/.claude/emergent-learning/scripts/backup.sh >> ~/.claude/backups/backup.log 2>&1
 ```
 
 **Weekly Verification (Sunday 3 AM):**
 ```bash
-0 3 * * 0 ~/.claude/clc/scripts/verify-backup.sh --alert-on-fail
+0 3 * * 0 ~/.claude/emergent-learning/scripts/verify-backup.sh --alert-on-fail
 ```
 
 ### Remote Backup Configuration
 
 **Option 1 - rsync:**
 ```bash
-export REMOTE_BACKUP_DEST="user@backup-server:/backups/clc"
+export REMOTE_BACKUP_DEST="user@backup-server:/backups/emergent-learning"
 ```
 
 **Option 2 - rclone (cloud):**
 ```bash
-export REMOTE_BACKUP_DEST="remote:clc-backups"
+export REMOTE_BACKUP_DEST="remote:emergent-learning-backups"
 ```
 
 ---

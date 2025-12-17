@@ -1,5 +1,5 @@
 #!/bin/bash
-DB_PATH="$HOME/.claude/clc/memory/index.db"
+DB_PATH="$HOME/.claude/emergent-learning/memory/index.db"
 
 # Test FK
 echo "Testing FK..."

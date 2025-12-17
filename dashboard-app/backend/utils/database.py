@@ -10,8 +10,8 @@ from pathlib import Path
 
 
 # Database path
-CLC_PATH = Path.home() / ".claude" / "clc"
-DB_PATH = CLC_PATH / "memory" / "index.db"
+EMERGENT_LEARNING_PATH = Path.home() / ".claude" / "emergent-learning"
+DB_PATH = EMERGENT_LEARNING_PATH / "memory" / "index.db"
 
 
 def escape_like(s: str) -> str:

@@ -49,7 +49,7 @@ class DatabaseRobustness:
 
         if db_path is None:
             home = Path.home()
-            self.db_path = home / ".claude" / "clc" / "memory" / "index.db"
+            self.db_path = home / ".claude" / "emergent-learning" / "memory" / "index.db"
         else:
             self.db_path = Path(db_path)
 

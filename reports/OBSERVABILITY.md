@@ -59,7 +59,7 @@ log_set_correlation_id "custom-id-12345"
 Environment variables:
 - `LOG_LEVEL` - Minimum level to output (DEBUG|INFO|WARN|ERROR|FATAL), default: INFO
 - `LOG_FORMAT` - Output format (text|json), default: text
-- `LOG_DIR` - Directory for log files, default: ~/.claude/clc/logs
+- `LOG_DIR` - Directory for log files, default: ~/.claude/emergent-learning/logs
 
 ```bash
 # JSON output with DEBUG level
@@ -71,7 +71,7 @@ LOG_DIR=/var/log/emergent ./my-script.sh
 
 #### Log Files
 
-- Location: `~/.claude/clc/logs/`
+- Location: `~/.claude/emergent-learning/logs/`
 - Format: `YYYYMMDD.log` (one file per day)
 - Rotation: Automatic, keeps last 30 days
 - Structure (text):
@@ -180,7 +180,7 @@ CREATE TABLE metrics (
 ./scripts/health-check.sh --json
 
 # Example cron job (run every hour)
-0 * * * * /path/to/clc/scripts/health-check.sh --json >> /var/log/health.log 2>&1
+0 * * * * /path/to/emergent-learning/scripts/health-check.sh --json >> /var/log/health.log 2>&1
 ```
 
 #### Output
@@ -276,7 +276,7 @@ python query/dashboard.py --json
 python query/dashboard.py --json --detailed > dashboard.json
 
 # Custom base path
-python query/dashboard.py --base-path /path/to/clc
+python query/dashboard.py --base-path /path/to/emergent-learning
 ```
 
 #### Output
@@ -406,7 +406,7 @@ def record_metric(db_path, metric_name, value, **tags):
     conn.close()
 
 # Usage
-db_path = Path.home() / ".claude" / "clc" / "memory" / "index.db"
+db_path = Path.home() / ".claude" / "emergent-learning" / "memory" / "index.db"
 record_metric(db_path, "query_duration_ms", 123.4, operation="build_context", status="success")
 ```
 
@@ -418,13 +418,13 @@ Add to crontab:
 
 ```cron
 # Health check every hour
-0 * * * * /path/to/clc/scripts/health-check.sh --json >> /var/log/emergent-health.log 2>&1
+0 * * * * /path/to/emergent-learning/scripts/health-check.sh --json >> /var/log/emergent-health.log 2>&1
 
 # Daily metrics cleanup (keep 90 days)
-0 2 * * * /path/to/clc/scripts/cleanup-metrics.sh
+0 2 * * * /path/to/emergent-learning/scripts/cleanup-metrics.sh
 
 # Daily dashboard snapshot
-0 6 * * * /path/to/clc/query/dashboard.py --json > /var/log/emergent-dashboard-$(date +\%Y\%m\%d).json
+0 6 * * * /path/to/emergent-learning/query/dashboard.py --json > /var/log/emergent-dashboard-$(date +\%Y\%m\%d).json
 ```
 
 ### Alerting Script
@@ -462,10 +462,10 @@ python query/export-prometheus.py > /var/lib/node_exporter/emergent.prom
 
 ```bash
 # Check recent errors
-grep ERROR ~/.claude/clc/logs/$(date +%Y%m%d).log
+grep ERROR ~/.claude/emergent-learning/logs/$(date +%Y%m%d).log
 
 # Analyze error patterns
-sqlite3 ~/.claude/clc/memory/index.db <<SQL
+sqlite3 ~/.claude/emergent-learning/memory/index.db <<SQL
 SELECT
     date(timestamp) as date,
     SUM(metric_value) as error_count
@@ -484,7 +484,7 @@ SQL
 python query/dashboard.py --detailed | grep -A 20 "PERFORMANCE METRICS"
 
 # Query slow operations
-sqlite3 ~/.claude/clc/memory/index.db <<SQL
+sqlite3 ~/.claude/emergent-learning/memory/index.db <<SQL
 SELECT
     REPLACE(metric_name, '_duration_ms', '') as operation,
     AVG(metric_value) as avg_ms,
@@ -502,13 +502,13 @@ SQL
 
 ```bash
 # Check database integrity
-sqlite3 ~/.claude/clc/memory/index.db "PRAGMA integrity_check;"
+sqlite3 ~/.claude/emergent-learning/memory/index.db "PRAGMA integrity_check;"
 
 # Check database size
-ls -lh ~/.claude/clc/memory/index.db
+ls -lh ~/.claude/emergent-learning/memory/index.db
 
 # Analyze table sizes
-sqlite3 ~/.claude/clc/memory/index.db <<SQL
+sqlite3 ~/.claude/emergent-learning/memory/index.db <<SQL
 SELECT
     name,
     COUNT(*) as count
@@ -522,10 +522,10 @@ SQL
 
 ```bash
 # Find stale locks
-find ~/.claude/clc/.git -name "*.dir" -type d -mmin +30
+find ~/.claude/emergent-learning/.git -name "*.dir" -type d -mmin +30
 
 # Remove stale locks (use with caution!)
-find ~/.claude/clc/.git -name "*.dir" -type d -mmin +30 -exec rmdir {} \;
+find ~/.claude/emergent-learning/.git -name "*.dir" -type d -mmin +30 -exec rmdir {} \;
 ```
 
 ## Best Practices
@@ -551,7 +551,7 @@ find ~/.claude/clc/.git -name "*.dir" -type d -mmin +30 -exec rmdir {} \;
 ## File Locations
 
 ```
-~/.claude/clc/
+~/.claude/emergent-learning/
 ├── scripts/
 │   ├── lib/
 │   │   ├── logging.sh          # Structured logging library

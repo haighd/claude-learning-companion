@@ -387,43 +387,43 @@ If database is deleted/corrupted:
 
 **Check system health:**
 ```bash
-~/.claude/clc/scripts/self-test.sh
+~/.claude/emergent-learning/scripts/self-test.sh
 ```
 
 **View learning metrics:**
 ```bash
-~/.claude/clc/scripts/learning-metrics.sh
+~/.claude/emergent-learning/scripts/learning-metrics.sh
 ```
 
 **Check for duplicates:**
 ```bash
-~/.claude/clc/scripts/deduplicate-failures.sh --stats
+~/.claude/emergent-learning/scripts/deduplicate-failures.sh --stats
 ```
 
 **Get heuristic suggestions:**
 ```bash
-~/.claude/clc/scripts/suggest-heuristics.sh
+~/.claude/emergent-learning/scripts/suggest-heuristics.sh
 ```
 
 ### Weekly Reviews
 
 **Generate comprehensive reports:**
 ```bash
-~/.claude/clc/scripts/learning-metrics.sh --detailed
-~/.claude/clc/scripts/suggest-heuristics.sh --report
-~/.claude/clc/scripts/deduplicate-failures.sh --report
+~/.claude/emergent-learning/scripts/learning-metrics.sh --detailed
+~/.claude/emergent-learning/scripts/suggest-heuristics.sh --report
+~/.claude/emergent-learning/scripts/deduplicate-failures.sh --report
 ```
 
 ### Recovery Operations
 
 **If system is corrupted:**
 ```bash
-~/.claude/clc/scripts/bootstrap-recovery.sh
+~/.claude/emergent-learning/scripts/bootstrap-recovery.sh
 ```
 
 **Check dependencies:**
 ```bash
-~/.claude/clc/scripts/dependency-check.sh
+~/.claude/emergent-learning/scripts/dependency-check.sh
 ```
 
 ---

@@ -27,7 +27,7 @@ bash scripts/record-heuristic.sh
 
 **Actual Result**:
 ```
-Appended to: /c~/.claude/clc/memory/heuristics/tmpevil.md
+Appended to: /c~/.claude/emergent-learning/memory/heuristics/tmpevil.md
 ```
 
 **Verification**: SUCCESS
@@ -203,7 +203,7 @@ bash scripts/record-failure.sh
 
 ### To Apply All Patches
 ```bash
-cd ~/.claude/clc/tests/patches
+cd ~/.claude/emergent-learning/tests/patches
 bash APPLY_ALL_SECURITY_FIXES.sh
 ```
 
@@ -254,7 +254,7 @@ bash APPLY_ALL_SECURITY_FIXES.sh
 ### Test Execution
 ```bash
 # Run all security tests
-cd ~/.claude/clc
+cd ~/.claude/emergent-learning
 bash tests/advanced_security_tests.sh
 ```
 
@@ -298,7 +298,7 @@ The Emergent Learning Framework filesystem security audit has been completed suc
 **Next Steps**:
 Apply remaining patches using:
 ```bash
-cd ~/.claude/clc/tests/patches
+cd ~/.claude/emergent-learning/tests/patches
 bash APPLY_ALL_SECURITY_FIXES.sh
 ```
 

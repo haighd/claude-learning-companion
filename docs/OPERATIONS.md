@@ -69,7 +69,7 @@ Use encrypted filesystem or SQLCipher for database encryption.
 
 ### Access Control
 
-Restrict database to owner-only: chmod 600 ~/.claude/clc/memory/index.db
+Restrict database to owner-only: chmod 600 ~/.claude/emergent-learning/memory/index.db
 
 ---
 
