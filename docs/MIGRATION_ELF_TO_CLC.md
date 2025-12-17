@@ -97,7 +97,7 @@ Replace:
 cp ~/.claude/CLAUDE.md ~/.claude/CLAUDE.md.migration-backup
 
 # Run replacements
-sed -i.bak -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' -e 's|~/.claude/elf/|~/.claude/clc/|g' -e 's|emergent-learning|clc|g' -e 's|ELF|CLC|g' ~/.claude/CLAUDE.md
+sed -i.bak -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' -e 's|~/.claude/elf/|~/.claude/clc/|g' -e 's|emergent-learning|clc|g' -e 's|Emergent Learning Framework|Claude Learning Companion|g' -e 's|ELF|CLC|g' -e 's|elf|clc|g' ~/.claude/CLAUDE.md
 ```
 
 ## Step 3: Update Project CLAUDE.md Files
@@ -107,7 +107,7 @@ For each project that references ELF/emergent-learning:
 ```bash
 # Find and automatically update all project CLAUDE.md files
 # Replace ~/Projects with the actual path to your projects directory
-find ~/Projects -name "CLAUDE.md" -type f -print0 | xargs -0 sed -i.bak -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' -e 's|~/.claude/elf/|~/.claude/clc/|g' -e 's|emergent-learning|clc|g' -e 's|ELF|CLC|g'
+find ~/Projects -name "CLAUDE.md" -type f -print0 | xargs -0 sed -i.bak -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' -e 's|~/.claude/elf/|~/.claude/clc/|g' -e 's|emergent-learning|clc|g' -e 's|Emergent Learning Framework|Claude Learning Companion|g' -e 's|ELF|CLC|g' -e 's|elf|clc|g'
 ```
 
 ## Step 4: Update Slash Commands
@@ -116,7 +116,7 @@ Check and update `~/.claude/commands/` for old paths:
 
 ```bash
 # Find and automatically update slash commands
-find ~/.claude/commands/ -type f -name "*.md" -print0 | xargs -0 sed -i.bak -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' -e 's|~/.claude/elf/|~/.claude/clc/|g' -e 's|emergent-learning|clc|g' -e 's|ELF|CLC|g'
+find ~/.claude/commands/ -type f -name "*.md" -print0 | xargs -0 sed -i.bak -e 's|~/.claude/emergent-learning/|~/.claude/clc/|g' -e 's|~/.claude/elf/|~/.claude/clc/|g' -e 's|emergent-learning|clc|g' -e 's|Emergent Learning Framework|Claude Learning Companion|g' -e 's|ELF|CLC|g' -e 's|elf|clc|g'
 ```
 
 The CLC install should have updated these, but verify:
