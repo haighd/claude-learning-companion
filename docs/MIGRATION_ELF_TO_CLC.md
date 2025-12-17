@@ -91,7 +91,7 @@ The CLC install should have updated these, but verify:
 Run the CLC query to verify everything works:
 
 ```bash
-python ~/.claude/clc/query/query.py --context
+python3 ~/.claude/clc/query/query.py --context
 ```
 
 Expected output: Golden rules, heuristics, and recent learnings.
@@ -117,8 +117,8 @@ pkill -f "dashboard-app"
 **Windows (PowerShell)**
 ```powershell
 # Stop processes by command line content
-Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*emergent-learning*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
-Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*dashboard-app*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*emergent-learning*' } | Stop-Process -Force -ErrorAction SilentlyContinue
+Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*dashboard-app*' } | Stop-Process -Force -ErrorAction SilentlyContinue
 ```
 
 Then start the new dashboard:
@@ -129,7 +129,7 @@ bash ~/.claude/clc/dashboard-app/run-dashboard.sh
 ### Database migration needed
 If you have existing data:
 ```bash
-python ~/.claude/clc/scripts/migrate_db.py
+python3 ~/.claude/clc/scripts/migrate_db.py
 ```
 
 ## Cleanup (Optional)
@@ -149,6 +149,6 @@ rm -rf ~/.claude/emergent-learning
 - [ ] `~/.claude/settings.json` hooks point to `clc/`
 - [ ] `~/.claude/CLAUDE.md` references `clc`
 - [ ] Project CLAUDE.md files updated
-- [ ] `python ~/.claude/clc/query/query.py --context` works
+- [ ] `python3 ~/.claude/clc/query/query.py --context` works
 - [ ] Dashboard starts: `bash ~/.claude/clc/dashboard-app/run-dashboard.sh`
 - [ ] Old `emergent-learning` directory removed or backed up
