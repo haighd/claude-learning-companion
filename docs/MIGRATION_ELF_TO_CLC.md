@@ -22,7 +22,7 @@ Your hooks should point to the new CLC location:
       {
         "hooks": [
           {
-            "command": "python3 ~/.claude/clc/hooks/learning-loop/pre_tool_learning.py",
+            "command": "python3 \"$HOME/.claude/clc/hooks/learning-loop/pre_tool_learning.py\"",
             "type": "command"
           }
         ],
@@ -33,7 +33,7 @@ Your hooks should point to the new CLC location:
       {
         "hooks": [
           {
-            "command": "python3 ~/.claude/clc/hooks/learning-loop/post_tool_learning.py",
+            "command": "python3 \"$HOME/.claude/clc/hooks/learning-loop/post_tool_learning.py\"",
             "type": "command"
           }
         ],
@@ -118,7 +118,7 @@ pkill -f "dashboard-app"
 **Windows (PowerShell)**
 ```powershell
 # Stop processes by command line content
-Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*emergent-learning*' -or $_.CommandLine -like '*\.claude\elf*' } | Stop-Process -Force -ErrorAction SilentlyContinue
+Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*emergent-learning*' -or $_.CommandLine -like '*.claude\elf*' } | Stop-Process -Force -ErrorAction SilentlyContinue
 Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like '*dashboard-app*' } | Stop-Process -Force -ErrorAction SilentlyContinue
 ```
 
