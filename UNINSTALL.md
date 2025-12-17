@@ -18,7 +18,7 @@ PowerShell -ExecutionPolicy Bypass -File "$env:TEMP\uninstall-clc.ps1"
 ### Mac/Linux
 ```bash
 # Download and run uninstall script
-curl -fsSL https://raw.githubusercontent.com/your-repo/CLC/main/scripts/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/your-repo/CLC/v1.0.0/scripts/uninstall.sh | bash
 ```
 
 The automated script will:
