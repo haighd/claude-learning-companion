@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { TrendingUp, CheckCircle, XCircle, Brain, Star, Target, BarChart3, MessageSquare } from 'lucide-react'
+import { TrendingUp, CheckCircle, XCircle, Brain, Star, Target, BarChart3, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useAPI } from '../hooks/useAPI'
 import { DrillDownModal, DrillDownView } from './drilldowns'
 
@@ -95,11 +95,19 @@ export default function StatsBar({ stats }: StatsBarProps) {
 
   if (!stats) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+      <div
+        className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4"
+        role="region"
+        aria-label="Dashboard statistics loading"
+      >
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="glass-panel rounded-lg p-4 animate-pulse">
-            <div className="h-4 bg-slate-700 rounded w-1/2 mb-2" />
-            <div className="h-8 bg-slate-700 rounded w-3/4" />
+          <div
+            key={i}
+            className="glass-panel rounded-lg p-4 sm:p-5 skeleton-shimmer min-h-[88px]"
+            aria-hidden="true"
+          >
+            <div className="h-4 bg-slate-700/50 rounded w-1/2 mb-2" />
+            <div className="h-8 bg-slate-700/50 rounded w-3/4" />
           </div>
         ))}
       </div>
@@ -203,14 +211,32 @@ export default function StatsBar({ stats }: StatsBarProps) {
 
   const selectedCard = statCards.find(c => c.label === expandedCard)
 
+  const handleCardKeyDown = (e: React.KeyboardEvent, label: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      setExpandedCard(expandedCard === label ? null : label)
+    }
+  }
+
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-        {statCards.map(({ label, value, icon: Icon, color, bgColor }) => (
-          <div
+      <div
+        className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4"
+        role="region"
+        aria-label="Dashboard statistics"
+        aria-live="polite"
+        aria-atomic="false"
+      >
+        {statCards.map(({ label, value, icon: Icon, color, bgColor, description }) => (
+          <button
             key={label}
+            type="button"
             onClick={() => setExpandedCard(expandedCard === label ? null : label)}
-            className="rounded-lg p-4 card-glow transition-all hover:scale-105 cursor-pointer"
+            onKeyDown={(e) => handleCardKeyDown(e, label)}
+            aria-expanded={expandedCard === label}
+            aria-label={`${label}: ${value}. ${description} Click to view details.`}
+            className="rounded-lg p-3 sm:p-4 card-glow transition-all hover:scale-105 cursor-pointer text-left
+                       focus:outline-none focus:ring-2 focus:ring-[var(--theme-accent)] focus:ring-offset-2 focus:ring-offset-[var(--theme-bg-primary)]"
             style={{
               background: `linear-gradient(135deg, rgba(var(--theme-accent-rgb), calc(var(--glass-opacity) * 0.3)), rgba(var(--theme-panel-rgb), var(--glass-opacity)))`,
               border: '1px solid rgba(var(--theme-accent-rgb), calc(var(--glass-opacity) * 0.5))',
@@ -219,12 +245,12 @@ export default function StatsBar({ stats }: StatsBarProps) {
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-medium" style={{ color: 'var(--theme-text-secondary)' }}>{label}</span>
-              <div className={`p-1.5 rounded-md ${bgColor}`}>
+              <div className={`p-1.5 rounded-md ${bgColor}`} aria-hidden="true">
                 <Icon className={`w-3.5 h-3.5 ${color}`} />
               </div>
             </div>
-            <div className={`text-2xl font-bold ${color}`}>{value}</div>
-          </div>
+            <div className={`text-xl sm:text-2xl font-bold ${color}`}>{value}</div>
+          </button>
         ))}
       </div>
 

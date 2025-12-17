@@ -17,4 +17,10 @@ export default defineConfig({
       },
     },
   },
+  // Enable SPA fallback for client-side routing in preview mode
+  preview: {
+    port: 3001,
+  },
+  // Base path for assets (useful if deploying to subpath)
+  base: '/',
 })
