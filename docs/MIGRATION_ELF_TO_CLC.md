@@ -102,7 +102,7 @@ Expected output: Golden rules, heuristics, and recent learnings.
 The hooks can't find Python modules. Fix:
 ```bash
 cd ~/.claude/clc
-pip install peewee  # Or other specific dependencies if needed
+python3 -m pip install peewee  # Or other specific dependencies if needed
 ```
 
 ### Old dashboard still running

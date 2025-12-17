@@ -116,7 +116,7 @@ The installer added hooks to your `~/.claude/settings.json`. To remove them:
    # View your CLAUDE.md file
    cat ~/.claude/CLAUDE.md
 
-   # Check if it contains only CLC instructions
+   # Check for CLC-related instructions
    grep -E -i "claude learning companion|clc" ~/.claude/CLAUDE.md
    ```
 
