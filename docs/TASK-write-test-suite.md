@@ -27,9 +27,14 @@ Write new, focused tests starting with the most critical components:
 - [ ] Test `query_by_tags()`
 - [ ] Test `query_recent()`
 - [ ] Test `get_golden_rules()`
-- [ ] Test `get_active_experiments()` and `get_pending_ceo_reviews()`
-- [ ] Test `get_violations()` and `get_violation_summary()`
-- [ ] Test `get_decisions()`, `get_invariants()`, `get_assumptions()`, `get_spike_reports()`
+- [ ] Test `get_active_experiments()`
+- [ ] Test `get_pending_ceo_reviews()`
+- [ ] Test `get_violations()`
+- [ ] Test `get_violation_summary()`
+- [ ] Test `get_decisions()`
+- [ ] Test `get_invariants()`
+- [ ] Test `get_assumptions()`
+- [ ] Test `get_spike_reports()`
 - [ ] Test `find_similar_failures()`
 - [ ] Test `validate_database()`
 - [ ] Test CLI functionality in `main()`
@@ -57,11 +62,19 @@ Write new, focused tests starting with the most critical components:
   - [ ] Branching (A -> B, A -> C)
   - [ ] Conditional branching
   - [ ] Converging (A -> C, B -> C)
-- [ ] Test trail laying and retrieval (`lay_trail`, `get_trails`, `get_hot_spots`)
+- [ ] Test trail laying (`lay_trail`)
+- [ ] Test trail retrieval (`get_trails`)
+- [ ] Test hot spot retrieval (`get_hot_spots`)
 
 ### Priority 4: Dashboard API (`dashboard-app/backend/`)
 - [ ] Test WebSocket connection and real-time updates (`/ws`)
-- [ ] Test analytics router endpoints (`/api/analytics/*`)
+- Test analytics router endpoints (`/api/analytics/*`):
+  - [ ] Test `GET /stats`
+  - [ ] Test `GET /timeline`
+  - [ ] Test `GET /learning-velocity`
+  - [ ] Test `GET /events`
+  - [ ] Test `GET /domains`
+  - [ ] Test `GET /anomalies`
 - [ ] Test heuristics router endpoints (`/api/heuristics/*`)
 - [ ] Test runs and knowledge routers (`/api/runs/*`, `/api/knowledge/*`)
 - [ ] Test query and session routers (`/api/queries/*`, `/api/sessions/*`)
