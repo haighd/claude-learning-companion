@@ -15,7 +15,6 @@ import signal
 import asyncio
 import atexit
 from datetime import datetime, timezone
-from typing import Optional, Union
 
 # Import TimeoutError with fallback for script execution
 try:
@@ -24,7 +23,7 @@ except ImportError:
     from exceptions import TimeoutError
 
 
-def format_utc_to_local(utc_dt: "Optional[Union[datetime, str]]") -> str:
+def format_utc_to_local(utc_dt: datetime | str | None) -> str:
     """
     Convert a UTC datetime to local timezone and format for display.
 
