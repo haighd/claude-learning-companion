@@ -20,6 +20,10 @@ custom/golden-rules.md
 custom/parties.yaml
 custom/agents/
 
+# Debug files
+debug-*.json
+**/debug-*.json
+
 # Wiki clone
 wiki-repo/
 

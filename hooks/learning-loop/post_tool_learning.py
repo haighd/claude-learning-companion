@@ -216,6 +216,192 @@ def get_db_connection():
     return conn
 
 
+def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, str]:
+    """Determine if a Bash command succeeded or failed.
+
+    Returns: (outcome, reason)
+    - outcome: 'success', 'failure', 'unknown'
+    - reason: description of why
+    """
+    if not tool_output:
+        return "unknown", "No output to analyze"
+
+    # Get output content
+    output = ""
+    if isinstance(tool_output, str):
+        output = tool_output
+    elif isinstance(tool_output, dict):
+        output = tool_output.get("output", "") or tool_output.get("stdout", "") or str(tool_output)
+
+    # Check for explicit error indicators in output
+    output_lower = output.lower()
+
+    # Exit code patterns (if captured in output)
+    exit_code_match = re.search(r'exit[:\s]+code[:\s]+(\d+)', output_lower)
+    if exit_code_match:
+        code = int(exit_code_match.group(1))
+        if code != 0:
+            return "failure", f"Exit code {code}"
+
+    # Error message patterns specific to shell commands
+    bash_error_patterns = [
+        (r'(?i)^.*:\s*command not found', "Command not found"),
+        (r'(?i)^.*:\s*No such file or directory', "File/directory not found"),
+        (r'(?i)^.*:\s*Permission denied', "Permission denied"),
+        (r'(?i)^.*:\s*cannot\s+', "Operation cannot be performed"),
+        (r'(?i)fatal:', "Fatal error"),
+        (r'(?i)^error:', "Error occurred"),
+        (r'(?i)ENOENT', "File not found (ENOENT)"),
+        (r'(?i)EACCES', "Access denied (EACCES)"),
+        (r'(?i)ECONNREFUSED', "Connection refused"),
+        (r'(?i)npm ERR!', "npm error"),
+        (r'(?i)yarn error', "yarn error"),
+        (r'(?i)bun error', "bun error"),
+        (r'(?i)ModuleNotFoundError', "Python module not found"),
+        (r'(?i)ImportError', "Python import error"),
+        (r'(?i)SyntaxError', "Syntax error"),
+        (r'(?i)TypeError', "Type error"),
+        (r'(?i)RuntimeError', "Runtime error"),
+        (r'(?i)Traceback \(most recent', "Python exception"),
+        (r'(?i)segmentation fault', "Segmentation fault"),
+        (r'(?i)killed', "Process killed"),
+        (r'(?i)out of memory', "Out of memory"),
+    ]
+
+    for pattern, reason in bash_error_patterns:
+        if re.search(pattern, output, re.MULTILINE):
+            return "failure", reason
+
+    # Check for common success patterns
+    bash_success_patterns = [
+        (r'(?i)successfully', "Operation successful"),
+        (r'(?i)completed', "Operation completed"),
+        (r'(?i)done\.?$', "Done"),
+        (r'(?i)^ok\s', "OK status"),
+        (r'(?i)passed', "Tests passed"),
+        (r'(?i)\d+ passing', "Tests passing"),
+    ]
+
+    for pattern, reason in bash_success_patterns:
+        if re.search(pattern, output, re.MULTILINE):
+            return "success", reason
+
+    # If we got output without errors, consider it success
+    if output.strip():
+        return "success", "Command produced output"
+
+    return "unknown", "No clear outcome indicators"
+
+
+def determine_mcp_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, str]:
+    """Determine if an MCP tool call succeeded or failed.
+
+    Returns: (outcome, reason)
+    - outcome: 'success', 'failure', 'unknown'
+    - reason: description of why
+    """
+    if not tool_output:
+        return "unknown", "No output to analyze"
+
+    # MCP responses are typically dicts
+    if isinstance(tool_output, dict):
+        # Check for explicit error field
+        if "error" in tool_output:
+            error = tool_output["error"]
+            if isinstance(error, dict):
+                return "failure", error.get("message", "MCP error")
+            elif error:
+                return "failure", str(error)[:100]
+
+        # Check for error in content
+        if "content" in tool_output:
+            content = tool_output["content"]
+            if isinstance(content, list):
+                for item in content:
+                    if isinstance(item, dict):
+                        if item.get("type") == "error":
+                            return "failure", item.get("text", "MCP content error")[:100]
+
+        # Check for status fields
+        status = tool_output.get("status", "").lower()
+        if status in ("error", "failed", "failure"):
+            return "failure", f"MCP status: {status}"
+        if status in ("success", "ok", "completed"):
+            return "success", f"MCP status: {status}"
+
+        # Check for isError flag
+        if tool_output.get("isError"):
+            return "failure", "MCP isError flag set"
+
+        # If we have results/data, it's likely success
+        if tool_output.get("result") or tool_output.get("data") or tool_output.get("content"):
+            return "success", "MCP returned data"
+
+    elif isinstance(tool_output, str):
+        if "error" in tool_output.lower():
+            return "failure", "Error in MCP response"
+        if tool_output.strip():
+            return "success", "MCP returned text"
+
+    return "unknown", "Could not determine MCP outcome"
+
+
+def determine_webfetch_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, str]:
+    """Determine if a WebFetch/WebSearch operation succeeded or failed.
+
+    Returns: (outcome, reason)
+    - outcome: 'success', 'failure', 'unknown'
+    - reason: description of why
+    """
+    if not tool_output:
+        return "unknown", "No output to analyze"
+
+    output_str = ""
+    if isinstance(tool_output, dict):
+        output_str = str(tool_output)
+    elif isinstance(tool_output, str):
+        output_str = tool_output
+
+    output_lower = output_str.lower()
+
+    # HTTP error patterns
+    http_error_patterns = [
+        (r'(?i)404\s*(not found)?', "HTTP 404 Not Found"),
+        (r'(?i)403\s*(forbidden)?', "HTTP 403 Forbidden"),
+        (r'(?i)401\s*(unauthorized)?', "HTTP 401 Unauthorized"),
+        (r'(?i)500\s*(internal server)?', "HTTP 500 Server Error"),
+        (r'(?i)502\s*(bad gateway)?', "HTTP 502 Bad Gateway"),
+        (r'(?i)503\s*(service unavailable)?', "HTTP 503 Service Unavailable"),
+        (r'(?i)timeout', "Request timeout"),
+        (r'(?i)connection refused', "Connection refused"),
+        (r'(?i)network error', "Network error"),
+        (r'(?i)DNS.*fail', "DNS resolution failed"),
+        (r'(?i)certificate.*error', "SSL certificate error"),
+        (r'(?i)could not fetch', "Could not fetch URL"),
+        (r'(?i)failed to fetch', "Failed to fetch URL"),
+    ]
+
+    for pattern, reason in http_error_patterns:
+        if re.search(pattern, output_str):
+            return "failure", reason
+
+    # Check for redirect notification (not failure, but notable)
+    if "redirect" in output_lower and "different host" in output_lower:
+        return "success", "Redirect detected (follow-up needed)"
+
+    # Success indicators
+    if isinstance(tool_output, dict):
+        # If we got content back, it's success
+        if tool_output.get("content") or tool_output.get("text") or tool_output.get("result"):
+            return "success", "Content fetched successfully"
+
+    # If we have substantial output, consider it success
+    if len(output_str) > 100:
+        return "success", "Substantial content received"
+
+    return "unknown", "Could not determine fetch outcome"
+
+
 def determine_outcome(tool_output: dict) -> Tuple[str, str]:
     """Determine if the task succeeded or failed.
 
@@ -682,6 +868,186 @@ def main():
                     sys.stderr.write(f"[TRAIL] Recorded {tool_name} on {file_path}\n")
         except Exception as e:
             sys.stderr.write(f"[TRAIL_ERROR] Failed to record file operation trail: {e}\n")
+
+        output_result({})
+        return
+
+    # =========================================================================
+    # HANDLE Bash - Shell command outcomes
+    # =========================================================================
+    if tool_name == "Bash":
+        outcome, reason = determine_bash_outcome(tool_input, tool_output)
+        command = tool_input.get("command", "unknown")[:100]
+
+        # Only record significant commands (skip trivial ones)
+        trivial_commands = ['echo', 'pwd', 'ls', 'cd', 'cat', 'head', 'tail', 'sleep']
+        is_trivial = any(command.strip().startswith(cmd) for cmd in trivial_commands)
+
+        if not is_trivial or outcome == "failure":
+            try:
+                sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
+                from conductor import Conductor, Node
+
+                conductor = Conductor(
+                    base_path=str(Path.home() / '.claude' / 'clc'),
+                    project_root=str(Path.home() / '.claude' / 'clc')
+                )
+
+                description = tool_input.get('description', command)[:100]
+                run_id = conductor.start_run(
+                    workflow_name=f"bash-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+                    input_data={
+                        'command': command,
+                        'description': description
+                    }
+                )
+
+                if run_id:
+                    node = Node(
+                        id=f"bash-{datetime.now().timestamp()}",
+                        name=description,
+                        node_type='single',
+                        prompt_template=command,
+                        config={'tool': 'Bash'}
+                    )
+                    exec_id = conductor.record_node_start(run_id, node, command)
+
+                    if outcome == 'failure':
+                        conductor.record_node_failure(
+                            exec_id=exec_id,
+                            error_message=reason,
+                            error_type='bash_error'
+                        )
+                        conductor.update_run_status(run_id, 'failed', error_message=reason)
+                        sys.stderr.write(f"[LEARNING_LOOP] Bash FAILURE recorded: {reason}\n")
+                    else:
+                        output_text = str(tool_output)[:500] if tool_output else ""
+                        conductor.record_node_completion(
+                            exec_id=exec_id,
+                            result_text=output_text,
+                            result_dict={'outcome': outcome, 'reason': reason}
+                        )
+                        conductor.update_run_status(run_id, 'completed', output={'outcome': outcome, 'reason': reason})
+            except Exception as e:
+                sys.stderr.write(f"[LEARNING_LOOP] Bash tracking error (non-fatal): {e}\n")
+
+        output_result({})
+        return
+
+    # =========================================================================
+    # HANDLE MCP tools - External server calls
+    # =========================================================================
+    if tool_name.startswith("mcp__"):
+        outcome, reason = determine_mcp_outcome(tool_input, tool_output)
+
+        try:
+            sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
+            from conductor import Conductor, Node
+
+            conductor = Conductor(
+                base_path=str(Path.home() / '.claude' / 'clc'),
+                project_root=str(Path.home() / '.claude' / 'clc')
+            )
+
+            # Parse MCP tool name (e.g., mcp__server__tool)
+            parts = tool_name.split("__")
+            server_name = parts[1] if len(parts) > 1 else "unknown"
+            tool_method = parts[2] if len(parts) > 2 else "unknown"
+
+            run_id = conductor.start_run(
+                workflow_name=f"mcp-{server_name}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+                input_data={
+                    'server': server_name,
+                    'method': tool_method,
+                    'input': str(tool_input)[:500]
+                }
+            )
+
+            if run_id:
+                node = Node(
+                    id=f"mcp-{datetime.now().timestamp()}",
+                    name=f"{server_name}.{tool_method}",
+                    node_type='single',
+                    prompt_template=str(tool_input)[:200],
+                    config={'tool': tool_name, 'server': server_name}
+                )
+                exec_id = conductor.record_node_start(run_id, node, str(tool_input)[:500])
+
+                if outcome == 'failure':
+                    conductor.record_node_failure(
+                        exec_id=exec_id,
+                        error_message=reason,
+                        error_type='mcp_error'
+                    )
+                    conductor.update_run_status(run_id, 'failed', error_message=reason)
+                    sys.stderr.write(f"[LEARNING_LOOP] MCP FAILURE ({server_name}.{tool_method}): {reason}\n")
+                else:
+                    output_text = str(tool_output)[:500] if tool_output else ""
+                    conductor.record_node_completion(
+                        exec_id=exec_id,
+                        result_text=output_text,
+                        result_dict={'outcome': outcome, 'reason': reason}
+                    )
+                    conductor.update_run_status(run_id, 'completed', output={'outcome': outcome, 'reason': reason})
+        except Exception as e:
+            sys.stderr.write(f"[LEARNING_LOOP] MCP tracking error (non-fatal): {e}\n")
+
+        output_result({})
+        return
+
+    # =========================================================================
+    # HANDLE WebFetch/WebSearch - Network operations
+    # =========================================================================
+    if tool_name in ("WebFetch", "WebSearch"):
+        outcome, reason = determine_webfetch_outcome(tool_input, tool_output)
+
+        try:
+            sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
+            from conductor import Conductor, Node
+
+            conductor = Conductor(
+                base_path=str(Path.home() / '.claude' / 'clc'),
+                project_root=str(Path.home() / '.claude' / 'clc')
+            )
+
+            url = tool_input.get('url', tool_input.get('query', 'unknown'))[:200]
+
+            run_id = conductor.start_run(
+                workflow_name=f"{tool_name.lower()}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+                input_data={
+                    'url': url,
+                    'prompt': tool_input.get('prompt', '')[:200]
+                }
+            )
+
+            if run_id:
+                node = Node(
+                    id=f"{tool_name.lower()}-{datetime.now().timestamp()}",
+                    name=f"{tool_name}: {url[:50]}",
+                    node_type='single',
+                    prompt_template=url,
+                    config={'tool': tool_name}
+                )
+                exec_id = conductor.record_node_start(run_id, node, url)
+
+                if outcome == 'failure':
+                    conductor.record_node_failure(
+                        exec_id=exec_id,
+                        error_message=reason,
+                        error_type='webfetch_error'
+                    )
+                    conductor.update_run_status(run_id, 'failed', error_message=reason)
+                    sys.stderr.write(f"[LEARNING_LOOP] {tool_name} FAILURE: {reason}\n")
+                else:
+                    output_text = str(tool_output)[:500] if tool_output else ""
+                    conductor.record_node_completion(
+                        exec_id=exec_id,
+                        result_text=output_text,
+                        result_dict={'outcome': outcome, 'reason': reason}
+                    )
+                    conductor.update_run_status(run_id, 'completed', output={'outcome': outcome, 'reason': reason})
+        except Exception as e:
+            sys.stderr.write(f"[LEARNING_LOOP] {tool_name} tracking error (non-fatal): {e}\n")
 
         output_result({})
         return
