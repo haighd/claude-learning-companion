@@ -33,7 +33,7 @@ $DbPath = Join-Path $ClcDir "memory\index.db"
 $StockHashesFile = Join-Path $ScriptDir ".stock-hashes"
 
 # GitHub repo info
-$GithubRepo = "Spacehunterz/Claude-Learning-Companion_CLC"
+$GithubRepo = "haighd/claude-learning-companion"
 $GithubApiUrl = "https://api.github.com/repos/$GithubRepo/releases/latest"
 
 # Backup directory (will be set later with timestamp)

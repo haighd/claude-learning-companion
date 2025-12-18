@@ -45,7 +45,7 @@ Use AskUserQuestion with:
 
 ## GIT REMOTES - READ THIS BEFORE PUSHING
 
-- `origin` = **PUBLIC REPO** (Claude-Learning-Companion_CLC) - PUSH HERE
+- `origin` = **PUBLIC REPO** (claude-learning-companion) - PUSH HERE
 - `private-backup` = private backup only - DO NOT PUSH unless explicitly asked
 
 When user says "push" or "push to git", use: `git push origin`

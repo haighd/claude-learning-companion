@@ -56,8 +56,8 @@ node --version
 
 **Option A: Git clone**
 ```bash
-git clone https://github.com/Spacehunterz/Claude-Learning-Companion_CLC.git
-cd Claude-Learning-Companion_CLC
+git clone https://github.com/haighd/claude-learning-companion.git
+cd claude-learning-companion
 ```
 
 **Option B: Download ZIP**
