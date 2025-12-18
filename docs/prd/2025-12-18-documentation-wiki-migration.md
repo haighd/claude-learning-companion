@@ -64,7 +64,7 @@ Fix all documentation to point to the correct repository, populate the GitHub wi
 #### Must Have (P0)
 | ID | Requirement | Acceptance Criteria |
 |----|-------------|---------------------|
-| FR-001 | Fix all wiki links in README.md | All 9 wiki page links point to `haighd/claude-learning-companion/wiki/*` |
+| FR-001 | Fix all wiki links in README.md | All 10 wiki page links point to `haighd/claude-learning-companion/wiki/*` |
 | FR-002 | Fix main wiki link in README.md | Main wiki link goes to correct repo wiki home |
 | FR-003 | Fix Issues link in README.md | Issues link points to `haighd/claude-learning-companion/issues` |
 | FR-004 | Fix git clone URL in GETTING_STARTED.md | Clone URL is `haighd/claude-learning-companion.git` |
@@ -137,7 +137,7 @@ Fix all documentation to point to the correct repository, populate the GitHub wi
 
 - [x] What is the correct repo URL? → `haighd/claude-learning-companion`
 - [x] Does wiki content exist locally? → Yes, 10 pages in `wiki/`
-- [ ] Are there any other files with stale ELF/Spacehunterz references?
+- [x] Are there any other files with stale ELF/Spacehunterz references? → Yes, found and fixed in update.sh, update.ps1, FUNDING.yml, CLAUDE.md, blog-post-draft.md
 
 ## Implementation Notes
 
@@ -179,7 +179,7 @@ NEW: git clone https://github.com/haighd/claude-learning-companion.git
 GitHub wikis are separate git repos. To push:
 ```bash
 git clone https://github.com/haighd/claude-learning-companion.wiki.git
-cp ~/.claude/clc/wiki/*.md claude-learning-companion.wiki/
+cp wiki/*.md claude-learning-companion.wiki/
 cd claude-learning-companion.wiki
 git add .
 git commit -m "Populate wiki with CLC documentation"

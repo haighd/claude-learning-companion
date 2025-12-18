@@ -18,7 +18,7 @@ Fix all dead links pointing to the old `Spacehunterz/Claude-Learning-Companion_C
 
 ### Files Requiring Updates
 
-| File | Line(s) | Issue |
+| File | Line(s) / Variable | Issue |
 |------|---------|-------|
 | `README.md` | 206-216, 252 | 11 wiki/issues links to wrong repo |
 | `GETTING_STARTED.md` | 59, 60 | Git clone URL and cd command wrong |
@@ -86,7 +86,7 @@ NEW: https://github.com/haighd/claude-learning-companion/issues
 **Automated:**
 ```bash
 # Zero matches for old repo in README
-grep -c "Spacehunterz" README.md
+grep -c "Spacehunterz\|Claude-Learning-Companion_CLC" README.md
 # Expected: 0
 ```
 
@@ -117,7 +117,7 @@ NEW: cd claude-learning-companion
 
 **Automated:**
 ```bash
-grep -c "Spacehunterz" GETTING_STARTED.md
+grep -c "Spacehunterz\|Claude-Learning-Companion_CLC" GETTING_STARTED.md
 # Expected: 0
 ```
 
@@ -137,7 +137,7 @@ git clone https://github.com/haighd/claude-learning-companion.wiki.git
 
 3.2. Copy wiki content:
 ```bash
-cp ~/.claude/clc/wiki/*.md /tmp/claude-learning-companion.wiki/
+cp wiki/*.md /tmp/claude-learning-companion.wiki/
 ```
 
 3.3. Commit and push:
@@ -191,7 +191,7 @@ NEW: $GithubRepo = "haighd/claude-learning-companion"
 
 **Automated:**
 ```bash
-grep -c "Spacehunterz" update.sh update.ps1
+grep -c "Spacehunterz\|Claude-Learning-Companion_CLC" update.sh update.ps1
 # Expected: 0
 ```
 
@@ -231,7 +231,7 @@ NEW: GitHub: [https://github.com/haighd/claude-learning-companion](https://githu
 **Automated:**
 ```bash
 # Comprehensive check - should only match PRD (which documents the old links)
-grep -r "Spacehunterz" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" . | grep -v "prd/" | grep -v "implementation-plans/"
+grep -r "Spacehunterz\|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" . | grep -v "prd/" | grep -v "implementation-plans/"
 # Expected: 0 matches (excluding prd/implementation-plans which document the change)
 ```
 
@@ -259,7 +259,7 @@ grep -rn "Spacehunterz\|Claude-Learning-Companion_CLC" --include="*.md" --includ
 **Automated:**
 ```bash
 # Final verification - zero stale references outside docs
-grep -r "Spacehunterz" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" . 2>/dev/null | grep -v "docs/prd\|docs/implementation-plans" | wc -l
+grep -r "Spacehunterz\|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" . 2>/dev/null | grep -v "docs/prd\|docs/implementation-plans" | wc -l
 # Expected: 0
 ```
 
