@@ -8,9 +8,9 @@ export function SettingsPanel() {
   const [isOpen, setIsOpen] = useState(false)
   const { theme, setTheme } = useTheme()
 
-  const themes: { id: Theme; name: string; icon: any; description: string }[] = [
-    { id: 'black-hole', name: 'Dark', icon: Moon, description: 'Dark mode' },
-    { id: 'white-dwarf', name: 'Light', icon: Sun, description: 'Light mode' },
+  const themes: { id: Theme; name: string; icon: any }[] = [
+    { id: 'black-hole', name: 'Dark', icon: Moon },
+    { id: 'white-dwarf', name: 'Light', icon: Sun },
   ]
 
   return (
