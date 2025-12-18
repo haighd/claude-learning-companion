@@ -28,7 +28,7 @@ CLC_DIR="$CLAUDE_DIR/clc"
 VERSION_FILE="$CLC_DIR/VERSION"
 DB_PATH="$CLC_DIR/memory/index.db"
 STOCK_HASHES_FILE="$SCRIPT_DIR/.stock-hashes"
-GITHUB_REPO="Spacehunterz/Claude-Learning-Companion_CLC"
+GITHUB_REPO="haighd/claude-learning-companion"
 GITHUB_API="https://api.github.com/repos/$GITHUB_REPO"
 
 # Backup directory (will be set during backup phase)

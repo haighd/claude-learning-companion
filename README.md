@@ -203,17 +203,17 @@ See [query/MIGRATION.md](query/MIGRATION.md) for migration guide from sync API.
 
 **Quick Start:** [Getting Started Guide](GETTING_STARTED.md) - Step-by-step setup from zero to running
 
-Full documentation in the [Wiki](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki):
+Full documentation in the [Wiki](https://github.com/haighd/claude-learning-companion/wiki):
 
-- [Installation](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Installation) - Prerequisites, options, troubleshooting
-- [Configuration](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Configuration) - CLAUDE.md, settings.json, hooks
-- [Dashboard](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Dashboard) - Tabs, stats, themes
-- [Swarm](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Swarm) - Multi-agent coordination, blackboard pattern
-- [CLI Reference](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/CLI-Reference) - All query commands
-- [Golden Rules](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Golden-Rules) - How to customize principles
-- [Migration](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Migration) - Upgrading, team setup
-- [Architecture](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Architecture) - Database schema, hooks system
-- [Token Costs](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/wiki/Token-Costs) - Usage breakdown, optimization
+- [Installation](https://github.com/haighd/claude-learning-companion/wiki/Installation) - Prerequisites, options, troubleshooting
+- [Configuration](https://github.com/haighd/claude-learning-companion/wiki/Configuration) - CLAUDE.md, settings.json, hooks
+- [Dashboard](https://github.com/haighd/claude-learning-companion/wiki/Dashboard) - Tabs, stats, themes
+- [Swarm](https://github.com/haighd/claude-learning-companion/wiki/Swarm) - Multi-agent coordination, blackboard pattern
+- [CLI Reference](https://github.com/haighd/claude-learning-companion/wiki/CLI-Reference) - All query commands
+- [Golden Rules](https://github.com/haighd/claude-learning-companion/wiki/Golden-Rules) - How to customize principles
+- [Migration](https://github.com/haighd/claude-learning-companion/wiki/Migration) - Upgrading, team setup
+- [Architecture](https://github.com/haighd/claude-learning-companion/wiki/Architecture) - Database schema, hooks system
+- [Token Costs](https://github.com/haighd/claude-learning-companion/wiki/Token-Costs) - Usage breakdown, optimization
 
 ## Plan Compatibility
 
@@ -249,7 +249,7 @@ The run-dashboard.sh script will now detect this issue and warn you before faili
 
 - [Claude Code Docs](https://docs.anthropic.com/en/docs/claude-code)
 - [Hooks System](https://docs.anthropic.com/en/docs/claude-code/hooks)
-- [Issues & Support](https://github.com/Spacehunterz/Claude-Learning-Companion_CLC/issues)
+- [Issues & Support](https://github.com/haighd/claude-learning-companion/issues)
 
 ## License
 

@@ -96,7 +96,7 @@ That's not AI getting smarter. That's *my* knowledge - the lessons from weeks of
 
 It's open source. MIT license. You can install it and try it.
 
-GitHub: [https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF](https://github.com/Spacehunterz/Emergent-Learning-Framework_ELF)
+GitHub: [https://github.com/haighd/claude-learning-companion](https://github.com/haighd/claude-learning-companion)
 
 ## Who This Is For
 
