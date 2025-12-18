@@ -403,7 +403,8 @@ async def get_events(limit: int = 50):
                 # Workflow event - determine tool type from prefix
                 workflow_name = r.get("workflow_name") or ""
 
-                event_type = "task_start"
+                # Default to event_type from SQL query for unmapped prefixes
+                event_type = r.get("event_type", "workflow_run")
                 tool_desc = workflow_name or "Unknown Workflow"
 
                 for prefix, (e_type, slice_len) in TOOL_PREFIXES.items():
@@ -427,7 +428,6 @@ async def get_events(limit: int = 50):
                 events.append({
                     "event_type": event_type,
                     "message": message,
-                    "description": message,
                     "timestamp": r["timestamp"],
                     "tags": None,
                     "context": None,
