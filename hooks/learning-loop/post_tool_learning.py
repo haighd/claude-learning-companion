@@ -249,7 +249,7 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
         (r'(?i)Permission denied', "Permission denied"),
         (r'(?i)cannot\s+', "Operation cannot be performed"),
         (r'(?i)fatal:', "Fatal error"),
-        (r'(?i)^error:', "Error occurred"),
+        (r'(?i)error:', "Error occurred"),
         (r'(?i)ENOENT', "File not found (ENOENT)"),
         (r'(?i)EACCES', "Access denied (EACCES)"),
         (r'(?i)ECONNREFUSED', "Connection refused"),
@@ -272,11 +272,12 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
             return "failure", reason
 
     # Check for common success patterns
+    # Use \A and \Z anchors instead of ^ and $ to avoid false positives with MULTILINE
     bash_success_patterns = [
         (r'(?i)successfully', "Operation successful"),
         (r'(?i)completed', "Operation completed"),
-        (r'(?i)done\.?$', "Done"),
-        (r'(?i)^ok\s', "OK status"),
+        (r'(?is)done\.?\s*\Z', "Done"),  # Only match "done" at absolute end of output
+        (r'(?i)\Aok\s', "OK status"),     # Only match "ok " at absolute start of output
         (r'(?i)passed', "Tests passed"),
         (r'(?i)\d+ passing', "Tests passing"),
     ]
@@ -305,14 +306,14 @@ def determine_mcp_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, str
 
     # MCP responses are typically dicts
     if isinstance(tool_output, dict):
-        # Check for explicit error field (handle None vs falsy values)
-        if "error" in tool_output and tool_output["error"] is not None:
+        # Check for explicit error field (treat only truthy values as an error signal)
+        if "error" in tool_output and tool_output["error"]:
             error = tool_output["error"]
             if isinstance(error, dict):
                 message = error.get("message") or "MCP error"
                 return "failure", str(message)[:100]
             else:
-                message = str(error) if str(error) else "MCP error"
+                message = str(error) or "MCP error"
                 return "failure", message[:100]
 
         # Check for error in content
@@ -936,63 +937,64 @@ def main():
         first_word = stripped_command.split()[0] if stripped_command else ""
         is_trivial = first_word in trivial_commands
 
-        # Only compute outcome if we might record it (efficiency optimization)
-        outcome, reason = None, None
-        if not is_trivial:
-            outcome, reason = determine_bash_outcome(tool_input, tool_output)
+        # Compute outcome once - we need it to decide whether to record
+        outcome, reason = determine_bash_outcome(tool_input, tool_output)
 
-        # Record if non-trivial, or if trivial but failed
-        if not is_trivial or (is_trivial and (outcome or determine_bash_outcome(tool_input, tool_output)[0]) == "failure"):
-            if outcome is None:
-                outcome, reason = determine_bash_outcome(tool_input, tool_output)
+        # For trivial commands, only record failures; skip successful trivial commands
+        if is_trivial and outcome != "failure":
+            output_result({})
+            return
 
-            try:
-                sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
-                from conductor import Conductor, Node
+        # At this point we have either:
+        # - A non-trivial command (record regardless of outcome), or
+        # - A trivial command that failed (outcome == "failure")
+        try:
+            sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
+            from conductor import Conductor, Node
 
-                conductor = Conductor(
-                    base_path=str(Path.home() / '.claude' / 'clc'),
-                    project_root=str(Path.home() / '.claude' / 'clc')
+            conductor = Conductor(
+                base_path=str(Path.home() / '.claude' / 'clc'),
+                project_root=str(Path.home() / '.claude' / 'clc')
+            )
+
+            description = tool_input.get('description', command)[:100]
+            timestamp_str = datetime.now().strftime('%Y%m%d-%H%M%S-%f')
+            run_id = conductor.start_run(
+                workflow_name=f"bash-{timestamp_str}",
+                input_data={
+                    'command': command,
+                    'description': description
+                }
+            )
+
+            if run_id:
+                node = Node(
+                    id=f"bash-{timestamp_str}",
+                    name=description,
+                    node_type='single',
+                    prompt_template=command,
+                    config={'tool': 'Bash'}
                 )
+                exec_id = conductor.record_node_start(run_id, node, command)
 
-                description = tool_input.get('description', command)[:100]
-                timestamp_str = datetime.now().strftime('%Y%m%d-%H%M%S-%f')
-                run_id = conductor.start_run(
-                    workflow_name=f"bash-{timestamp_str}",
-                    input_data={
-                        'command': command,
-                        'description': description
-                    }
-                )
-
-                if run_id:
-                    node = Node(
-                        id=f"bash-{timestamp_str}",
-                        name=description,
-                        node_type='single',
-                        prompt_template=command,
-                        config={'tool': 'Bash'}
+                if outcome == 'failure':
+                    conductor.record_node_failure(
+                        exec_id=exec_id,
+                        error_message=reason,
+                        error_type='bash_error'
                     )
-                    exec_id = conductor.record_node_start(run_id, node, command)
-
-                    if outcome == 'failure':
-                        conductor.record_node_failure(
-                            exec_id=exec_id,
-                            error_message=reason,
-                            error_type='bash_error'
-                        )
-                        conductor.update_run_status(run_id, 'failed', error_message=reason)
-                        sys.stderr.write(f"[LEARNING_LOOP] Bash FAILURE recorded: {reason}\n")
-                    else:
-                        output_text = str(tool_output)[:500] if tool_output else ""
-                        conductor.record_node_completion(
-                            exec_id=exec_id,
-                            result_text=output_text,
-                            result_dict={'outcome': outcome, 'reason': reason}
-                        )
-                        conductor.update_run_status(run_id, 'completed', output={'outcome': outcome, 'reason': reason})
-            except Exception as e:
-                sys.stderr.write(f"[LEARNING_LOOP] Bash tracking error (non-fatal): {type(e).__name__}: {e}\n")
+                    conductor.update_run_status(run_id, 'failed', error_message=reason)
+                    sys.stderr.write(f"[LEARNING_LOOP] Bash FAILURE recorded: {reason}\n")
+                else:
+                    output_text = str(tool_output)[:500] if tool_output else ""
+                    conductor.record_node_completion(
+                        exec_id=exec_id,
+                        result_text=output_text,
+                        result_dict={'outcome': outcome, 'reason': reason}
+                    )
+                    conductor.update_run_status(run_id, 'completed', output={'outcome': outcome, 'reason': reason})
+        except Exception as e:
+            sys.stderr.write(f"[LEARNING_LOOP] Bash tracking error (non-fatal): {type(e).__name__}: {e}\n")
 
         output_result({})
         return
