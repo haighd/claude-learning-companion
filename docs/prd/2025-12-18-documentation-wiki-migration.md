@@ -1,6 +1,6 @@
 ---
 title: "Documentation & Wiki Migration"
-status: draft
+status: implemented
 author: "Dan Haight"
 created: 2025-12-18
 last_updated: 2025-12-18
@@ -168,7 +168,7 @@ NEW: https://github.com/haighd/claude-learning-companion/issues
 
 ### Link to Fix in GETTING_STARTED.md
 
-**Line 59:**
+**Lines 59-60:**
 ```
 OLD: git clone https://github.com/Spacehunterz/Claude-Learning-Companion_CLC.git
 NEW: git clone https://github.com/haighd/claude-learning-companion.git

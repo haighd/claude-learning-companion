@@ -1,6 +1,6 @@
 ---
 title: "Documentation & Wiki Migration"
-status: draft
+status: implemented
 author: "Dan Haight"
 created: 2025-12-18
 last_updated: 2025-12-18
@@ -234,7 +234,7 @@ NEW: GitHub: [https://github.com/haighd/claude-learning-companion](https://githu
 **Automated:**
 ```bash
 # Comprehensive check - should only match PRD (which documents the old links)
-grep -Er "Spacehunterz|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" . | grep -Ev "prd/|implementation-plans/"
+grep -Er "Spacehunterz|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" . | grep -Ev "docs/prd/|docs/implementation-plans/"
 # Expected: 0 matches (excluding prd/implementation-plans which document the change)
 ```
 
@@ -248,7 +248,7 @@ grep -Er "Spacehunterz|Claude-Learning-Companion_CLC" --include="*.md" --include
 
 6.1. Run comprehensive grep to find any remaining stale references:
 ```bash
-grep -Ern "Spacehunterz|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" --include="*.py" . | grep -Ev "prd/|implementation-plans/"
+grep -Ern "Spacehunterz|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" --include="*.py" . | grep -Ev "docs/prd/|docs/implementation-plans/"
 ```
 
 6.2. Manual link verification:
