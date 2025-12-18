@@ -233,22 +233,21 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
     elif isinstance(tool_output, dict):
         output = tool_output.get("output", "") or tool_output.get("stdout", "") or str(tool_output)
 
-    # Check for explicit error indicators in output
-    output_lower = output.lower()
-
-    # Exit code patterns (if captured in output)
-    exit_code_match = re.search(r'exit[:\s]+code[:\s]+(\d+)', output_lower)
+    # Exit code patterns (if captured in output) - catch variations like:
+    # "exit code 1", "exited with code 1", "exit status 1", "returned 1"
+    exit_code_match = re.search(r'(?i)exit(?:ed)?(?:\s+with|\s+status|[:\s]+code)?[:\s]+(\d+)', output)
     if exit_code_match:
         code = int(exit_code_match.group(1))
         if code != 0:
             return "failure", f"Exit code {code}"
 
     # Error message patterns specific to shell commands
+    # Patterns simplified to avoid greedy `^.*:` prefixes for better performance
     bash_error_patterns = [
-        (r'(?i)^.*:\s*command not found', "Command not found"),
-        (r'(?i)^.*:\s*No such file or directory', "File/directory not found"),
-        (r'(?i)^.*:\s*Permission denied', "Permission denied"),
-        (r'(?i)^.*:\s*cannot\s+', "Operation cannot be performed"),
+        (r'(?i):\s*command not found', "Command not found"),
+        (r'(?i):\s*No such file or directory', "File/directory not found"),
+        (r'(?i)Permission denied', "Permission denied"),
+        (r'(?i)cannot\s+', "Operation cannot be performed"),
         (r'(?i)fatal:', "Fatal error"),
         (r'(?i)^error:', "Error occurred"),
         (r'(?i)ENOENT', "File not found (ENOENT)"),
@@ -286,11 +285,12 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
         if re.search(pattern, output, re.MULTILINE):
             return "success", reason
 
-    # If we got output without errors, consider it success
+    # If we got output without any recognized success or error patterns,
+    # outcome is ambiguous - be conservative
     if output.strip():
-        return "success", "Command produced output"
+        return "unknown", "Output present but no clear success indicators"
 
-    return "unknown", "No clear outcome indicators"
+    return "unknown", "No output and no clear outcome indicators"
 
 
 def determine_mcp_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, str]:
@@ -305,13 +305,15 @@ def determine_mcp_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, str
 
     # MCP responses are typically dicts
     if isinstance(tool_output, dict):
-        # Check for explicit error field
-        if "error" in tool_output:
+        # Check for explicit error field (handle None vs falsy values)
+        if "error" in tool_output and tool_output["error"] is not None:
             error = tool_output["error"]
             if isinstance(error, dict):
-                return "failure", error.get("message", "MCP error")
-            elif error:
-                return "failure", str(error)[:100]
+                message = error.get("message") or "MCP error"
+                return "failure", str(message)[:100]
+            else:
+                message = str(error) if str(error) else "MCP error"
+                return "failure", message[:100]
 
         # Check for error in content
         if "content" in tool_output:
@@ -323,18 +325,37 @@ def determine_mcp_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, str
                             return "failure", item.get("text", "MCP content error")[:100]
 
         # Check for status fields
-        status = tool_output.get("status", "").lower()
-        if status in ("error", "failed", "failure"):
-            return "failure", f"MCP status: {status}"
-        if status in ("success", "ok", "completed"):
-            return "success", f"MCP status: {status}"
+        status = tool_output.get("status", "")
+        if isinstance(status, str):
+            status_lower = status.lower()
+            if status_lower in ("error", "failed", "failure"):
+                return "failure", f"MCP status: {status}"
+            if status_lower in ("success", "ok", "completed"):
+                return "success", f"MCP status: {status}"
 
         # Check for isError flag
         if tool_output.get("isError"):
             return "failure", "MCP isError flag set"
 
-        # If we have results/data, it's likely success
-        if tool_output.get("result") or tool_output.get("data") or tool_output.get("content"):
+        # If we have meaningful results/data/content, it's likely success
+        has_meaningful_data = False
+        for key in ("result", "data", "content"):
+            if key not in tool_output:
+                continue
+            value = tool_output[key]
+            if value is None:
+                continue
+            # For common container/scalar types, require non-empty values
+            if isinstance(value, (str, list, dict)):
+                if len(value) > 0:
+                    has_meaningful_data = True
+                    break
+            else:
+                # Any other non-None value is treated as meaningful
+                has_meaningful_data = True
+                break
+
+        if has_meaningful_data:
             return "success", "MCP returned data"
 
     elif isinstance(tool_output, str):
@@ -356,11 +377,41 @@ def determine_webfetch_outcome(tool_input: dict, tool_output: dict) -> Tuple[str
     if not tool_output:
         return "unknown", "No output to analyze"
 
+    # Prefer known structured fields for error/success detection
     output_str = ""
     if isinstance(tool_output, dict):
-        output_str = str(tool_output)
+        pieces = []
+        # Common top-level fields that may contain status or error information
+        for key in (
+            "error",
+            "status",
+            "status_code",
+            "message",
+            "detail",
+            "details",
+            "reason",
+            "body",
+            "content",
+            "text",
+            "result",
+        ):
+            value = tool_output.get(key)
+            if value is not None:
+                pieces.append(str(value))
+
+        # Look for a nested response.status if present
+        response = tool_output.get("response")
+        if isinstance(response, dict):
+            nested_status = response.get("status")
+            if nested_status is not None:
+                pieces.append(str(nested_status))
+
+        # Fall back to full dict representation if nothing extracted
+        output_str = " | ".join(pieces) if pieces else str(tool_output)
     elif isinstance(tool_output, str):
         output_str = tool_output
+    else:
+        output_str = str(tool_output)
 
     output_lower = output_str.lower()
 
@@ -876,14 +927,25 @@ def main():
     # HANDLE Bash - Shell command outcomes
     # =========================================================================
     if tool_name == "Bash":
-        outcome, reason = determine_bash_outcome(tool_input, tool_output)
         command = tool_input.get("command", "unknown")[:100]
 
         # Only record significant commands (skip trivial ones)
-        trivial_commands = ['echo', 'pwd', 'ls', 'cd', 'cat', 'head', 'tail', 'sleep']
-        is_trivial = any(command.strip().startswith(cmd) for cmd in trivial_commands)
+        # Use word boundary check to avoid false positives (e.g., "category" matching "cat")
+        trivial_commands = {'echo', 'pwd', 'ls', 'cd', 'cat', 'head', 'tail', 'sleep'}
+        stripped_command = command.strip()
+        first_word = stripped_command.split()[0] if stripped_command else ""
+        is_trivial = first_word in trivial_commands
 
-        if not is_trivial or outcome == "failure":
+        # Only compute outcome if we might record it (efficiency optimization)
+        outcome, reason = None, None
+        if not is_trivial:
+            outcome, reason = determine_bash_outcome(tool_input, tool_output)
+
+        # Record if non-trivial, or if trivial but failed
+        if not is_trivial or (is_trivial and (outcome or determine_bash_outcome(tool_input, tool_output)[0]) == "failure"):
+            if outcome is None:
+                outcome, reason = determine_bash_outcome(tool_input, tool_output)
+
             try:
                 sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
                 from conductor import Conductor, Node
@@ -894,8 +956,9 @@ def main():
                 )
 
                 description = tool_input.get('description', command)[:100]
+                timestamp_str = datetime.now().strftime('%Y%m%d-%H%M%S-%f')
                 run_id = conductor.start_run(
-                    workflow_name=f"bash-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+                    workflow_name=f"bash-{timestamp_str}",
                     input_data={
                         'command': command,
                         'description': description
@@ -904,7 +967,7 @@ def main():
 
                 if run_id:
                     node = Node(
-                        id=f"bash-{datetime.now().timestamp()}",
+                        id=f"bash-{timestamp_str}",
                         name=description,
                         node_type='single',
                         prompt_template=command,
@@ -929,7 +992,7 @@ def main():
                         )
                         conductor.update_run_status(run_id, 'completed', output={'outcome': outcome, 'reason': reason})
             except Exception as e:
-                sys.stderr.write(f"[LEARNING_LOOP] Bash tracking error (non-fatal): {e}\n")
+                sys.stderr.write(f"[LEARNING_LOOP] Bash tracking error (non-fatal): {type(e).__name__}: {e}\n")
 
         output_result({})
         return
@@ -954,8 +1017,9 @@ def main():
             server_name = parts[1] if len(parts) > 1 else "unknown"
             tool_method = parts[2] if len(parts) > 2 else "unknown"
 
+            timestamp_str = datetime.now().strftime('%Y%m%d-%H%M%S-%f')
             run_id = conductor.start_run(
-                workflow_name=f"mcp-{server_name}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+                workflow_name=f"mcp-{server_name}-{timestamp_str}",
                 input_data={
                     'server': server_name,
                     'method': tool_method,
@@ -965,7 +1029,7 @@ def main():
 
             if run_id:
                 node = Node(
-                    id=f"mcp-{datetime.now().timestamp()}",
+                    id=f"mcp-{timestamp_str}",
                     name=f"{server_name}.{tool_method}",
                     node_type='single',
                     prompt_template=str(tool_input)[:200],
@@ -990,7 +1054,7 @@ def main():
                     )
                     conductor.update_run_status(run_id, 'completed', output={'outcome': outcome, 'reason': reason})
         except Exception as e:
-            sys.stderr.write(f"[LEARNING_LOOP] MCP tracking error (non-fatal): {e}\n")
+            sys.stderr.write(f"[LEARNING_LOOP] MCP tracking error (non-fatal): {type(e).__name__}: {e}\n")
 
         output_result({})
         return
@@ -1012,8 +1076,9 @@ def main():
 
             url = tool_input.get('url', tool_input.get('query', 'unknown'))[:200]
 
+            timestamp_str = datetime.now().strftime('%Y%m%d-%H%M%S-%f')
             run_id = conductor.start_run(
-                workflow_name=f"{tool_name.lower()}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+                workflow_name=f"{tool_name.lower()}-{timestamp_str}",
                 input_data={
                     'url': url,
                     'prompt': tool_input.get('prompt', '')[:200]
@@ -1022,7 +1087,7 @@ def main():
 
             if run_id:
                 node = Node(
-                    id=f"{tool_name.lower()}-{datetime.now().timestamp()}",
+                    id=f"{tool_name.lower()}-{timestamp_str}",
                     name=f"{tool_name}: {url[:50]}",
                     node_type='single',
                     prompt_template=url,
@@ -1047,7 +1112,9 @@ def main():
                     )
                     conductor.update_run_status(run_id, 'completed', output={'outcome': outcome, 'reason': reason})
         except Exception as e:
-            sys.stderr.write(f"[LEARNING_LOOP] {tool_name} tracking error (non-fatal): {e}\n")
+            sys.stderr.write(
+                f"[LEARNING_LOOP] {tool_name} tracking error (non-fatal): {type(e).__name__}: {e}\n"
+            )
 
         output_result({})
         return
