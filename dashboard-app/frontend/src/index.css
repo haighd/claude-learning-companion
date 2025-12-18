@@ -4,7 +4,6 @@
 
 /* ============================================
    THEME COLOR PALETTES
-   Space-themed color systems
    ============================================ */
 
 /* Default theme (Black Hole) */
@@ -255,8 +254,6 @@ body {
 }
 
 body {
-  cursor: none;
-  /* Hide default cursor, we use UfoCursor */
   background-color: var(--theme-bg-primary);
   background-image:
     radial-gradient(circle at 50% 50%, var(--theme-bg-secondary) 0%, transparent 50%),
@@ -381,12 +378,6 @@ nav * {
 
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out forwards;
-}
-
-/* Force hide cursor when UFO is active */
-.cosmic-cursor-hidden,
-.cosmic-cursor-hidden * {
-  cursor: none !important;
 }
 
 @keyframes lightChase {
@@ -620,16 +611,6 @@ nav * {
   .cosmic-title,
   .animate-light-chase {
     animation: none !important;
-  }
-
-  /* Restore cursor for users who prefer reduced motion */
-  body {
-    cursor: auto !important;
-  }
-
-  .cosmic-cursor-hidden,
-  .cosmic-cursor-hidden * {
-    cursor: auto !important;
   }
 }
 

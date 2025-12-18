@@ -1,12 +1,9 @@
 import React from 'react'
 import Header from '../components/Header'
-import { ParticleBackground } from '../components/ParticleBackground'
-import { UfoCursor } from '../components/ui/UfoCursor'
 import { NotificationPanel } from '../components/NotificationPanel'
 import { CommandPalette } from '../components/CommandPalette'
-import { GridView } from '../components/overview/GridView'
-import { CosmicGraphView } from '../components/cosmic-view/CosmicGraphView'
-import { CosmicAnalyticsView } from '../components/cosmic-view/CosmicAnalyticsView'
+import { LearningVelocity } from '../components/learning-velocity'
+import { KnowledgeGraph } from '../components'
 import { useNotificationContext } from '../context/NotificationContext'
 
 interface DashboardLayoutProps {
@@ -35,7 +32,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     const notifications = useNotificationContext()
 
     return (
-        <div className="min-h-screen relative overflow-hidden transition-colors duration-500" style={{ backgroundColor: "var(--theme-bg-primary)" }}>
+        <div className="min-h-screen relative transition-colors duration-300 bg-[var(--theme-bg-primary)]">
             {/* Skip link for keyboard users */}
             <a
                 href="#main-content"
@@ -43,11 +40,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             >
                 Skip to main content
             </a>
-
-            <div className="absolute inset-0 z-0 opacity-100 pointer-events-none">
-                <ParticleBackground />
-            </div>
-            <UfoCursor />
 
             <CommandPalette
                 isOpen={commandPaletteOpen}
@@ -63,63 +55,48 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 onToggleSound={notifications.toggleSound}
             />
 
-            <div className="relative z-10">
-                <Header
-                    isConnected={isConnected}
-                    onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-                    activeTab={activeTab as any}
-                    onTabChange={onTabChange as any}
-                />
+            <Header
+                isConnected={isConnected}
+                onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+                activeTab={activeTab as any}
+                onTabChange={onTabChange as any}
+            />
 
-                <main id="main-content" className="w-full min-h-screen" tabIndex={-1}>
-                    {/* Overview Tab - Always Grid View */}
-                    {activeTab === 'overview' && (
-                        !selectedDomain ? (
-                            <GridView onDomainSelect={onDomainSelect} />
-                        ) : (
-                            <div
-                                className="relative z-10 container mx-auto px-4 py-8 pt-24 h-screen max-h-screen overflow-y-auto custom-scrollbar cursor-default pb-24"
-                                onClick={() => onDomainSelect?.(null as any)}
-                            >
-                                <div
-                                    className="glass-panel p-6 rounded-xl"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    {children}
-                                </div>
-                            </div>
-                        )
-                    )}
+            <main id="main-content" className="w-full" tabIndex={-1}>
+                {/* Overview Tab - Stats + Runs */}
+                {activeTab === 'overview' && (
+                    <div className="container mx-auto px-4 py-2">
+                        {children}
+                    </div>
+                )}
 
-                    {/* Cosmic Views */}
-                    {/* Cosmic Graph View */}
-                    {activeTab === 'graph' && (
-                        <div className="fixed inset-0 z-10 pt-[120px] bg-black/40 backdrop-blur-sm animate-fade-in">
-                            <CosmicGraphView
-                                onNodeClick={(node) => {
-                                    if (onDomainSelect && node.domain) onDomainSelect(node.domain);
-                                }}
-                            />
+                {/* Knowledge Graph View */}
+                {activeTab === 'graph' && (
+                    <div className="container mx-auto px-4 py-2">
+                        <KnowledgeGraph
+                            onNodeClick={(node) => {
+                                if (onDomainSelect && node.domain) onDomainSelect(node.domain);
+                            }}
+                        />
+                    </div>
+                )}
+
+                {/* Analytics View */}
+                {activeTab === 'analytics' && (
+                    <div className="container mx-auto px-4 py-2">
+                        <LearningVelocity days={30} />
+                    </div>
+                )}
+
+                {/* Other tabs */}
+                {activeTab !== 'overview' && activeTab !== 'graph' && activeTab !== 'analytics' && (
+                    <div className="container mx-auto px-4 py-2">
+                        <div className="bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] p-4 rounded-lg min-h-[calc(100vh-100px)]">
+                            {children}
                         </div>
-                    )}
-
-                    {/* Cosmic Analytics View */}
-                    {activeTab === 'analytics' && (
-                        <div className="fixed inset-0 z-10 pt-[120px] bg-black/80 backdrop-blur-md animate-fade-in">
-                            <CosmicAnalyticsView />
-                        </div>
-                    )}
-
-                    {/* Fallback for other tabs in cosmic mode - render them in a container */}
-                    {activeTab !== 'overview' && activeTab !== 'graph' && activeTab !== 'analytics' && (
-                        <div className="relative z-10 container mx-auto px-4 py-8 pt-24 h-full overflow-y-auto custom-scrollbar">
-                            <div className="glass-panel p-6 rounded-xl min-h-[calc(100vh-150px)]">
-                                {children}
-                            </div>
-                        </div>
-                    )}
-                </main>
-            </div>
+                    </div>
+                )}
+            </main>
         </div>
     )
 }

@@ -1,18 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom'
-import { ThemeProvider, NotificationProvider, useNotificationContext, DataProvider, useDataContext, CosmicSettingsProvider, CosmicAudioProvider, useCosmicSettings, useTheme } from './context'
+import { ThemeProvider, NotificationProvider, useNotificationContext, DataProvider, useDataContext } from './context'
 import { DashboardLayout } from './layouts/DashboardLayout'
 import { useWebSocket, useAPI } from './hooks'
 import {
   StatsBar,
-  HotspotVisualization,
   HeuristicPanel,
   TimelineView,
   RunsPanel,
   QueryInterface,
-  AlertsPanel,
-  KnowledgeGraph,
-  LearningVelocity,
   SessionHistoryPanel,
   AssumptionsPanel,
   SpikeReportsPanel,
@@ -166,17 +162,6 @@ function AppContent() {
     }
   }
 
-  const { performanceMode } = useCosmicSettings()
-  const { setParticleCount } = useTheme()
-
-  // Performance Mode Logic
-  useEffect(() => {
-    switch (performanceMode) {
-      case 'low': setParticleCount(50); break;
-      case 'medium': setParticleCount(100); break;
-      case 'high': setParticleCount(200); break;
-    }
-  }, [performanceMode, setParticleCount])
 
   // Convert stats to expected format for StatsBar
   // FIX: Use successful_runs/failed_runs from backend (actual workflow runs), not successes/failures (learnings)
@@ -241,22 +226,25 @@ function AppContent() {
 
           {/* Tab Content */}
           {activeTab === 'overview' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <HotspotVisualization
-                  hotspots={hotspots}
-                  onSelect={(path) => handleOpenInEditor(path)}
-                  selectedDomain={selectedDomain}
-                  onDomainFilter={setSelectedDomain}
-                />
-              </div>
-              <div className="space-y-6">
-                <AlertsPanel
-                  anomalies={anomalies}
-                  goldenRules={normalizedHeuristics.filter(h => h.is_golden).map(h => ({ ...h, id: String(h.id) })) as any}
-                  onDismissAnomaly={(index) => setAnomalies(prev => prev.filter((_, i) => i !== index))}
-                />
-              </div>
+            <div className="space-y-6">
+              <RunsPanel
+                runs={runs.map(r => ({
+                  id: String(r.id),
+                  agent_type: r.workflow_name || 'unknown',
+                  description: `${r.workflow_name || 'Run'} - ${r.phase || r.status}`,
+                  status: r.status === 'completed' ? 'success' : (r.status === 'running' ? 'running' : 'failure'),
+                  started_at: r.started_at || r.created_at,
+                  completed_at: r.completed_at,
+                  duration_ms: r.completed_at && r.started_at
+                    ? new Date(r.completed_at).getTime() - new Date(r.started_at).getTime()
+                    : null,
+                  heuristics_used: [],
+                  files_touched: [],
+                  outcome_reason: r.failed_nodes > 0 ? `${r.failed_nodes} nodes failed` : null,
+                }))}
+                onRetry={handleRetryRun}
+                onOpenInEditor={handleOpenInEditor}
+              />
             </div>
           )}
 
@@ -301,6 +289,8 @@ function AppContent() {
             />
           )}
 
+          {/* Analytics is handled by DashboardLayout */}
+
           {activeTab === 'sessions' && <SessionHistoryPanel />}
           {activeTab === 'assumptions' && <AssumptionsPanel />}
           {activeTab === 'spikes' && <SpikeReportsPanel />}
@@ -325,9 +315,6 @@ function AppContent() {
           )}
 
           {activeTab === 'query' && <QueryInterface />}
-
-          {/* Analytics is handled by DashboardLayout for Cosmic mode, but we keep this for grid mode */}
-          {activeTab === 'analytics' && <LearningVelocity days={30} />}
         </div>
       </DashboardLayout>
     </>
@@ -340,11 +327,7 @@ function App() {
       <ThemeProvider>
         <NotificationProvider>
           <DataProvider>
-            <CosmicSettingsProvider>
-              <CosmicAudioProvider>
-                <AppContent />
-              </CosmicAudioProvider>
-            </CosmicSettingsProvider>
+            <AppContent />
           </DataProvider>
         </NotificationProvider>
       </ThemeProvider>
