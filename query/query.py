@@ -4,7 +4,7 @@ Claude Learning Companion (CLC) - Query System
 
 TIME-FIX-6: All timestamps are stored in UTC (via SQLite CURRENT_TIMESTAMP).
 Database uses naive datetime objects, but SQLite CURRENT_TIMESTAMP returns UTC.
-For timezone-aware operations, consider adding timezone library in future.
+TIME-FIX-7: Display timestamps are now converted to local timezone via format_utc_to_local().
 A tiered retrieval system for knowledge retrieval across the learning framework.
 
 Tier 1: Golden rules (always loaded, ~500 tokens)
@@ -123,6 +123,39 @@ except ImportError:
 
 # Fix Windows console encoding for Unicode characters
 setup_windows_console()
+
+
+def format_utc_to_local(utc_dt) -> str:
+    """
+    Convert a UTC datetime to local timezone and format for display.
+
+    Args:
+        utc_dt: datetime object (naive, assumed UTC) or ISO format string
+
+    Returns:
+        Formatted string like "2025-12-18 03:27 AM EST"
+    """
+    if utc_dt is None:
+        return "unknown"
+
+    try:
+        # Handle string input
+        if isinstance(utc_dt, str):
+            utc_dt = utc_dt.replace('Z', '+00:00')
+            if 'T' in utc_dt:
+                utc_dt = datetime.fromisoformat(utc_dt.split('+')[0])
+            else:
+                utc_dt = datetime.strptime(utc_dt.split('.')[0], '%Y-%m-%d %H:%M:%S')
+
+        # Treat as UTC and convert to local
+        utc_aware = utc_dt.replace(tzinfo=timezone.utc)
+        local_dt = utc_aware.astimezone()
+
+        # Format with timezone abbreviation
+        return local_dt.strftime('%Y-%m-%d %I:%M %p %Z')
+    except Exception:
+        # Fallback to original value if conversion fails
+        return str(utc_dt)
 
 
 class QuerySystem:
@@ -1993,7 +2026,7 @@ class QuerySystem:
                     recent = self.query_recent(limit=3, timeout=timeout)
 
                     for l in recent:
-                        entry = f"- **{l['title']}** ({l['type']}, {l['created_at']})\n"
+                        entry = f"- **{l['title']}** ({l['type']}, {format_utc_to_local(l['created_at'])})\n"
                         if l['summary']:
                             entry += f"  {l['summary']}\n\n"
                         context_parts.append(entry)
