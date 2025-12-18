@@ -234,7 +234,7 @@ NEW: GitHub: [https://github.com/haighd/claude-learning-companion](https://githu
 **Automated:**
 ```bash
 # Comprehensive check - should only match PRD (which documents the old links)
-grep -Er "Spacehunterz|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" . | grep -Ev "docs/prd/|docs/implementation-plans/"
+find . -type f \( -name "*.md" -o -name "*.sh" -o -name "*.ps1" -o -name "*.yml" \) -exec grep -El "Spacehunterz|Claude-Learning-Companion_CLC" {} + | grep -Ev "docs/prd/|docs/implementation-plans/"
 # Expected: 0 matches (excluding prd/implementation-plans which document the change)
 ```
 
@@ -248,7 +248,7 @@ grep -Er "Spacehunterz|Claude-Learning-Companion_CLC" --include="*.md" --include
 
 6.1. Run comprehensive grep to find any remaining stale references:
 ```bash
-grep -Ern "Spacehunterz|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" --include="*.py" . | grep -Ev "docs/prd/|docs/implementation-plans/"
+find . -type f \( -name "*.md" -o -name "*.sh" -o -name "*.ps1" -o -name "*.yml" -o -name "*.py" \) -exec grep -Eln "Spacehunterz|Claude-Learning-Companion_CLC" {} + | grep -Ev "docs/prd/|docs/implementation-plans/"
 ```
 
 6.2. Manual link verification:
@@ -262,7 +262,7 @@ grep -Ern "Spacehunterz|Claude-Learning-Companion_CLC" --include="*.md" --includ
 **Automated:**
 ```bash
 # Final verification - zero stale references outside docs
-grep -Er "Spacehunterz|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" . 2>/dev/null | grep -Ev "docs/prd|docs/implementation-plans" | wc -l
+find . -type f \( -name "*.md" -o -name "*.sh" -o -name "*.ps1" -o -name "*.yml" \) -exec grep -El "Spacehunterz|Claude-Learning-Companion_CLC" {} + 2>/dev/null | grep -Ev "docs/prd/|docs/implementation-plans/" | wc -l
 # Expected: 0
 ```
 
