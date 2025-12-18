@@ -98,7 +98,7 @@ try:
         QuerySystemError, ValidationError, DatabaseError,
         TimeoutError, ConfigurationError
     )
-    from query.utils import TimeoutHandler, escape_like, setup_windows_console
+    from query.utils import TimeoutHandler, escape_like, setup_windows_console, format_utc_to_local
     from query.validators import (
         validate_domain, validate_limit, validate_tags, validate_query,
         MAX_DOMAIN_LENGTH, MAX_QUERY_LENGTH, MAX_TAG_COUNT, MAX_TAG_LENGTH,
@@ -112,7 +112,7 @@ except ImportError:
         QuerySystemError, ValidationError, DatabaseError,
         TimeoutError, ConfigurationError
     )
-    from utils import TimeoutHandler, escape_like, setup_windows_console
+    from utils import TimeoutHandler, escape_like, setup_windows_console, format_utc_to_local
     from validators import (
         validate_domain, validate_limit, validate_tags, validate_query,
         MAX_DOMAIN_LENGTH, MAX_QUERY_LENGTH, MAX_TAG_COUNT, MAX_TAG_LENGTH,
@@ -123,39 +123,6 @@ except ImportError:
 
 # Fix Windows console encoding for Unicode characters
 setup_windows_console()
-
-
-def format_utc_to_local(utc_dt) -> str:
-    """
-    Convert a UTC datetime to local timezone and format for display.
-
-    Args:
-        utc_dt: datetime object (naive, assumed UTC) or ISO format string
-
-    Returns:
-        Formatted string like "2025-12-18 03:27 AM EST"
-    """
-    if utc_dt is None:
-        return "unknown"
-
-    try:
-        # Handle string input
-        if isinstance(utc_dt, str):
-            utc_dt = utc_dt.replace('Z', '+00:00')
-            if 'T' in utc_dt:
-                utc_dt = datetime.fromisoformat(utc_dt.split('+')[0])
-            else:
-                utc_dt = datetime.strptime(utc_dt.split('.')[0], '%Y-%m-%d %H:%M:%S')
-
-        # Treat as UTC and convert to local
-        utc_aware = utc_dt.replace(tzinfo=timezone.utc)
-        local_dt = utc_aware.astimezone()
-
-        # Format with timezone abbreviation
-        return local_dt.strftime('%Y-%m-%d %I:%M %p %Z')
-    except Exception:
-        # Fallback to original value if conversion fails
-        return str(utc_dt)
 
 
 class QuerySystem:

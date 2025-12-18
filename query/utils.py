@@ -14,13 +14,48 @@ import io
 import signal
 import asyncio
 import atexit
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Any
 
 # Import TimeoutError with fallback for script execution
 try:
     from .exceptions import TimeoutError
 except ImportError:
     from exceptions import TimeoutError
+
+
+def format_utc_to_local(utc_dt: Any) -> str:
+    """
+    Convert a UTC datetime to local timezone and format for display.
+
+    Args:
+        utc_dt: datetime object (naive, assumed UTC) or ISO format string
+
+    Returns:
+        Formatted string like "2025-12-18 03:27 AM EST"
+    """
+    if utc_dt is None:
+        return "unknown"
+
+    try:
+        dt_obj = utc_dt
+        # Handle string input
+        if isinstance(dt_obj, str):
+            dt_str = dt_obj.replace('Z', '+00:00')
+            if 'T' in dt_str:
+                dt_obj = datetime.fromisoformat(dt_str.split('+')[0])
+            else:
+                dt_obj = datetime.strptime(dt_str.split('.')[0], '%Y-%m-%d %H:%M:%S')
+
+        # Treat as UTC and convert to local
+        utc_aware = dt_obj.replace(tzinfo=timezone.utc)
+        local_dt = utc_aware.astimezone()
+
+        # Format with timezone abbreviation
+        return local_dt.strftime('%Y-%m-%d %I:%M %p %Z')
+    except (ValueError, TypeError, AttributeError):
+        # Fallback to original value if conversion fails
+        return str(utc_dt)
 
 
 # Fix Windows console encoding for Unicode characters

@@ -7,12 +7,12 @@ from typing import Dict, List, Any, Optional
 
 try:
     from query.models import Heuristic, Learning, get_manager
-    from query.utils import AsyncTimeoutHandler
+    from query.utils import AsyncTimeoutHandler, format_utc_to_local
     from query.exceptions import TimeoutError, ValidationError, DatabaseError, QuerySystemError
     from query.config_loader import get_config, load_custom_golden_rules, get_always_load_categories
 except ImportError:
     from models import Heuristic, Learning, get_manager
-    from utils import AsyncTimeoutHandler
+    from utils import AsyncTimeoutHandler, format_utc_to_local
     from exceptions import TimeoutError, ValidationError, DatabaseError, QuerySystemError
     from config_loader import get_config, load_custom_golden_rules, get_always_load_categories
 
@@ -23,39 +23,6 @@ try:
     META_OBSERVER_AVAILABLE = True
 except ImportError:
     pass
-
-
-def format_utc_to_local(utc_dt) -> str:
-    """
-    Convert a UTC datetime to local timezone and format for display.
-
-    Args:
-        utc_dt: datetime object (naive, assumed UTC) or ISO format string
-
-    Returns:
-        Formatted string like "2025-12-18 03:27 AM EST"
-    """
-    if utc_dt is None:
-        return "unknown"
-
-    try:
-        # Handle string input
-        if isinstance(utc_dt, str):
-            utc_dt = utc_dt.replace('Z', '+00:00')
-            if 'T' in utc_dt:
-                utc_dt = datetime.fromisoformat(utc_dt.split('+')[0])
-            else:
-                utc_dt = datetime.strptime(utc_dt.split('.')[0], '%Y-%m-%d %H:%M:%S')
-
-        # Treat as UTC and convert to local
-        utc_aware = utc_dt.replace(tzinfo=timezone.utc)
-        local_dt = utc_aware.astimezone()
-
-        # Format with timezone abbreviation
-        return local_dt.strftime('%Y-%m-%d %I:%M %p %Z')
-    except Exception:
-        # Fallback to original value if conversion fails
-        return str(utc_dt)
 
 
 def get_depth_limits(depth: str) -> dict:
