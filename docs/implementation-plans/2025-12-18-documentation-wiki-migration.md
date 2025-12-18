@@ -131,26 +131,26 @@ grep -c "Spacehunterz\|Claude-Learning-Companion_CLC" GETTING_STARTED.md
 
 3.1. Clone the wiki repository:
 ```bash
-cd /tmp
 git clone https://github.com/haighd/claude-learning-companion.wiki.git
 ```
 
 3.2. Copy wiki content:
 ```bash
-cp wiki/*.md /tmp/claude-learning-companion.wiki/
+cp wiki/*.md claude-learning-companion.wiki/
 ```
 
 3.3. Commit and push:
 ```bash
-cd /tmp/claude-learning-companion.wiki
+cd claude-learning-companion.wiki
 git add .
 git commit -m "Populate wiki with CLC documentation"
 git push
+cd ..
 ```
 
 3.4. Clean up:
 ```bash
-rm -rf /tmp/claude-learning-companion.wiki
+rm -rf claude-learning-companion.wiki
 ```
 
 ### Success Criteria
@@ -288,7 +288,12 @@ grep -r "Spacehunterz\|Claude-Learning-Companion_CLC" --include="*.md" --include
 
 All changes are in-repo text edits. Rollback via:
 ```bash
+# Revert modified files
 git checkout HEAD~1 -- README.md GETTING_STARTED.md update.sh update.ps1 .github/FUNDING.yml CLAUDE.md docs/blog-post-draft.md
+
+# Remove new documentation files added in this PR
+rm -f docs/prd/2025-12-18-documentation-wiki-migration.md
+rm -f docs/implementation-plans/2025-12-18-documentation-wiki-migration.md
 ```
 
 Wiki can be manually edited or re-cloned and modified.
