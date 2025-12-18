@@ -317,110 +317,128 @@ async def get_learning_velocity(days: int = 30):
         }
 
 
+# Tool prefix mapping for workflow name parsing (defined once for efficiency)
+TOOL_PREFIXES = {
+    "bash-": ("bash_run", 5),
+    "task-": ("task_run", 5),
+    "mcp-": ("mcp_call", 4),
+    "webfetch-": ("webfetch_call", 9),
+}
+
+
 @router.get("/events")
 async def get_events(limit: int = 50):
     """Get recent events feed including tool runs."""
     with get_db() as conn:
         cursor = conn.cursor()
 
-        events = []
-
-        # Recent metrics (last hour)
+        # Use UNION ALL for efficient combined query with DB-side sorting
         cursor.execute("""
-            SELECT metric_type, metric_name, metric_value, tags, context, timestamp
-            FROM metrics
-            WHERE timestamp > datetime('now', '-1 hour')
+            SELECT * FROM (
+                SELECT
+                    'metric' as event_source,
+                    metric_type as event_type,
+                    metric_name,
+                    tags,
+                    context,
+                    timestamp,
+                    NULL as workflow_name,
+                    NULL as status,
+                    NULL as phase,
+                    NULL as completed_nodes,
+                    NULL as failed_nodes
+                FROM metrics
+                WHERE timestamp > datetime('now', '-1 hour')
+
+                UNION ALL
+
+                SELECT
+                    'workflow' as event_source,
+                    'workflow_run' as event_type,
+                    NULL as metric_name,
+                    NULL as tags,
+                    NULL as context,
+                    COALESCE(started_at, created_at) as timestamp,
+                    workflow_name,
+                    status,
+                    phase,
+                    completed_nodes,
+                    failed_nodes
+                FROM workflow_runs
+                WHERE created_at > datetime('now', '-24 hours')
+            )
             ORDER BY timestamp DESC
             LIMIT ?
         """, (limit,))
 
+        events = []
         for row in cursor.fetchall():
             r = dict_from_row(row)
-            event_type = r["metric_type"]
 
-            # Format event message
-            if event_type == "heuristic_validated":
-                message = "Heuristic validated"
-            elif event_type == "heuristic_violated":
-                message = "Heuristic violated"
-            elif event_type == "auto_failure_capture":
-                message = "Failure auto-captured"
-            elif event_type == "golden_rule_promotion":
-                message = "New golden rule promoted!"
-            elif event_type == "task_outcome":
-                message = f"Task {r['metric_name']}"
+            if r["event_source"] == "metric":
+                event_type = r["event_type"]
+
+                # Format event message
+                if event_type == "heuristic_validated":
+                    message = "Heuristic validated"
+                elif event_type == "heuristic_violated":
+                    message = "Heuristic violated"
+                elif event_type == "auto_failure_capture":
+                    message = "Failure auto-captured"
+                elif event_type == "golden_rule_promotion":
+                    message = "New golden rule promoted!"
+                elif event_type == "task_outcome":
+                    message = f"Task {r['metric_name']}"
+                else:
+                    message = f"{event_type}: {r['metric_name']}"
+
+                events.append({
+                    "event_type": event_type,
+                    "message": message,
+                    "timestamp": r["timestamp"],
+                    "tags": r["tags"],
+                    "context": r["context"]
+                })
             else:
-                message = f"{event_type}: {r['metric_name']}"
+                # Workflow event - determine tool type from prefix
+                workflow_name = r.get("workflow_name", "") or ""
 
-            events.append({
-                "type": event_type,
-                "message": message,
-                "timestamp": r["timestamp"],
-                "tags": r["tags"],
-                "context": r["context"]
-            })
-
-        # Also include recent workflow runs as tool events
-        cursor.execute("""
-            SELECT id, workflow_name, status, phase, started_at, completed_at,
-                   completed_nodes, failed_nodes, created_at
-            FROM workflow_runs
-            WHERE created_at > datetime('now', '-24 hours')
-            ORDER BY created_at DESC
-            LIMIT ?
-        """, (limit,))
-
-        for row in cursor.fetchall():
-            r = dict_from_row(row)
-            workflow_name = r.get("workflow_name", "")
-
-            # Determine tool type from workflow_name prefix
-            if workflow_name.startswith("bash-"):
-                event_type = "bash_run"
-                tool_desc = workflow_name[5:]  # Strip "bash-" prefix
-            elif workflow_name.startswith("task-"):
-                event_type = "task_run"
-                tool_desc = workflow_name[5:]
-            elif workflow_name.startswith("mcp-"):
-                event_type = "mcp_call"
-                tool_desc = workflow_name[4:]
-            elif workflow_name.startswith("webfetch-"):
-                event_type = "webfetch_call"
-                tool_desc = workflow_name[9:]
-            else:
                 event_type = "task_start"
                 tool_desc = workflow_name
 
-            # Format status message
-            status = r.get("status", "unknown")
-            if status == "completed":
-                message = f"{tool_desc} completed"
-            elif status == "failed":
-                message = f"{tool_desc} failed"
-            elif status == "running":
-                message = f"{tool_desc} running"
-            else:
-                message = f"{tool_desc} ({status})"
+                for prefix, (e_type, slice_len) in TOOL_PREFIXES.items():
+                    if workflow_name.startswith(prefix):
+                        event_type = e_type
+                        tool_desc = workflow_name[slice_len:]
+                        break
 
-            events.append({
-                "type": event_type,
-                "event_type": event_type,
-                "message": message,
-                "description": message,
-                "timestamp": r.get("started_at") or r.get("created_at"),
-                "tags": None,
-                "context": None,
-                "metadata": {
-                    "status": status,
-                    "phase": r.get("phase"),
-                    "completed_nodes": r.get("completed_nodes"),
-                    "failed_nodes": r.get("failed_nodes"),
-                }
-            })
+                # Format status message
+                status = r.get("status", "unknown")
+                if status == "completed":
+                    message = f"{tool_desc} completed"
+                elif status == "failed":
+                    message = f"{tool_desc} failed"
+                elif status == "running":
+                    message = f"{tool_desc} running"
+                else:
+                    message = f"{tool_desc} ({status})"
 
-        # Sort all events by timestamp descending and limit
-        events.sort(key=lambda e: e.get("timestamp", ""), reverse=True)
-        return events[:limit]
+                events.append({
+                    "event_type": event_type,
+                    "message": message,
+                    "description": message,
+                    "timestamp": r["timestamp"],
+                    "tags": None,
+                    "context": None,
+                    "metadata": {
+                        "status": status,
+                        "phase": r.get("phase"),
+                        "completed_nodes": r.get("completed_nodes"),
+                        "failed_nodes": r.get("failed_nodes"),
+                    }
+                })
+
+        return events
 
 
 @router.get("/domains")
