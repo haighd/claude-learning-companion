@@ -7,12 +7,12 @@ from typing import Dict, List, Any, Optional
 
 try:
     from query.models import Heuristic, Learning, get_manager
-    from query.utils import AsyncTimeoutHandler
+    from query.utils import AsyncTimeoutHandler, format_utc_to_local
     from query.exceptions import TimeoutError, ValidationError, DatabaseError, QuerySystemError
     from query.config_loader import get_config, load_custom_golden_rules, get_always_load_categories
 except ImportError:
     from models import Heuristic, Learning, get_manager
-    from utils import AsyncTimeoutHandler
+    from utils import AsyncTimeoutHandler, format_utc_to_local
     from exceptions import TimeoutError, ValidationError, DatabaseError, QuerySystemError
     from config_loader import get_config, load_custom_golden_rules, get_always_load_categories
 
@@ -428,7 +428,7 @@ class ContextBuilderMixin:
                     recent = await self.query_recent(limit=3, timeout=timeout)
 
                     for l in recent:
-                        entry = f"- **{l['title']}** ({l['type']}, {l['created_at']})\n"
+                        entry = f"- **{l['title']}** ({l['type']}, {format_utc_to_local(l['created_at'])})\n"
                         if l['summary']:
                             entry += f"  {l['summary']}\n\n"
                         context_parts.append(entry)

@@ -4,7 +4,7 @@ Claude Learning Companion (CLC) - Query System
 
 TIME-FIX-6: All timestamps are stored in UTC (via SQLite CURRENT_TIMESTAMP).
 Database uses naive datetime objects, but SQLite CURRENT_TIMESTAMP returns UTC.
-For timezone-aware operations, consider adding timezone library in future.
+TIME-FIX-7: Display timestamps are now converted to local timezone via format_utc_to_local().
 A tiered retrieval system for knowledge retrieval across the learning framework.
 
 Tier 1: Golden rules (always loaded, ~500 tokens)
@@ -98,7 +98,7 @@ try:
         QuerySystemError, ValidationError, DatabaseError,
         TimeoutError, ConfigurationError
     )
-    from query.utils import TimeoutHandler, escape_like, setup_windows_console
+    from query.utils import TimeoutHandler, escape_like, setup_windows_console, format_utc_to_local
     from query.validators import (
         validate_domain, validate_limit, validate_tags, validate_query,
         MAX_DOMAIN_LENGTH, MAX_QUERY_LENGTH, MAX_TAG_COUNT, MAX_TAG_LENGTH,
@@ -112,7 +112,7 @@ except ImportError:
         QuerySystemError, ValidationError, DatabaseError,
         TimeoutError, ConfigurationError
     )
-    from utils import TimeoutHandler, escape_like, setup_windows_console
+    from utils import TimeoutHandler, escape_like, setup_windows_console, format_utc_to_local
     from validators import (
         validate_domain, validate_limit, validate_tags, validate_query,
         MAX_DOMAIN_LENGTH, MAX_QUERY_LENGTH, MAX_TAG_COUNT, MAX_TAG_LENGTH,
@@ -1993,7 +1993,7 @@ class QuerySystem:
                     recent = self.query_recent(limit=3, timeout=timeout)
 
                     for l in recent:
-                        entry = f"- **{l['title']}** ({l['type']}, {l['created_at']})\n"
+                        entry = f"- **{l['title']}** ({l['type']}, {format_utc_to_local(l['created_at'])})\n"
                         if l['summary']:
                             entry += f"  {l['summary']}\n\n"
                         context_parts.append(entry)
