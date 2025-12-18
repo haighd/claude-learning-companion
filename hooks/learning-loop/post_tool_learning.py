@@ -249,7 +249,7 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
         (r'(?i)Permission denied', "Permission denied"),
         (r'(?i)cannot\s+', "Operation cannot be performed"),
         (r'(?i)fatal:', "Fatal error"),
-        (r'(?i)error:', "Error occurred"),
+        (r'(?i)\berror:\s*\S', "Error occurred"),  # Require non-empty error message
         (r'(?i)ENOENT', "File not found (ENOENT)"),
         (r'(?i)EACCES', "Access denied (EACCES)"),
         (r'(?i)ECONNREFUSED', "Connection refused"),
@@ -263,27 +263,27 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
         (r'(?i)RuntimeError', "Runtime error"),
         (r'(?i)Traceback \(most recent', "Python exception"),
         (r'(?i)segmentation fault', "Segmentation fault"),
-        (r'(?i)killed', "Process killed"),
+        (r'(?i)\bkilled\b', "Process killed"),  # Word boundary to avoid "killed the bug"
         (r'(?i)out of memory', "Out of memory"),
     ]
 
     for pattern, reason in bash_error_patterns:
-        if re.search(pattern, output, re.MULTILINE):
+        if re.search(pattern, output):
             return "failure", reason
 
     # Check for common success patterns
-    # Use \A and \Z anchors instead of ^ and $ to avoid false positives with MULTILINE
+    # Use \A and \Z anchors for absolute string start/end (no MULTILINE needed)
     bash_success_patterns = [
         (r'(?i)successfully', "Operation successful"),
         (r'(?i)completed', "Operation completed"),
         (r'(?is)done\.?\s*\Z', "Done"),  # Only match "done" at absolute end of output
         (r'(?i)\Aok\s', "OK status"),     # Only match "ok " at absolute start of output
-        (r'(?i)passed', "Tests passed"),
+        (r'(?i)\bpassed\b', "Tests passed"),  # Word boundary to avoid "bypassed"
         (r'(?i)\d+ passing', "Tests passing"),
     ]
 
     for pattern, reason in bash_success_patterns:
-        if re.search(pattern, output, re.MULTILINE):
+        if re.search(pattern, output):
             return "success", reason
 
     # If we got output without any recognized success or error patterns,
@@ -306,15 +306,16 @@ def determine_mcp_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, str
 
     # MCP responses are typically dicts
     if isinstance(tool_output, dict):
-        # Check for explicit error field (treat only truthy values as an error signal)
-        if "error" in tool_output and tool_output["error"]:
+        # Check for explicit error field (treat any non-None, non-empty-string value as error)
+        if "error" in tool_output:
             error = tool_output["error"]
-            if isinstance(error, dict):
-                message = error.get("message") or "MCP error"
-                return "failure", str(message)[:100]
-            else:
-                message = str(error) or "MCP error"
-                return "failure", message[:100]
+            if error is not None and error != "":
+                if isinstance(error, dict):
+                    message = error.get("message") or "MCP error"
+                    return "failure", str(message)[:100]
+                else:
+                    message = str(error) or "MCP error"
+                    return "failure", message[:100]
 
         # Check for error in content
         if "content" in tool_output:
@@ -447,9 +448,8 @@ def determine_webfetch_outcome(tool_input: dict, tool_output: dict) -> Tuple[str
         if tool_output.get("content") or tool_output.get("text") or tool_output.get("result"):
             return "success", "Content fetched successfully"
 
-    # If we have substantial output, consider it success
-    if len(output_str) > 100:
-        return "success", "Substantial content received"
+    # Note: Removed length-based heuristic (>100 chars = success) as verbose error
+    # messages or stack traces could exceed that threshold and be misclassified
 
     return "unknown", "Could not determine fetch outcome"
 
@@ -934,8 +934,14 @@ def main():
         # Use word boundary check to avoid false positives (e.g., "category" matching "cat")
         trivial_commands = {'echo', 'pwd', 'ls', 'cd', 'cat', 'head', 'tail', 'sleep'}
         stripped_command = command.strip()
-        first_word = stripped_command.split()[0] if stripped_command else ""
-        is_trivial = first_word in trivial_commands
+        tokens = stripped_command.split() if stripped_command else []
+        # Handle simple command wrappers like "sudo ls" or "time cat file.txt"
+        command_prefix = ""
+        if tokens:
+            command_prefix = tokens[0]
+            if command_prefix in {"sudo", "time", "env"} and len(tokens) > 1:
+                command_prefix = tokens[1]
+        is_trivial = command_prefix in trivial_commands
 
         # Compute outcome once - we need it to decide whether to record
         outcome, reason = determine_bash_outcome(tool_input, tool_output)
