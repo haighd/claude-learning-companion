@@ -86,7 +86,7 @@ NEW: https://github.com/haighd/claude-learning-companion/issues
 **Automated:**
 ```bash
 # Zero matches for old repo in README
-grep -c "Spacehunterz\|Claude-Learning-Companion_CLC" README.md
+grep -Ec "Spacehunterz|Claude-Learning-Companion_CLC" README.md
 # Expected: 0
 ```
 
@@ -117,7 +117,7 @@ NEW: cd claude-learning-companion
 
 **Automated:**
 ```bash
-grep -c "Spacehunterz\|Claude-Learning-Companion_CLC" GETTING_STARTED.md
+grep -Ec "Spacehunterz|Claude-Learning-Companion_CLC" GETTING_STARTED.md
 # Expected: 0
 ```
 
@@ -157,8 +157,11 @@ rm -rf claude-learning-companion.wiki
 
 **Automated:**
 ```bash
-# Verify wiki pages exist via API
-gh api repos/haighd/claude-learning-companion/pages 2>/dev/null || echo "Check wiki manually"
+# Clone wiki and verify page count
+git clone --depth 1 https://github.com/haighd/claude-learning-companion.wiki.git /tmp/wiki-check 2>/dev/null && \
+  ls /tmp/wiki-check/*.md | wc -l && \
+  rm -rf /tmp/wiki-check
+# Expected: 10
 ```
 
 **Manual:**
@@ -191,7 +194,7 @@ NEW: $GithubRepo = "haighd/claude-learning-companion"
 
 **Automated:**
 ```bash
-grep -c "Spacehunterz\|Claude-Learning-Companion_CLC" update.sh update.ps1
+grep -Ec "Spacehunterz|Claude-Learning-Companion_CLC" update.sh update.ps1
 # Expected: 0
 ```
 
@@ -231,7 +234,7 @@ NEW: GitHub: [https://github.com/haighd/claude-learning-companion](https://githu
 **Automated:**
 ```bash
 # Comprehensive check - should only match PRD (which documents the old links)
-grep -r "Spacehunterz\|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" . | grep -v "prd/" | grep -v "implementation-plans/"
+grep -Er "Spacehunterz|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" . | grep -v "prd/" | grep -v "implementation-plans/"
 # Expected: 0 matches (excluding prd/implementation-plans which document the change)
 ```
 
@@ -245,7 +248,7 @@ grep -r "Spacehunterz\|Claude-Learning-Companion_CLC" --include="*.md" --include
 
 6.1. Run comprehensive grep to find any remaining stale references:
 ```bash
-grep -rn "Spacehunterz\|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" --include="*.py" . | grep -v "prd/\|implementation-plans/"
+grep -Ern "Spacehunterz|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" --include="*.py" . | grep -v "prd/\|implementation-plans/"
 ```
 
 6.2. Manual link verification:
@@ -259,7 +262,7 @@ grep -rn "Spacehunterz\|Claude-Learning-Companion_CLC" --include="*.md" --includ
 **Automated:**
 ```bash
 # Final verification - zero stale references outside docs
-grep -r "Spacehunterz\|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" . 2>/dev/null | grep -v "docs/prd\|docs/implementation-plans" | wc -l
+grep -Er "Spacehunterz|Claude-Learning-Companion_CLC" --include="*.md" --include="*.sh" --include="*.ps1" --include="*.yml" . 2>/dev/null | grep -v "docs/prd\|docs/implementation-plans" | wc -l
 # Expected: 0
 ```
 
