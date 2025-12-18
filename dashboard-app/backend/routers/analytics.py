@@ -401,15 +401,16 @@ async def get_events(limit: int = 50):
                 })
             else:
                 # Workflow event - determine tool type from prefix
-                workflow_name = r.get("workflow_name", "") or ""
+                workflow_name = r.get("workflow_name") or ""
 
                 event_type = "task_start"
-                tool_desc = workflow_name
+                tool_desc = workflow_name or "Unknown Workflow"
 
                 for prefix, (e_type, slice_len) in TOOL_PREFIXES.items():
                     if workflow_name.startswith(prefix):
                         event_type = e_type
-                        tool_desc = workflow_name[slice_len:]
+                        # Use tool type as fallback if name after prefix is empty
+                        tool_desc = workflow_name[slice_len:] or prefix.rstrip('-')
                         break
 
                 # Format status message

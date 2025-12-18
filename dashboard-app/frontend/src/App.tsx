@@ -232,7 +232,7 @@ function AppContent() {
                   id: String(r.id),
                   agent_type: r.workflow_name || 'unknown',
                   description: `${r.workflow_name || 'Run'} - ${r.phase || r.status}`,
-                  status: r.status === 'completed' ? 'success' : r.status as 'running' | 'failure',
+                  status: r.status === 'completed' ? 'success' : (r.status === 'running' ? 'running' : 'failure'),
                   started_at: r.started_at || r.created_at,
                   completed_at: r.completed_at,
                   duration_ms: r.completed_at && r.started_at
