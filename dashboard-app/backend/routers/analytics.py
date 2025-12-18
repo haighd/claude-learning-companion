@@ -319,7 +319,7 @@ async def get_learning_velocity(days: int = 30):
 
 @router.get("/events")
 async def get_events(limit: int = 50):
-    """Get recent events feed."""
+    """Get recent events feed including tool runs."""
     with get_db() as conn:
         cursor = conn.cursor()
 
@@ -360,7 +360,67 @@ async def get_events(limit: int = 50):
                 "context": r["context"]
             })
 
-        return events
+        # Also include recent workflow runs as tool events
+        cursor.execute("""
+            SELECT id, workflow_name, status, phase, started_at, completed_at,
+                   completed_nodes, failed_nodes, created_at
+            FROM workflow_runs
+            WHERE created_at > datetime('now', '-24 hours')
+            ORDER BY created_at DESC
+            LIMIT ?
+        """, (limit,))
+
+        for row in cursor.fetchall():
+            r = dict_from_row(row)
+            workflow_name = r.get("workflow_name", "")
+
+            # Determine tool type from workflow_name prefix
+            if workflow_name.startswith("bash-"):
+                event_type = "bash_run"
+                tool_desc = workflow_name[5:]  # Strip "bash-" prefix
+            elif workflow_name.startswith("task-"):
+                event_type = "task_run"
+                tool_desc = workflow_name[5:]
+            elif workflow_name.startswith("mcp-"):
+                event_type = "mcp_call"
+                tool_desc = workflow_name[4:]
+            elif workflow_name.startswith("webfetch-"):
+                event_type = "webfetch_call"
+                tool_desc = workflow_name[9:]
+            else:
+                event_type = "task_start"
+                tool_desc = workflow_name
+
+            # Format status message
+            status = r.get("status", "unknown")
+            if status == "completed":
+                message = f"{tool_desc} completed"
+            elif status == "failed":
+                message = f"{tool_desc} failed"
+            elif status == "running":
+                message = f"{tool_desc} running"
+            else:
+                message = f"{tool_desc} ({status})"
+
+            events.append({
+                "type": event_type,
+                "event_type": event_type,
+                "message": message,
+                "description": message,
+                "timestamp": r.get("started_at") or r.get("created_at"),
+                "tags": None,
+                "context": None,
+                "metadata": {
+                    "status": status,
+                    "phase": r.get("phase"),
+                    "completed_nodes": r.get("completed_nodes"),
+                    "failed_nodes": r.get("failed_nodes"),
+                }
+            })
+
+        # Sort all events by timestamp descending and limit
+        events.sort(key=lambda e: e.get("timestamp", ""), reverse=True)
+        return events[:limit]
 
 
 @router.get("/domains")

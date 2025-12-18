@@ -3,7 +3,6 @@ import { NavLink } from 'react-router-dom'
 import { Command, Sparkles, Home, Brain, Play, Clock, Search, BarChart3, Network, MessageSquare, Lightbulb, FileWarning, Shield, AlertTriangle } from 'lucide-react'
 import { ConnectionStatus, CeoInboxDropdown, CeoItemModal, CeoItem } from './header-components'
 import { SettingsPanel } from './SettingsPanel'
-import { useCosmicAudio } from '../context/CosmicAudioContext'
 import { TabId, MAIN_TABS, ADVANCED_TABS, getPathFromTab } from '../router'
 
 interface HeaderProps {
@@ -36,7 +35,6 @@ export default function Header({ isConnected, onOpenCommandPalette, activeTab = 
   const [itemContent, setItemContent] = useState<string>('')
   const [loadingContent, setLoadingContent] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
-  const { playHover, playClick } = useCosmicAudio()
 
   // Fetch CEO inbox items
   useEffect(() => {
@@ -59,7 +57,6 @@ export default function Header({ isConnected, onOpenCommandPalette, activeTab = 
   const handleItemClick = async (item: CeoItem) => {
     setSelectedItem(item)
     setLoadingContent(true)
-    playClick()
     try {
       const res = await fetch(`/api/ceo-inbox/${item.filename}`)
       if (res.ok) {
@@ -80,7 +77,7 @@ export default function Header({ isConnected, onOpenCommandPalette, activeTab = 
 
   return (
     <>
-      <header className="sticky top-4 z-50 pointer-events-none transition-all duration-300 bg-transparent">
+      <header className="sticky top-2 z-50 pointer-events-none transition-all duration-300 bg-transparent">
         {/* Pointer events on header container are none so clicks pass through to canvas on sides, 
             but we re-enable them on the actual content */}
 
@@ -110,9 +107,7 @@ export default function Header({ isConnected, onOpenCommandPalette, activeTab = 
               <button
                 onClick={() => {
                   if (onOpenCommandPalette) onOpenCommandPalette();
-                  playClick();
                 }}
-                onMouseEnter={() => playHover()}
                 className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-all text-white/40 hover:text-white/70
                            focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
                 aria-label="Open command palette (Cmd+K)"
@@ -133,8 +128,6 @@ export default function Header({ isConnected, onOpenCommandPalette, activeTab = 
                       key={id}
                       to={path}
                       end={id === 'overview'}
-                      onClick={() => playClick()}
-                      onMouseEnter={() => playHover()}
                       className={({ isActive }) =>
                         `flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all
                          focus:outline-none focus:ring-2 focus:ring-cyan-500/50 ${
@@ -154,11 +147,7 @@ export default function Header({ isConnected, onOpenCommandPalette, activeTab = 
                 {/* Advanced tabs dropdown */}
                 <div className="relative">
                   <button
-                    onClick={() => {
-                      setShowAdvanced(!showAdvanced);
-                      playClick();
-                    }}
-                    onMouseEnter={() => playHover()}
+                    onClick={() => setShowAdvanced(!showAdvanced)}
                     aria-expanded={showAdvanced}
                     aria-haspopup="menu"
                     aria-label="More navigation options"
@@ -186,10 +175,7 @@ export default function Header({ isConnected, onOpenCommandPalette, activeTab = 
                             key={id}
                             to={path}
                             role="menuitem"
-                            onClick={() => {
-                              setShowAdvanced(false);
-                              playClick();
-                            }}
+                            onClick={() => setShowAdvanced(false)}
                             className={({ isActive }) =>
                               `w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all
                                focus:outline-none focus:ring-2 focus:ring-violet-500/50 ${
@@ -211,8 +197,7 @@ export default function Header({ isConnected, onOpenCommandPalette, activeTab = 
             </div>
 
             {/* Right Side: Actions */}
-            <div className="flex items-center gap-4 px-4 border-l border-white/5 pl-6 shrink-0">
-
+            <div className="flex items-center gap-3 px-3 border-l border-white/5 shrink-0">
               <CeoInboxDropdown
                 items={ceoItems}
                 isOpen={showCeoDropdown}
