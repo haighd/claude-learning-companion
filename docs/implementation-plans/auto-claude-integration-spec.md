@@ -57,10 +57,13 @@ CLC escalates to CEO immediately when encountering uncertainty or failures. This
 self_healing:
   enabled: true
   max_attempts: 5
-  model_escalation:
-    - haiku    # attempts 1-2
-    - sonnet   # attempts 3-4
-    - opus     # attempt 5
+  model_escalation_strategy:
+    - attempts: [1, 2]
+      model: haiku
+    - attempts: [3, 4]
+      model: sonnet
+    - attempts: [5]
+      model: opus
   fixable_patterns:
     - "SyntaxError"
     - "TypeError"
@@ -348,7 +351,20 @@ async def link_to_learning(id: str, learning_id: str):
 ```typescript
 // dashboard-app/frontend/src/components/Kanban.tsx
 import React, { useState } from 'react';
-import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
+import {
+  DndContext,
+  DragEndEvent,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 interface WorkflowItem {
   id: string;
@@ -362,19 +378,36 @@ interface WorkflowItem {
 const Kanban: React.FC = () => {
   const [items, setItems] = useState<WorkflowItem[]>([]);
 
-  const handleDragEnd = (result: DropResult) => {
-    // Update status on drag
-    updateWorkflowStatus(result.draggableId, result.destination.droppableId);
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      updateWorkflowStatus(active.id as string, over.id as string);
+    }
   };
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
       {columns.map(column => (
-        <Droppable droppableId={column.id}>
-          {/* Render items */}
-        </Droppable>
+        <SortableContext
+          key={column.id}
+          items={items.filter(i => i.status === column.id).map(i => i.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {/* Render sortable items */}
+        </SortableContext>
       ))}
-    </DragDropContext>
+    </DndContext>
   );
 };
 ```
@@ -383,7 +416,8 @@ const Kanban: React.FC = () => {
 ```json
 {
   "dependencies": {
-    "react-beautiful-dnd": "^13.1.1"
+    "@dnd-kit/core": "^6.0.0",
+    "@dnd-kit/sortable": "^8.0.0"
   }
 }
 ```
@@ -453,123 +487,10 @@ agent_config = {
 
 ---
 
-## 6. Coexistence Guide: Running CLC + Auto-Claude Together
+## 6. Coexistence Guide
 
-### Overview
-
-CLC and Auto-Claude can coexist on the same system without technical conflicts. This section documents compatibility considerations and recommended configurations.
-
-### Resource Separation
-
-| Resource | CLC Location | Auto-Claude Location | Conflict? |
-|----------|--------------|---------------------|-----------|
-| CLAUDE.md | `~/.claude/CLAUDE.md` (global) | `./CLAUDE.md` (project-local) | No |
-| Settings | `~/.claude/settings.json` | `.env` in project | No |
-| Data storage | `~/.claude/clc/` | `./specs/`, `./.worktrees/` | No |
-| Hooks | Global PreToolUse/PostToolUse | None (Python orchestration) | No |
-| Git operations | Main workspace | Isolated worktrees | No |
-
-### Potential Issues & Mitigations
-
-#### Issue 1: CLAUDE.md Instruction Precedence
-
-Claude Code loads global CLAUDE.md first, then project-local overrides. If Auto-Claude's local `./CLAUDE.md` conflicts with CLC's global instructions, local wins.
-
-**Mitigation**: Add CLC query requirement to Auto-Claude's CLAUDE.md:
-```markdown
-## CLC Integration
-Before starting any spec or build, query CLC:
-python ~/.claude/clc/query/query.py --context
-```
-
-#### Issue 2: Hook Noise from Autonomous Builds
-
-CLC's learning hooks capture all tool usage. Auto-Claude's autonomous builds generate hundreds of tool calls, potentially flooding the learning database.
-
-**Mitigation**: Add exclusion to CLC hooks:
-```python
-# In pre_tool_learning.py / post_tool_learning.py
-import os
-import sys
-if "auto-claude" in os.getcwd() or ".worktrees" in os.getcwd():
-    sys.exit(0)  # Skip learning capture for Auto-Claude operations
-```
-
-#### Issue 3: Knowledge Gap
-
-Auto-Claude agents don't query CLC, so accumulated wisdom isn't applied to autonomous builds.
-
-**Mitigation**: Inject CLC knowledge into specs manually:
-```bash
-# Before creating spec
-python ~/.claude/clc/query/query.py --context > clc-context.txt
-# Include relevant learnings in spec description
-```
-
-### Installation Options for Existing CLC Projects
-
-#### Option A: Subdirectory Installation (Recommended)
-
-```bash
-cd ~/Projects/my-clc-project
-git clone https://github.com/AndyMik90/Auto-Claude.git .auto-claude
-cd .auto-claude && uv venv && uv pip install -r requirements.txt
-
-# Add to .gitignore
-echo ".auto-claude/" >> ../.gitignore
-echo ".worktrees/" >> ../.gitignore
-```
-
-**Benefit**: Complete isolation. Auto-Claude's CLAUDE.md stays in subdirectory.
-
-#### Option B: Root Installation with Merged Config
-
-```bash
-# Create merged CLAUDE.md at project root
-cat > CLAUDE.md << 'EOF'
-# Project Instructions
-
-## CLC Integration
-python ~/.claude/clc/query/query.py --context
-
-## Auto-Claude
-For autonomous builds, see .auto-claude/
-
-## Project Rules
-[Your existing rules here]
-EOF
-```
-
-### Recommended Hybrid Workflow
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  1. PLANNING (CLC)                                              │
-│     Query CLC for golden rules and relevant heuristics          │
-├─────────────────────────────────────────────────────────────────┤
-│  2. SPEC CREATION (Auto-Claude)                                 │
-│     Inject CLC learnings into spec requirements                 │
-├─────────────────────────────────────────────────────────────────┤
-│  3. AUTONOMOUS BUILD (Auto-Claude)                              │
-│     Agents implement in isolated worktree                       │
-├─────────────────────────────────────────────────────────────────┤
-│  4. REVIEW & MERGE (CLC PR Workflow)                            │
-│     Use existing /gemini review → /run-ci workflow              │
-├─────────────────────────────────────────────────────────────────┤
-│  5. LEARNING CAPTURE (CLC)                                      │
-│     Record successes/failures from the build                    │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### .gitignore Additions
-
-```gitignore
-# Auto-Claude artifacts
-.auto-claude/
-specs/
-.worktrees/
-```
+For details on running CLC and Auto-Claude together, including resource separation, potential issues and mitigations, installation options, and recommended hybrid workflows, see the [Auto-Claude Integration Guide](../auto-claude-integration-guide.md).
 
 ---
 
-*Spec Version: 1.1 - Added Coexistence Guide*
+*Spec Version: 1.2 - Removed duplicated coexistence content, linked to main guide*
