@@ -130,3 +130,26 @@ class ActionResult(BaseModel):
 class OpenInEditorRequest(BaseModel):
     path: str
     line: Optional[int] = None
+
+
+# Kanban Task Models
+class KanbanTaskCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    status: Optional[str] = "pending"
+    priority: Optional[int] = 0
+    tags: Optional[List[str]] = []
+
+
+class KanbanTaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    priority: Optional[int] = None
+    tags: Optional[List[str]] = None
+    linked_learnings: Optional[List[str]] = None
+    linked_heuristics: Optional[List[int]] = None
+
+
+class KanbanTaskStatusUpdate(BaseModel):
+    status: str  # pending, in_progress, review, done

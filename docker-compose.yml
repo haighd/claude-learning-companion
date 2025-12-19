@@ -1,0 +1,30 @@
+# Docker Compose for CLC Graph-Based Memory
+# Part of Auto-Claude Integration (P3: Graph-Based Memory)
+#
+# Usage:
+#   docker-compose up -d      # Start FalkorDB
+#   docker-compose down       # Stop FalkorDB
+#   docker-compose logs -f    # View logs
+
+version: '3.8'
+
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    container_name: clc-falkordb
+    ports:
+      - "6379:6379"
+    volumes:
+      - falkordb_data:/data
+    environment:
+      - FALKORDB_ARGS=--save 60 1 --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  falkordb_data:
+    driver: local
