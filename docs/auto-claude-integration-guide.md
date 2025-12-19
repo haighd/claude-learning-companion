@@ -169,13 +169,15 @@ cd ..
 if grep -qF "## CLC Integration (Always)" CLAUDE.md 2>/dev/null; then
     echo "CLC integration already present in CLAUDE.md - skipping"
 else
+    # Initialize BACKUP_NAME to empty (used later for conditional appending)
+    BACKUP_NAME=""
     if [ -f CLAUDE.md ]; then
-        BACKUP_NAME="CLAUDE.md.bak.$(date +%Y%m%d_%H%M%S)_${BASHPID:-$$}"
+        BACKUP_NAME="$(mktemp -p . 'CLAUDE.md.bak.XXXXXXXX')"
         mv CLAUDE.md "$BACKUP_NAME" || { echo 'Failed to back up CLAUDE.md. Aborting.' >&2; exit 1; }
         echo "Backed up existing CLAUDE.md to $BACKUP_NAME"
     fi
     # Write to temp file first for atomic operation
-    TMP_CLAUDE="CLAUDE.md.tmp.${BASHPID:-$$}"
+    TMP_CLAUDE="$(mktemp -p . 'CLAUDE.md.tmp.XXXXXXXX')"
     { cat << 'EOF'
 # Project Instructions
 

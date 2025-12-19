@@ -244,14 +244,16 @@ import shutil
 import subprocess
 from pathlib import Path
 
-MAX_EXP_ID_LENGTH = 64  # Prevent filesystem path length issues
+MAX_EXP_ID_LENGTH = 64  # Keep ~/.claude/clc/.worktrees/exp-{id}/ well under common filesystem path limits (~255 bytes)
 
 def validate_exp_id(exp_id: str) -> bool:
     """Validate experiment ID to prevent command injection.
 
     Must start with an alphanumeric character and contain only alphanumerics,
     hyphens, and underscores. Leading hyphens are prevented to avoid shell flag
-    confusion. Maximum length is limited to prevent filesystem path issues.
+    confusion. The ID is used as `{id}` in `~/.claude/clc/.worktrees/exp-{id}/`,
+    and the 64-char limit keeps the full path safely below typical filesystem
+    maximum path lengths (around 255 bytes on many systems).
     """
     if len(exp_id) > MAX_EXP_ID_LENGTH:
         return False
@@ -551,7 +553,11 @@ const Kanban: React.FC = () => {
     // be mistaken for the 'done' column)
     const isColumnDrop = overId.startsWith('column:');
     const targetColumn = isColumnDrop
-      ? (overId.replace('column:', '') as ColumnId)
+      ? (() => {
+          const columnIdFromOver = overId.replace('column:', '');
+          const isValidColumnId = (columns as readonly string[]).includes(columnIdFromOver);
+          return isValidColumnId ? (columnIdFromOver as ColumnId) : undefined;
+        })()
       : findContainer(overId);
 
     if (targetColumn) {
