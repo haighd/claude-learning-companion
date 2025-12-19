@@ -33,10 +33,14 @@ uv venv && uv pip install -r requirements.txt
 cp .env.example .env
 claude setup-token
 
-# Update .gitignore (idempotent - only add if not present)
+# Update .gitignore (idempotent - handles entries with or without trailing slash)
 cd ..
+touch .gitignore
 for item in .auto-claude/ .worktrees/ specs/; do
-    grep -qxF "$item" .gitignore 2>/dev/null || echo "$item" >> .gitignore
+    base="${item%/}"
+    if ! grep -qxF "$base" .gitignore && ! grep -qxF "$base/" .gitignore; then
+        echo "$item" >> .gitignore
+    fi
 done
 ```
 
@@ -70,9 +74,11 @@ import sys
 from pathlib import Path
 
 path = Path(os.getcwd()).resolve()
-while path != path.parent:
+while True:
     if any((path / m).exists() for m in [".auto-claude", "auto-claude-framework"]) or (path / ".git").is_file():
         sys.exit(0)
+    if path == path.parent:
+        break
     path = path.parent
 ```
 

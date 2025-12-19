@@ -244,7 +244,7 @@ import shutil
 import subprocess
 from pathlib import Path
 
-MAX_EXP_ID_LENGTH = 64  # Keep ~/.claude/clc/.worktrees/exp-{id}/ well under common filesystem path limits (~255 bytes)
+MAX_EXP_ID_LENGTH = 64  # Keep exp-{id} filename component under 255-byte limit (common per-component limit on most filesystems)
 
 def validate_exp_id(exp_id: str) -> bool:
     """Validate experiment ID to prevent command injection.
@@ -541,6 +541,13 @@ const Kanban: React.FC = () => {
     return item?.status;
   };
 
+  // Extract column ID from prefixed drop zone ID with validation
+  const extractColumnId = (overId: string): ColumnId | undefined => {
+    const columnIdFromOver = overId.replace('column:', '');
+    const isValidColumnId = (columns as readonly string[]).includes(columnIdFromOver);
+    return isValidColumnId ? (columnIdFromOver as ColumnId) : undefined;
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
@@ -553,11 +560,7 @@ const Kanban: React.FC = () => {
     // be mistaken for the 'done' column)
     const isColumnDrop = overId.startsWith('column:');
     const targetColumn = isColumnDrop
-      ? (() => {
-          const columnIdFromOver = overId.replace('column:', '');
-          const isValidColumnId = (columns as readonly string[]).includes(columnIdFromOver);
-          return isValidColumnId ? (columnIdFromOver as ColumnId) : undefined;
-        })()
+      ? extractColumnId(overId)
       : findContainer(overId);
 
     if (targetColumn) {

@@ -125,11 +125,14 @@ uv venv && uv pip install -r requirements.txt
 cp .env.example .env
 claude setup-token
 
-# Update project .gitignore (idempotent - only add if not present)
+# Update project .gitignore (idempotent - handles entries with or without trailing slash)
 cd ..
 touch .gitignore
 for item in .auto-claude/ .worktrees/ specs/; do
-    grep -qxF "$item" .gitignore || echo "$item" >> .gitignore
+    base="${item%/}"
+    if ! grep -qxF "$base" .gitignore && ! grep -qxF "$base/" .gitignore; then
+        echo "$item" >> .gitignore
+    fi
 done
 ```
 
@@ -173,16 +176,10 @@ cd ..
 if grep -qF "## CLC Integration (Always)" CLAUDE.md 2>/dev/null; then
     echo "CLC integration already present in CLAUDE.md - skipping"
 else
-    # Initialize BACKUP_NAME to empty (used later for conditional appending)
-    BACKUP_NAME=""
-    if [ -f CLAUDE.md ]; then
-        BACKUP_NAME="$(mktemp -p . 'CLAUDE.md.bak.XXXXXXXX')"
-        mv CLAUDE.md "$BACKUP_NAME" || { echo 'Failed to back up CLAUDE.md. Aborting.' >&2; exit 1; }
-        echo "Backed up existing CLAUDE.md to $BACKUP_NAME"
-    fi
-    # Write to temp file first for atomic operation
-    TMP_CLAUDE="$(mktemp -p . 'CLAUDE.md.tmp.XXXXXXXX')"
-    { cat << 'EOF'
+    # Write to temp file first - safer as we don't touch original until this succeeds
+    TMP_CLAUDE="$(mktemp './CLAUDE.md.tmp.XXXXXXXX')"
+    {
+        cat << 'EOF'
 # Project Instructions
 
 ## CLC Integration (Always)
@@ -200,27 +197,35 @@ For complex features, use Auto-Claude:
 
 ## Project-Specific Rules
 EOF
-    # Append existing project config if present
-    # First, check for backed-up root CLAUDE.md (from our backup above)
-    if [ -n "$BACKUP_NAME" ] && [ -f "$BACKUP_NAME" ]; then
-      echo ""
-      echo "# --- Appended from existing CLAUDE.md ---"
-      cat "$BACKUP_NAME"
-    # Otherwise, check for project-local .claude/CLAUDE.md
-    elif [ -f .claude/CLAUDE.md ]; then
-      echo ""
-      echo "# --- Appended from .claude/CLAUDE.md ---"
-      cat .claude/CLAUDE.md
-    fi
+        # Append existing project config if present
+        if [ -f CLAUDE.md ]; then
+            echo ""
+            echo "# --- Appended from existing CLAUDE.md ---"
+            cat CLAUDE.md
+        elif [ -f .claude/CLAUDE.md ]; then
+            echo ""
+            echo "# --- Appended from .claude/CLAUDE.md ---"
+            cat .claude/CLAUDE.md
+        fi
     } > "$TMP_CLAUDE" || { echo 'Failed to create temporary CLAUDE.md. Aborting.' >&2; rm -f "$TMP_CLAUDE"; exit 1; }
+
+    # Now that new content is safely created, backup original and move new one into place
+    if [ -f CLAUDE.md ]; then
+        BACKUP_NAME="$(mktemp './CLAUDE.md.bak.XXXXXXXX')"
+        mv CLAUDE.md "$BACKUP_NAME" || { echo 'Failed to back up CLAUDE.md. Aborting.' >&2; rm -f "$TMP_CLAUDE"; exit 1; }
+        echo "Backed up existing CLAUDE.md to $BACKUP_NAME"
+    fi
 
     mv "$TMP_CLAUDE" CLAUDE.md || { echo 'Failed to move temporary file to CLAUDE.md. Aborting.' >&2; exit 1; }
 fi
 
-# Update .gitignore (idempotent - only add if not present)
+# Update .gitignore (idempotent - handles entries with or without trailing slash)
 touch .gitignore
 for item in auto-claude-framework/ specs/ .worktrees/; do
-    grep -qxF "$item" .gitignore || echo "$item" >> .gitignore
+    base="${item%/}"
+    if ! grep -qxF "$base" .gitignore && ! grep -qxF "$base/" .gitignore; then
+        echo "$item" >> .gitignore
+    fi
 done
 ```
 
