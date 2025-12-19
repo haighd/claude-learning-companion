@@ -300,25 +300,35 @@ def merge_experiment(exp_id: str) -> bool:
     if not validate_experiment(exp_id):
         return False
 
-    # IMPORTANT: Merge database BEFORE git to ensure atomicity.
-    # If database merge fails, git state remains unchanged.
+    # ATOMIC MERGE STRATEGY: Git first, then database.
+    # This ensures code and data stay consistent - if either fails, we roll back.
+    #
     # NOTE: `merge_databases` is a conceptual function that would be
     # implemented in the storage/persistence layer. It handles conflict
     # resolution, deduplication, and timestamp reconciliation.
+
+    # Step 1: Stage git merge (--no-commit allows abort if DB merge fails)
+    try:
+        run_git('checkout', 'main')
+        run_git('merge', '--no-ff', '--no-commit', branch_name)
+    except subprocess.CalledProcessError as e:
+        # Git merge failed (conflicts) - abort and report
+        run_git('merge', '--abort')
+        raise RuntimeError(f"Git merge failed (conflicts): {e}")
+
+    # Step 2: Merge database (git is staged but not committed)
     try:
         merge_databases("memory/index.db", worktree_path / "memory" / "index.db")
     except Exception as e:
-        # Database merge failed - don't proceed with git merge
-        raise RuntimeError(f"Database merge failed: {e}")
+        # Database merge failed - abort the staged git merge
+        run_git('merge', '--abort')
+        raise RuntimeError(f"Database merge failed, git merge aborted: {e}")
 
-    # Now safe to merge git branch
+    # Step 3: Both succeeded - finalize the git commit
     try:
-        run_git('checkout', 'main')
-        run_git('merge', branch_name)
+        run_git('commit', '-m', f'Merge experiment {exp_id}')
     except subprocess.CalledProcessError as e:
-        # Git merge failed (likely conflicts) - database is already merged
-        # but we leave git in conflicted state for manual resolution
-        raise RuntimeError(f"Git merge failed (resolve manually): {e}")
+        raise RuntimeError(f"Git commit failed: {e}")
 
     # Cleanup - use robust error handling to ensure both operations complete
     cleanup_errors = []

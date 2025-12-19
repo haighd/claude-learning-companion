@@ -167,14 +167,17 @@ cd ~/Projects/my-project
 git clone https://github.com/AndyMik90/Auto-Claude.git auto-claude-framework
 cd auto-claude-framework && uv venv && uv pip install -r requirements.txt
 
-# Create merged CLAUDE.md at project root (backs up existing, then merges)
+# Create merged CLAUDE.md at project root (idempotent - skips if already integrated)
 cd ..
-if [ -f CLAUDE.md ]; then
-    BACKUP_NAME="CLAUDE.md.bak.$(date +%Y%m%d_%H%M%S)"
-    mv CLAUDE.md "$BACKUP_NAME" || { echo 'Failed to back up CLAUDE.md. Aborting.' >&2; exit 1; }
-    echo "Backed up existing CLAUDE.md to $BACKUP_NAME"
-fi
-{ cat << 'EOF'
+if grep -q "## CLC Integration (Always)" CLAUDE.md 2>/dev/null; then
+    echo "CLC integration already present in CLAUDE.md - skipping"
+else
+    if [ -f CLAUDE.md ]; then
+        BACKUP_NAME="CLAUDE.md.bak.$(date +%Y%m%d_%H%M%S)"
+        mv CLAUDE.md "$BACKUP_NAME" || { echo 'Failed to back up CLAUDE.md. Aborting.' >&2; exit 1; }
+        echo "Backed up existing CLAUDE.md to $BACKUP_NAME"
+    fi
+    { cat << 'EOF'
 # Project Instructions
 
 ## CLC Integration (Always)
@@ -192,19 +195,20 @@ For complex features, use Auto-Claude:
 
 ## Project-Specific Rules
 EOF
-# Append existing project config if present
-# First, check for backed-up root CLAUDE.md (from our backup above)
-if [ -n "$BACKUP_NAME" ] && [ -f "$BACKUP_NAME" ]; then
-  echo ""
-  echo "# --- Appended from existing CLAUDE.md ---"
-  cat "$BACKUP_NAME"
-# Otherwise, check for project-local .claude/CLAUDE.md
-elif [ -f .claude/CLAUDE.md ]; then
-  echo ""
-  echo "# --- Appended from .claude/CLAUDE.md ---"
-  cat .claude/CLAUDE.md
+    # Append existing project config if present
+    # First, check for backed-up root CLAUDE.md (from our backup above)
+    if [ -n "$BACKUP_NAME" ] && [ -f "$BACKUP_NAME" ]; then
+      echo ""
+      echo "# --- Appended from existing CLAUDE.md ---"
+      cat "$BACKUP_NAME"
+    # Otherwise, check for project-local .claude/CLAUDE.md
+    elif [ -f .claude/CLAUDE.md ]; then
+      echo ""
+      echo "# --- Appended from .claude/CLAUDE.md ---"
+      cat .claude/CLAUDE.md
+    fi
+    } > CLAUDE.md
 fi
-} > CLAUDE.md
 
 # Update .gitignore (idempotent - only add if not present)
 grep -qxF 'auto-claude-framework/' .gitignore 2>/dev/null || echo "auto-claude-framework/" >> .gitignore
