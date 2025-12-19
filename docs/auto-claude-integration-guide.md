@@ -83,7 +83,6 @@ cwd = Path(os.getcwd())
 auto_claude_markers = [
     cwd / ".auto-claude",           # Subdirectory installation
     cwd / "auto-claude-framework",  # Root installation
-    cwd / "specs",                  # Auto-Claude specs directory
 ]
 
 # Check if we're inside a git worktree (used by Auto-Claude for isolated builds)
