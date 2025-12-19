@@ -80,12 +80,15 @@ from pathlib import Path
 # Traverse up from the current directory to find project markers
 # This handles running from subdirectories of an Auto-Claude project
 path_to_check = Path(os.getcwd()).resolve()
-while path_to_check != path_to_check.parent:
+while True:
     is_auto_claude_dir = any((path_to_check / m).exists() for m in [".auto-claude", "auto-claude-framework"])
     is_worktree = (path_to_check / ".git").is_file()  # Worktrees have .git as file, not directory
 
     if is_auto_claude_dir or is_worktree:
         sys.exit(0)  # Skip Auto-Claude operations
+
+    if path_to_check == path_to_check.parent:
+        break  # Reached filesystem root
 
     path_to_check = path_to_check.parent
 ```
@@ -124,8 +127,9 @@ claude setup-token
 
 # Update project .gitignore (idempotent - only add if not present)
 cd ..
+touch .gitignore
 for item in .auto-claude/ .worktrees/ specs/; do
-    grep -qxF "$item" .gitignore 2>/dev/null || echo "$item" >> .gitignore
+    grep -qxF "$item" .gitignore || echo "$item" >> .gitignore
 done
 ```
 
@@ -214,8 +218,9 @@ EOF
 fi
 
 # Update .gitignore (idempotent - only add if not present)
+touch .gitignore
 for item in auto-claude-framework/ specs/ .worktrees/; do
-    grep -qxF "$item" .gitignore 2>/dev/null || echo "$item" >> .gitignore
+    grep -qxF "$item" .gitignore || echo "$item" >> .gitignore
 done
 ```
 
