@@ -63,7 +63,12 @@ CLC hooks capture Auto-Claude's builds (noisy). Add exclusion:
 # In pre_tool_learning.py
 import os
 import sys
-if "auto-claude" in os.getcwd() or ".worktrees" in os.getcwd():
+from pathlib import Path
+
+cwd = Path(os.getcwd())
+auto_claude_markers = [cwd / ".auto-claude", cwd / "auto-claude-framework", cwd / "specs"]
+in_worktree = (cwd / ".git").is_file()
+if any(marker.exists() for marker in auto_claude_markers) or in_worktree:
     sys.exit(0)
 ```
 

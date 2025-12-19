@@ -194,6 +194,8 @@ For complex features, use Auto-Claude:
 EOF
 # Append existing project config if present
 if [ -f .claude/CLAUDE.md ]; then
+  echo ""
+  echo "# --- Appended from .claude/CLAUDE.md ---"
   cat .claude/CLAUDE.md
 fi
 } > CLAUDE.md
