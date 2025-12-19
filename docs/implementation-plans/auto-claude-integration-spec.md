@@ -485,7 +485,7 @@ interface WorkflowItem {
 }
 
 // Droppable column component
-const Column: React.FC<{ id: ColumnId; children: React.ReactNode }> = ({ id, children }) => {
+const Column: React.FC<{ id: string; children: React.ReactNode }> = ({ id, children }) => {
   const { setNodeRef } = useDroppable({ id });
   return <div ref={setNodeRef}>{children}</div>;
 };

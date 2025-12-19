@@ -168,7 +168,7 @@ cd auto-claude-framework && uv venv && uv pip install -r requirements.txt
 
 # Create merged CLAUDE.md at project root (idempotent - skips if already integrated)
 cd ..
-if grep -q "## CLC Integration (Always)" CLAUDE.md 2>/dev/null; then
+if grep -qF "## CLC Integration (Always)" CLAUDE.md 2>/dev/null; then
     echo "CLC integration already present in CLAUDE.md - skipping"
 else
     if [ -f CLAUDE.md ]; then
