@@ -246,9 +246,10 @@ import subprocess
 def validate_exp_id(exp_id: str) -> bool:
     """Validate experiment ID to prevent command injection.
 
-    Only allows alphanumeric characters, hyphens, and underscores.
+    Must start with an alphanumeric character; only allows alphanumerics, hyphens,
+    and underscores. Leading hyphens are prevented to avoid shell flag confusion.
     """
-    return bool(re.match(r'^[a-zA-Z0-9_-]+$', exp_id))
+    return bool(re.match(r'^[a-zA-Z0-9][a-zA-Z0-9_-]*$', exp_id))
 
 def run_git(*args: str) -> subprocess.CompletedProcess:
     """Run git command safely using argument list (no shell interpolation)."""
@@ -291,6 +292,9 @@ def merge_experiment(exp_id: str) -> bool:
     run_git('merge', branch_name)
 
     # Merge database changes
+    # NOTE: `merge_databases` is provided by the storage/persistence layer and is
+    # responsible for safely merging the experiment database into the main one.
+    # It handles conflict resolution, deduplication, and timestamp reconciliation.
     merge_databases("memory/index.db", f"{worktree_path}/memory/index.db")
 
     # Cleanup

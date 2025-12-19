@@ -75,8 +75,21 @@ and success patterns to replicate. Apply these insights to your task approach.
 
 import os
 import sys
-cwd = os.getcwd()
-if "auto-claude" in cwd or ".worktrees" in cwd:
+from pathlib import Path
+
+cwd = Path(os.getcwd())
+
+# Check for Auto-Claude marker files/directories (more robust than substring matching)
+auto_claude_markers = [
+    cwd / ".auto-claude",           # Subdirectory installation
+    cwd / "auto-claude-framework",  # Root installation
+    cwd / "specs",                  # Auto-Claude specs directory
+]
+
+# Check if we're inside a git worktree (used by Auto-Claude for isolated builds)
+in_worktree = (cwd / ".git").is_file()  # Worktrees have .git as file, not directory
+
+if any(marker.exists() for marker in auto_claude_markers) or in_worktree:
     sys.exit(0)  # Skip Auto-Claude operations
 ```
 
@@ -157,8 +170,9 @@ cd auto-claude-framework && uv venv && uv pip install -r requirements.txt
 # Create merged CLAUDE.md at project root (backs up existing, then merges)
 cd ..
 if [ -f CLAUDE.md ]; then
-    mv CLAUDE.md CLAUDE.md.bak
-    echo "Backed up existing CLAUDE.md to CLAUDE.md.bak"
+    BACKUP_NAME="CLAUDE.md.bak.$(date +%Y%m%d%H%M%S)"
+    mv CLAUDE.md "$BACKUP_NAME"
+    echo "Backed up existing CLAUDE.md to $BACKUP_NAME"
 fi
 { cat << 'EOF'
 # Project Instructions
