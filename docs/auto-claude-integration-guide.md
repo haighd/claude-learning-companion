@@ -210,13 +210,21 @@ EOF
     } > "$TMP_CLAUDE" || { echo 'Failed to create temporary CLAUDE.md. Aborting.' >&2; rm -f "$TMP_CLAUDE"; exit 1; }
 
     # Now that new content is safely created, backup original and move new one into place
+    BACKUP_NAME=""
     if [ -f CLAUDE.md ]; then
         BACKUP_NAME="$(mktemp './CLAUDE.md.bak.XXXXXXXX')"
         mv CLAUDE.md "$BACKUP_NAME" || { echo 'Failed to back up CLAUDE.md. Aborting.' >&2; rm -f "$TMP_CLAUDE"; exit 1; }
         echo "Backed up existing CLAUDE.md to $BACKUP_NAME"
     fi
 
-    mv "$TMP_CLAUDE" CLAUDE.md || { echo 'Failed to move temporary file to CLAUDE.md. Aborting.' >&2; exit 1; }
+    if ! mv "$TMP_CLAUDE" CLAUDE.md; then
+        echo "ERROR: Failed to move temporary file to CLAUDE.md. Aborting." >&2
+        if [ -n "$BACKUP_NAME" ]; then
+            echo "Attempting to restore from backup..." >&2
+            mv "$BACKUP_NAME" CLAUDE.md || echo "CRITICAL: Automatic restore failed. Please restore manually from $BACKUP_NAME" >&2
+        fi
+        exit 1
+    fi
 fi
 
 # Update .gitignore (idempotent - handles entries with or without trailing slash)

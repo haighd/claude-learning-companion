@@ -73,13 +73,13 @@ import os
 import sys
 from pathlib import Path
 
-path = Path(os.getcwd()).resolve()
+current_path = Path(os.getcwd()).resolve()
 while True:
-    if any((path / m).exists() for m in [".auto-claude", "auto-claude-framework"]) or (path / ".git").is_file():
+    if any((current_path / m).exists() for m in [".auto-claude", "auto-claude-framework"]) or (current_path / ".git").is_file():
         sys.exit(0)
-    if path == path.parent:
+    if current_path == current_path.parent:
         break
-    path = path.parent
+    current_path = current_path.parent
 ```
 
 ### 3. Knowledge Gap

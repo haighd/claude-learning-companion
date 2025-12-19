@@ -360,11 +360,17 @@ def merge_experiment(exp_id: str) -> bool:
         run_git('merge', '--abort')
         raise RuntimeError(f"Git merge failed (conflicts): {e}")
 
-    # Step 2: Merge database (git is staged but not committed)
+    # Step 2: Backup database, then merge (enables rollback if commit fails)
+    db_path = Path("memory/index.db")
+    db_backup = db_path.with_suffix('.db.backup')
+    shutil.copy(db_path, db_backup)
+
     try:
-        merge_databases("memory/index.db", str(worktree_path / "memory" / "index.db"))
+        merge_databases(str(db_path), str(worktree_path / "memory" / "index.db"))
     except Exception as e:
-        # Database merge failed - abort the staged git merge
+        # Database merge failed - restore backup and abort git merge
+        shutil.copy(db_backup, db_path)
+        db_backup.unlink()
         run_git('merge', '--abort')
         raise RuntimeError(f"Database merge failed, git merge aborted: {e}")
 
@@ -372,11 +378,14 @@ def merge_experiment(exp_id: str) -> bool:
     try:
         run_git('commit', '-m', f'Merge experiment {exp_id}')
     except subprocess.CalledProcessError as e:
-        # Commit failed (e.g., pre-commit hook) - rollback database and abort git
-        # NOTE: rollback_db_merge is conceptual - would restore from backup
-        # rollback_db_merge()
+        # Commit failed (e.g., pre-commit hook) - restore database backup and abort git
+        shutil.copy(db_backup, db_path)
+        db_backup.unlink()
         run_git('merge', '--abort')
-        raise RuntimeError(f"Git commit failed, database merge rolled back: {e}")
+        raise RuntimeError(f"Git commit failed, database restored from backup: {e}")
+
+    # Cleanup database backup after successful commit
+    db_backup.unlink(missing_ok=True)
 
     # Cleanup - use robust error handling to ensure both operations complete
     cleanup_errors = []
