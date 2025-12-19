@@ -324,6 +324,10 @@ def merge_experiment(exp_id: str) -> bool:
     default_branch = get_default_branch()
     try:
         run_git('checkout', default_branch)
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"Failed to checkout default branch '{default_branch}': {e}")
+
+    try:
         run_git('merge', '--no-ff', '--no-commit', branch_name)
     except subprocess.CalledProcessError as e:
         # Git merge failed (conflicts) - abort and report

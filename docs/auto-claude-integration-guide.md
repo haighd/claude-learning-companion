@@ -176,6 +176,8 @@ else
         mv CLAUDE.md "$BACKUP_NAME" || { echo 'Failed to back up CLAUDE.md. Aborting.' >&2; exit 1; }
         echo "Backed up existing CLAUDE.md to $BACKUP_NAME"
     fi
+    # Write to temp file first for atomic operation
+    TMP_CLAUDE="CLAUDE.md.tmp.${BASHPID:-$$}"
     { cat << 'EOF'
 # Project Instructions
 
@@ -206,7 +208,9 @@ EOF
       echo "# --- Appended from .claude/CLAUDE.md ---"
       cat .claude/CLAUDE.md
     fi
-    } > CLAUDE.md
+    } > "$TMP_CLAUDE" || { echo 'Failed to create temporary CLAUDE.md. Aborting.' >&2; rm -f "$TMP_CLAUDE"; exit 1; }
+
+    mv "$TMP_CLAUDE" CLAUDE.md || { echo 'Failed to move temporary file to CLAUDE.md. Aborting.' >&2; exit 1; }
 fi
 
 # Update .gitignore (idempotent - only add if not present)
