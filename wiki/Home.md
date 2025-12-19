@@ -15,6 +15,7 @@ Welcome to the CLC documentation. This wiki contains detailed guides for all fea
 | [Migration](Migration) | Upgrading, team setup, rollback |
 | [Architecture](Architecture) | Database schema, hooks system |
 | [Token Costs](Token-Costs) | Usage breakdown, optimization tips |
+| [Auto-Claude Integration](Auto-Claude-Integration) | Using CLC with Auto-Claude |
 
 ## The Core Concept
 
