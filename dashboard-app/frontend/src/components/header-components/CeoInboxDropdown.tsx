@@ -23,6 +23,10 @@ export default function CeoInboxDropdown({
 
   const pendingItems = items.filter(item => item.status === 'Pending')
 
+  const buttonVariantClasses = pendingItems.length > 0
+    ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
+    : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
+
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent immediate close
     onToggle()
@@ -48,14 +52,11 @@ export default function CeoInboxDropdown({
   }, [isOpen, onClose])
 
   return (
-    <div className="relative">
+    <div className="relative shrink-0">
       <button
         ref={buttonRef}
         onClick={handleToggle}
-        className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${pendingItems.length > 0
-          ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
-          : 'bg-white/5 text-white/60 hover:text-white hover:bg-white/10'
-          }`}
+        className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${buttonVariantClasses}`}
       >
         <Inbox className="w-4 h-4" />
         <span>CEO Inbox</span>
