@@ -28,11 +28,16 @@ They're complementary: CLC remembers, Auto-Claude executes.
 ```bash
 cd ~/Projects/my-project
 git clone https://github.com/AndyMik90/Auto-Claude.git .auto-claude
-cd .auto-claude && uv venv && uv pip install -r requirements.txt
+cd .auto-claude
+uv venv && uv pip install -r requirements.txt
+cp .env.example .env
+claude setup-token
 
 # Update .gitignore
-echo ".auto-claude/" >> ../.gitignore
-echo ".worktrees/" >> ../.gitignore
+cd ..
+echo ".auto-claude/" >> .gitignore
+echo ".worktrees/" >> .gitignore
+echo "specs/" >> .gitignore
 ```
 
 ### Option B: Root Installation
