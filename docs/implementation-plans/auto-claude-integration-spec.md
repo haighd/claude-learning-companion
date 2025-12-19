@@ -314,9 +314,21 @@ def merge_experiment(exp_id: str) -> bool:
     run_git('checkout', 'main')
     run_git('merge', branch_name)
 
-    # Cleanup
-    run_git('worktree', 'remove', str(worktree_path))
-    run_git('branch', '-d', branch_name)
+    # Cleanup - use robust error handling to ensure both operations complete
+    cleanup_errors = []
+    try:
+        run_git('worktree', 'remove', str(worktree_path))
+    except subprocess.CalledProcessError as e:
+        cleanup_errors.append(f"Worktree removal failed: {e}")
+
+    try:
+        run_git('branch', '-d', branch_name)
+    except subprocess.CalledProcessError as e:
+        cleanup_errors.append(f"Branch deletion failed: {e}")
+
+    if cleanup_errors:
+        # Log but don't fail - merge already succeeded
+        print(f"Cleanup warnings: {cleanup_errors}")
 
     return True
 
@@ -328,8 +340,21 @@ def discard_experiment(exp_id: str):
     # Use pathlib for safe path construction
     worktree_path = Path(".worktrees") / f"exp-{exp_id}"
     branch_name = f"exp-{exp_id}"
-    run_git('worktree', 'remove', '--force', worktree_path)
-    run_git('branch', '-D', branch_name)
+
+    # Use robust error handling - try to clean up both even if one fails
+    errors = []
+    try:
+        run_git('worktree', 'remove', '--force', str(worktree_path))
+    except subprocess.CalledProcessError as e:
+        errors.append(f"Worktree removal failed: {e}")
+
+    try:
+        run_git('branch', '-D', branch_name)
+    except subprocess.CalledProcessError as e:
+        errors.append(f"Branch deletion failed: {e}")
+
+    if errors:
+        raise RuntimeError(f"Cleanup partially failed: {errors}")
 ```
 
 #### Slash Command
