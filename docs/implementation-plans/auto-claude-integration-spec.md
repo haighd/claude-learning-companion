@@ -249,9 +249,9 @@ MAX_EXP_ID_LENGTH = 64  # Prevent filesystem path length issues
 def validate_exp_id(exp_id: str) -> bool:
     """Validate experiment ID to prevent command injection.
 
-    Must start with an alphanumeric character; only allows alphanumerics, hyphens,
-    and underscores. Leading hyphens are prevented to avoid shell flag confusion.
-    Maximum length is limited to prevent filesystem path length issues.
+    Must start with an alphanumeric character and contain only alphanumerics,
+    hyphens, and underscores. Leading hyphens are prevented to avoid shell flag
+    confusion. Maximum length is limited to prevent filesystem path issues.
     """
     if len(exp_id) > MAX_EXP_ID_LENGTH:
         return False
@@ -283,12 +283,12 @@ def start_experiment(description: str) -> str:
 
     return exp_id
 
-def merge_experiment(exp_id: str) -> bool:
-    """Merge successful experiment back to main.
+# WARNING: Conceptual example – not directly executable.
+# Functions like `merge_databases` and `validate_experiment` are placeholders.
+# Actual implementation requires a complete storage layer.
 
-    NOTE: This is a conceptual example. The actual implementation would
-    need a complete storage layer with proper transaction handling.
-    """
+def merge_experiment(exp_id: str) -> bool:
+    """Merge successful experiment back to main."""
     if not validate_exp_id(exp_id):
         raise ValueError(f"Invalid experiment ID: {exp_id}")
 
@@ -312,8 +312,13 @@ def merge_experiment(exp_id: str) -> bool:
         raise RuntimeError(f"Database merge failed: {e}")
 
     # Now safe to merge git branch
-    run_git('checkout', 'main')
-    run_git('merge', branch_name)
+    try:
+        run_git('checkout', 'main')
+        run_git('merge', branch_name)
+    except subprocess.CalledProcessError as e:
+        # Git merge failed (likely conflicts) - database is already merged
+        # but we leave git in conflicted state for manual resolution
+        raise RuntimeError(f"Git merge failed (resolve manually): {e}")
 
     # Cleanup - use robust error handling to ensure both operations complete
     cleanup_errors = []
