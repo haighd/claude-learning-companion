@@ -1,0 +1,154 @@
+# Self-Healing QA Loops Configuration
+# Auto-Claude Integration Feature (P0)
+#
+# This configuration controls automatic failure recovery behavior.
+# When a fixable failure is detected, the system will automatically
+# spawn fix agents with model escalation.
+
+self_healing:
+  enabled: true
+  max_attempts: 5
+
+  # Model escalation by attempt number
+  # Starts with cheaper/faster models, escalates to more capable
+  model_escalation_strategy:
+    - attempts: [1, 2]
+      model: haiku
+    - attempts: [3, 4]
+      model: sonnet
+    - attempts: [5]
+      model: opus
+
+  # Circuit breaker prevents cascading failures
+  # Opens after threshold consecutive failures, resets after timeout
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 3        # Consecutive failures before tripping
+    reset_timeout_minutes: 30   # Time before circuit resets
+    half_open_attempts: 1       # Attempts allowed in half-open state
+
+  # Fixable failure patterns (regex, case-insensitive)
+  # These will trigger automatic fix attempts
+  fixable_patterns:
+    lint_error:
+      patterns:
+        - "ESLint.*error"
+        - "Lint error"
+        - "eslint-disable"
+        - "prettier.*error"
+        - "biome.*error"
+      confidence: 0.9
+
+    type_error:
+      patterns:
+        - "TypeError"
+        - "type '.*' is not assignable"
+        - "Property '.*' does not exist"
+        - "mypy.*error"
+        - "Expected.*but got"
+        - "Argument of type"
+        - "Cannot find name"
+      confidence: 0.85
+
+    test_failure:
+      patterns:
+        - "FAILED"
+        - "AssertionError"
+        - "Expected.*to equal"
+        - "test.*failed"
+        - "pytest.*FAILED"
+        - "jest.*FAIL"
+        - "vitest.*FAIL"
+        - "assertion failed"
+      confidence: 0.8
+
+    import_error:
+      patterns:
+        - "ImportError"
+        - "ModuleNotFoundError"
+        - "Cannot find module"
+        - "Module not found"
+        - "No module named"
+      confidence: 0.85
+
+    syntax_error:
+      patterns:
+        - "SyntaxError"
+        - "Unexpected token"
+        - "Parse error"
+        - "IndentationError"
+        - "Unexpected end of"
+        - "Missing semicolon"
+        - "Unterminated string"
+      confidence: 0.9
+
+    runtime_error:
+      patterns:
+        - "RuntimeError"
+        - "ValueError"
+        - "KeyError"
+        - "AttributeError"
+        - "IndexError"
+        - "NameError"
+      confidence: 0.6
+
+  # Unfixable patterns (immediate CEO escalation)
+  # These cannot be fixed automatically and require human intervention
+  unfixable_patterns:
+    permission_error:
+      patterns:
+        - "EACCES"
+        - "EPERM"
+        - "Permission denied"
+        - "Access denied"
+        - "Operation not permitted"
+      reason: "Permission issues require human intervention"
+
+    architectural:
+      patterns:
+        - "architectural decision"
+        - "design choice"
+        - "multiple valid approaches"
+        - "trade-?off"
+      reason: "Requires human judgment on architecture"
+
+    external_service:
+      patterns:
+        - "ECONNREFUSED"
+        - "ETIMEDOUT"
+        - "ENOTFOUND"
+        - "service unavailable"
+        - "API rate limit"
+        - "quota exceeded"
+        - "503 Service"
+        - "429 Too Many"
+      reason: "External service issues beyond agent control"
+
+    data_integrity:
+      patterns:
+        - "data corruption"
+        - "integrity constraint"
+        - "foreign key violation"
+        - "unique constraint"
+        - "duplicate key"
+      reason: "Data integrity issues require human review"
+
+    resource_exhaustion:
+      patterns:
+        - "out of memory"
+        - "OOM"
+        - "disk full"
+        - "no space left"
+        - "resource exhausted"
+        - "ENOMEM"
+        - "ENOSPC"
+      reason: "Resource issues require human intervention"
+
+    authentication:
+      patterns:
+        - "401 Unauthorized"
+        - "403 Forbidden"
+        - "invalid.*token"
+        - "authentication failed"
+        - "credentials.*invalid"
+      reason: "Authentication issues require credential management"

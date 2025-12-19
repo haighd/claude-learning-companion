@@ -22,6 +22,7 @@ from .sessions import router as sessions_router
 from .admin import router as admin_router
 from .fraud import router as fraud_router
 from .workflows import router as workflows_router
+from .graph import router as graph_router
 
 __all__ = [
     'analytics_router',
@@ -33,4 +34,5 @@ __all__ = [
     'admin_router',
     'fraud_router',
     'workflows_router',
+    'graph_router',
 ]

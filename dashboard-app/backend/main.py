@@ -37,6 +37,7 @@ from routers import (
     admin_router,
     fraud_router,
     workflows_router,
+    graph_router,
 )
 
 # Import router setup functions
@@ -46,6 +47,7 @@ from routers.sessions import set_session_index
 from routers.admin import set_paths as set_admin_paths
 from routers.fraud import set_paths as set_fraud_paths
 from routers.workflows import set_paths as set_workflows_paths
+from routers.graph import set_paths as set_graph_paths
 
 # Paths
 CLC_PATH = Path.home() / ".claude" / "clc"
@@ -131,6 +133,7 @@ set_session_index(session_index)
 set_admin_paths(CLC_PATH)
 set_fraud_paths(CLC_PATH)
 set_workflows_paths(CLC_PATH)
+set_graph_paths(CLC_PATH)
 
 
 # ==============================================================================
@@ -146,6 +149,7 @@ app.include_router(sessions_router)
 app.include_router(admin_router)
 app.include_router(fraud_router)
 app.include_router(workflows_router)
+app.include_router(graph_router)
 
 
 # ==============================================================================

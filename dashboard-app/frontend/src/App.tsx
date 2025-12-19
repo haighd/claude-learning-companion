@@ -13,7 +13,8 @@ import {
   AssumptionsPanel,
   SpikeReportsPanel,
   InvariantsPanel,
-  FraudReviewPanel
+  FraudReviewPanel,
+  KanbanBoard
 } from './components'
 import {
   TimelineEvent,
@@ -201,6 +202,7 @@ function AppContent() {
     { id: 'spikes', label: 'View Spike Reports', category: 'Navigation', action: () => setActiveTab('spikes') },
     { id: 'invariants', label: 'View Invariants', category: 'Navigation', action: () => setActiveTab('invariants') },
     { id: 'fraud', label: 'Review Fraud Reports', category: 'Navigation', action: () => setActiveTab('fraud') },
+    { id: 'workflows', label: 'View Workflow Board', category: 'Navigation', action: () => setActiveTab('workflows') },
     { id: 'query', label: 'Query the Building', shortcut: '⌘Q', category: 'Actions', action: () => setActiveTab('query') },
     { id: 'refresh', label: 'Refresh Data', shortcut: '⌘R', category: 'Actions', action: () => { loadStats(); reloadHeuristics() } },
     { id: 'clearDomain', label: 'Clear Domain Filter', category: 'Actions', action: () => setSelectedDomain(null) },
@@ -292,6 +294,7 @@ function AppContent() {
           {/* Analytics is handled by DashboardLayout */}
 
           {activeTab === 'sessions' && <SessionHistoryPanel />}
+          {activeTab === 'workflows' && <KanbanBoard />}
           {activeTab === 'assumptions' && <AssumptionsPanel />}
           {activeTab === 'spikes' && <SpikeReportsPanel />}
           {activeTab === 'invariants' && <InvariantsPanel />}

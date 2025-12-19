@@ -1,4 +1,4 @@
-export type TabId = 'overview' | 'heuristics' | 'runs' | 'timeline' | 'query' | 'analytics' | 'graph' | 'sessions' | 'assumptions' | 'spikes' | 'invariants' | 'fraud'
+export type TabId = 'overview' | 'heuristics' | 'runs' | 'timeline' | 'query' | 'analytics' | 'graph' | 'sessions' | 'workflows' | 'assumptions' | 'spikes' | 'invariants' | 'fraud'
 
 export interface TabRoute {
   id: TabId
@@ -11,6 +11,7 @@ export const TAB_ROUTES: TabRoute[] = [
   { id: 'heuristics', path: '/heuristics', label: 'Heuristics' },
   { id: 'runs', path: '/runs', label: 'Runs' },
   { id: 'sessions', path: '/sessions', label: 'Sessions' },
+  { id: 'workflows', path: '/workflows', label: 'Workflows' },
   { id: 'analytics', path: '/analytics', label: 'Analytics' },
   { id: 'graph', path: '/graph', label: 'Graph' },
   { id: 'timeline', path: '/timeline', label: 'Timeline' },
@@ -21,8 +22,8 @@ export const TAB_ROUTES: TabRoute[] = [
   { id: 'fraud', path: '/fraud', label: 'Fraud' },
 ]
 
-export const MAIN_TABS: TabRoute[] = TAB_ROUTES.slice(0, 8)
-export const ADVANCED_TABS: TabRoute[] = TAB_ROUTES.slice(8)
+export const MAIN_TABS: TabRoute[] = TAB_ROUTES.slice(0, 9)  // Include workflows
+export const ADVANCED_TABS: TabRoute[] = TAB_ROUTES.slice(9)
 
 export const getTabFromPath = (pathname: string): TabId => {
   // Handle trailing slashes

@@ -7,7 +7,13 @@ __pycache__/
 *.pyc
 
 # Private user data - NEVER push to public repo
-memory/
+# Ignore database files and data in memory/, but track code
+memory/*.db
+memory/*.db-journal
+memory/index.db*
+memory/building.db*
+memory/checkpoints/
+memory/sessions/
 ceo-inbox/
 logs/
 failure-analysis/

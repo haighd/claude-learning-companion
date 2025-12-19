@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom'
-import { Command, Sparkles, Home, Brain, Play, Clock, Search, BarChart3, Network, MessageSquare, Lightbulb, FileWarning, Shield, AlertTriangle } from 'lucide-react'
+import { Command, Sparkles, Home, Brain, Play, Clock, Search, BarChart3, Network, MessageSquare, Lightbulb, FileWarning, Shield, AlertTriangle, Kanban } from 'lucide-react'
 import { ConnectionStatus, CeoInboxDropdown, CeoItemModal, CeoItem } from './header-components'
 import { SettingsPanel } from './SettingsPanel'
 import { TabId, MAIN_TABS, ADVANCED_TABS, getPathFromTab } from '../router'
@@ -18,6 +18,7 @@ const TAB_ICONS: Record<TabId, typeof Home> = {
   heuristics: Brain,
   runs: Play,
   sessions: MessageSquare,
+  workflows: Kanban,
   analytics: BarChart3,
   graph: Network,
   timeline: Clock,
