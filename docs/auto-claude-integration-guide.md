@@ -170,7 +170,7 @@ cd auto-claude-framework && uv venv && uv pip install -r requirements.txt
 # Create merged CLAUDE.md at project root (backs up existing, then merges)
 cd ..
 if [ -f CLAUDE.md ]; then
-    BACKUP_NAME="CLAUDE.md.bak.$(date +%Y%m%d%H%M%S)"
+    BACKUP_NAME="CLAUDE.md.bak.$(date +%Y%m%d_%H%M%S)"
     mv CLAUDE.md "$BACKUP_NAME"
     echo "Backed up existing CLAUDE.md to $BACKUP_NAME"
 fi
@@ -193,7 +193,13 @@ For complex features, use Auto-Claude:
 ## Project-Specific Rules
 EOF
 # Append existing project config if present
-if [ -f .claude/CLAUDE.md ]; then
+# First, check for backed-up root CLAUDE.md (from our backup above)
+if [ -n "$BACKUP_NAME" ] && [ -f "$BACKUP_NAME" ]; then
+  echo ""
+  echo "# --- Appended from existing CLAUDE.md ---"
+  cat "$BACKUP_NAME"
+# Otherwise, check for project-local .claude/CLAUDE.md
+elif [ -f .claude/CLAUDE.md ]; then
   echo ""
   echo "# --- Appended from .claude/CLAUDE.md ---"
   cat .claude/CLAUDE.md

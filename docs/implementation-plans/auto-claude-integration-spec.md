@@ -242,13 +242,19 @@ CLC operates directly in the main workspace. Experimental changes can corrupt st
 import re
 import shutil
 import subprocess
+from pathlib import Path
+
+MAX_EXP_ID_LENGTH = 64  # Prevent filesystem path length issues
 
 def validate_exp_id(exp_id: str) -> bool:
     """Validate experiment ID to prevent command injection.
 
     Must start with an alphanumeric character; only allows alphanumerics, hyphens,
     and underscores. Leading hyphens are prevented to avoid shell flag confusion.
+    Maximum length is limited to prevent filesystem path length issues.
     """
+    if len(exp_id) > MAX_EXP_ID_LENGTH:
+        return False
     return bool(re.match(r'^[a-zA-Z0-9][a-zA-Z0-9_-]*$', exp_id))
 
 def run_git(*args: str) -> subprocess.CompletedProcess:
@@ -261,14 +267,15 @@ def start_experiment(description: str) -> str:
     if not validate_exp_id(exp_id):
         raise ValueError(f"Invalid experiment ID: {exp_id}")
 
-    worktree_path = f".worktrees/exp-{exp_id}"
+    # Use pathlib for safe path construction
+    worktree_path = Path(".worktrees") / f"exp-{exp_id}"
     branch_name = f"exp-{exp_id}"
 
     # Create worktree using subprocess with argument list (safe)
-    run_git('worktree', 'add', worktree_path, '-b', branch_name)
+    run_git('worktree', 'add', str(worktree_path), '-b', branch_name)
 
     # Copy database (isolated state)
-    shutil.copy("memory/index.db", f"{worktree_path}/memory/index.db")
+    shutil.copy("memory/index.db", worktree_path / "memory" / "index.db")
 
     # Record experiment
     save_experiment_metadata(exp_id, description)
@@ -276,29 +283,39 @@ def start_experiment(description: str) -> str:
     return exp_id
 
 def merge_experiment(exp_id: str) -> bool:
-    """Merge successful experiment back to main."""
+    """Merge successful experiment back to main.
+
+    NOTE: This is a conceptual example. The actual implementation would
+    need a complete storage layer with proper transaction handling.
+    """
     if not validate_exp_id(exp_id):
         raise ValueError(f"Invalid experiment ID: {exp_id}")
 
-    worktree_path = f".worktrees/exp-{exp_id}"
+    # Use pathlib for safe path construction
+    worktree_path = Path(".worktrees") / f"exp-{exp_id}"
     branch_name = f"exp-{exp_id}"
 
     # Validate experiment succeeded
     if not validate_experiment(exp_id):
         return False
 
-    # Merge branch into main using argument lists (safe)
+    # IMPORTANT: Merge database BEFORE git to ensure atomicity.
+    # If database merge fails, git state remains unchanged.
+    # NOTE: `merge_databases` is a conceptual function that would be
+    # implemented in the storage/persistence layer. It handles conflict
+    # resolution, deduplication, and timestamp reconciliation.
+    try:
+        merge_databases("memory/index.db", worktree_path / "memory" / "index.db")
+    except Exception as e:
+        # Database merge failed - don't proceed with git merge
+        raise RuntimeError(f"Database merge failed: {e}")
+
+    # Now safe to merge git branch
     run_git('checkout', 'main')
     run_git('merge', branch_name)
 
-    # Merge database changes
-    # NOTE: `merge_databases` is provided by the storage/persistence layer and is
-    # responsible for safely merging the experiment database into the main one.
-    # It handles conflict resolution, deduplication, and timestamp reconciliation.
-    merge_databases("memory/index.db", f"{worktree_path}/memory/index.db")
-
     # Cleanup
-    run_git('worktree', 'remove', worktree_path)
+    run_git('worktree', 'remove', str(worktree_path))
     run_git('branch', '-d', branch_name)
 
     return True
@@ -308,7 +325,8 @@ def discard_experiment(exp_id: str):
     if not validate_exp_id(exp_id):
         raise ValueError(f"Invalid experiment ID: {exp_id}")
 
-    worktree_path = f".worktrees/exp-{exp_id}"
+    # Use pathlib for safe path construction
+    worktree_path = Path(".worktrees") / f"exp-{exp_id}"
     branch_name = f"exp-{exp_id}"
     run_git('worktree', 'remove', '--force', worktree_path)
     run_git('branch', '-D', branch_name)
