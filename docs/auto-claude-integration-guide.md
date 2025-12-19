@@ -173,7 +173,7 @@ if grep -q "## CLC Integration (Always)" CLAUDE.md 2>/dev/null; then
     echo "CLC integration already present in CLAUDE.md - skipping"
 else
     if [ -f CLAUDE.md ]; then
-        BACKUP_NAME="CLAUDE.md.bak.$(date +%Y%m%d_%H%M%S)"
+        BACKUP_NAME="CLAUDE.md.bak.$(date +%Y%m%d_%H%M%S)_$RANDOM"
         mv CLAUDE.md "$BACKUP_NAME" || { echo 'Failed to back up CLAUDE.md. Aborting.' >&2; exit 1; }
         echo "Backed up existing CLAUDE.md to $BACKUP_NAME"
     fi

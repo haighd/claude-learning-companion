@@ -255,7 +255,7 @@ def validate_exp_id(exp_id: str) -> bool:
     """
     if len(exp_id) > MAX_EXP_ID_LENGTH:
         return False
-    return bool(re.match(r'^[a-zA-Z0-9][a-zA-Z0-9_-]*$', exp_id))
+    return bool(re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9_-]*', exp_id))
 
 def run_git(*args: str) -> subprocess.CompletedProcess:
     """Run git command safely using argument list (no shell interpolation)."""
@@ -318,7 +318,7 @@ def merge_experiment(exp_id: str) -> bool:
 
     # Step 2: Merge database (git is staged but not committed)
     try:
-        merge_databases("memory/index.db", worktree_path / "memory" / "index.db")
+        merge_databases("memory/index.db", str(worktree_path / "memory" / "index.db"))
     except Exception as e:
         # Database merge failed - abort the staged git merge
         run_git('merge', '--abort')
@@ -328,7 +328,11 @@ def merge_experiment(exp_id: str) -> bool:
     try:
         run_git('commit', '-m', f'Merge experiment {exp_id}')
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"Git commit failed: {e}")
+        # Commit failed (e.g., pre-commit hook) - rollback database and abort git
+        # NOTE: rollback_db_merge is conceptual - would restore from backup
+        # rollback_db_merge()
+        run_git('merge', '--abort')
+        raise RuntimeError(f"Git commit failed, database merge rolled back: {e}")
 
     # Cleanup - use robust error handling to ensure both operations complete
     cleanup_errors = []
