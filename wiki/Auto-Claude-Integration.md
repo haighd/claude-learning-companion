@@ -19,7 +19,7 @@ They're complementary: CLC remembers, Auto-Claude executes.
 |----------|-----|-------------|
 | Config | `~/.claude/CLAUDE.md` | `./CLAUDE.md` |
 | Data | `~/.claude/clc/` | `./specs/`, `./.worktrees/` |
-| Hooks | Global settings.json | None (Python orchestration) |
+| Hooks | Global hooks | None (Python orchestration) |
 
 ## Installation Options
 
@@ -56,6 +56,8 @@ CLC hooks capture Auto-Claude's builds (noisy). Add exclusion:
 
 ```python
 # In pre_tool_learning.py
+import os
+import sys
 if "auto-claude" in os.getcwd() or ".worktrees" in os.getcwd():
     sys.exit(0)
 ```

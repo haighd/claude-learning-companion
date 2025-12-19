@@ -52,7 +52,7 @@ CLC escalates to CEO immediately when encountering uncertainty or failures. This
 - Data integrity concerns
 
 #### Configuration
-```python
+```yaml
 # ~/.claude/clc/config/self-healing.yaml
 self_healing:
   enabled: true
@@ -236,6 +236,7 @@ CLC operates directly in the main workspace. Experimental changes can corrupt st
 #### Implementation
 ```python
 # scripts/experiment.py
+import shutil
 
 def start_experiment(description: str) -> str:
     """Create isolated worktree for experiment."""
@@ -345,6 +346,8 @@ async def link_to_learning(id: str, learning_id: str):
 #### Frontend Component
 ```typescript
 // dashboard-app/frontend/src/components/Kanban.tsx
+import React, { useState } from 'react';
+import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
 
 interface WorkflowItem {
   id: string;
@@ -483,6 +486,8 @@ CLC's learning hooks capture all tool usage. Auto-Claude's autonomous builds gen
 **Mitigation**: Add exclusion to CLC hooks:
 ```python
 # In pre_tool_learning.py / post_tool_learning.py
+import os
+import sys
 if "auto-claude" in os.getcwd() or ".worktrees" in os.getcwd():
     sys.exit(0)  # Skip learning capture for Auto-Claude operations
 ```
@@ -494,7 +499,7 @@ Auto-Claude agents don't query CLC, so accumulated wisdom isn't applied to auton
 **Mitigation**: Inject CLC knowledge into specs manually:
 ```bash
 # Before creating spec
-python ~/.claude/clc/query/query.py --context > /tmp/clc-context.txt
+python ~/.claude/clc/query/query.py --context > clc-context.txt
 # Include relevant learnings in spec description
 ```
 

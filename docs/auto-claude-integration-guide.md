@@ -73,6 +73,7 @@ Apply relevant golden rules and heuristics.
 # Add near the top:
 
 import os
+import sys
 cwd = os.getcwd()
 if "auto-claude" in cwd or ".worktrees" in cwd:
     sys.exit(0)  # Skip Auto-Claude operations
@@ -86,9 +87,9 @@ if "auto-claude" in cwd or ".worktrees" in cwd:
 
 ```bash
 # Before creating an Auto-Claude spec
-python ~/.claude/clc/query/query.py --domain "react" > /tmp/context.txt
+python ~/.claude/clc/query/query.py --domain "react" > clc-context.txt
 
-# Review /tmp/context.txt and include relevant learnings
+# Review clc-context.txt and include relevant learnings
 # in your spec's requirements or constraints
 ```
 
