@@ -10,18 +10,19 @@ interface TimelineViewProps {
 }
 
 const eventConfig = {
-  task_start: { icon: Play, color: 'bg-sky-500', label: 'Task Started' },
-  task_end: { icon: CheckCircle, color: 'bg-emerald-500', label: 'Task Completed' },
-  heuristic_consulted: { icon: Brain, color: 'bg-violet-500', label: 'Heuristic Consulted' },
+  // Heuristic events
   heuristic_validated: { icon: CheckCircle, color: 'bg-emerald-500', label: 'Heuristic Validated' },
   heuristic_violated: { icon: XCircle, color: 'bg-red-500', label: 'Heuristic Violated' },
-  failure_recorded: { icon: AlertTriangle, color: 'bg-orange-500', label: 'Failure Recorded' },
-  golden_promoted: { icon: Star, color: 'bg-amber-500', label: 'Golden Promotion' },
+  // Learning events
+  auto_failure_capture: { icon: AlertTriangle, color: 'bg-orange-500', label: 'Failure Captured' },
+  golden_rule_promotion: { icon: Star, color: 'bg-amber-500', label: 'Golden Rule Promoted' },
+  task_outcome: { icon: CheckCircle, color: 'bg-sky-500', label: 'Task Outcome' },
   // Tool types
   bash_run: { icon: Terminal, color: 'bg-green-500', label: 'Bash Command' },
   task_run: { icon: Workflow, color: 'bg-blue-500', label: 'Task Agent' },
   mcp_call: { icon: Cpu, color: 'bg-purple-500', label: 'MCP Call' },
   webfetch_call: { icon: Globe, color: 'bg-teal-500', label: 'Web Fetch' },
+  workflow_run: { icon: Play, color: 'bg-slate-500', label: 'Workflow Run' },
 }
 
 export default function TimelineView({ events, heuristics, onEventClick }: TimelineViewProps) {
