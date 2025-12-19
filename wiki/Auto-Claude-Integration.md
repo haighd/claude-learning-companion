@@ -73,13 +73,18 @@ import os
 import sys
 from pathlib import Path
 
-current_path = Path(os.getcwd()).resolve()
+path_to_check = Path(os.getcwd()).resolve()
 while True:
-    if any((current_path / m).exists() for m in [".auto-claude", "auto-claude-framework"]) or (current_path / ".git").is_file():
-        sys.exit(0)
-    if current_path == current_path.parent:
-        break
-    current_path = current_path.parent
+    is_auto_claude_dir = any((path_to_check / m).exists() for m in [".auto-claude", "auto-claude-framework"])
+    is_worktree = (path_to_check / ".git").is_file()  # Worktrees have .git as file, not directory
+
+    if is_auto_claude_dir or is_worktree:
+        sys.exit(0)  # Skip Auto-Claude operations
+
+    if path_to_check == path_to_check.parent:
+        break  # Reached filesystem root
+
+    path_to_check = path_to_check.parent
 ```
 
 ### 3. Knowledge Gap
