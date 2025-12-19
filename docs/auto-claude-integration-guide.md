@@ -126,9 +126,9 @@ claude setup-token
 
 # Update project .gitignore (idempotent - only add if not present)
 cd ..
-grep -qxF '.auto-claude/' .gitignore 2>/dev/null || echo ".auto-claude/" >> .gitignore
-grep -qxF '.worktrees/' .gitignore 2>/dev/null || echo ".worktrees/" >> .gitignore
-grep -qxF 'specs/' .gitignore 2>/dev/null || echo "specs/" >> .gitignore
+for item in .auto-claude/ .worktrees/ specs/; do
+    grep -qxF "$item" .gitignore 2>/dev/null || echo "$item" >> .gitignore
+done
 ```
 
 **Directory structure after**:
@@ -210,9 +210,9 @@ EOF
 fi
 
 # Update .gitignore (idempotent - only add if not present)
-grep -qxF 'auto-claude-framework/' .gitignore 2>/dev/null || echo "auto-claude-framework/" >> .gitignore
-grep -qxF 'specs/' .gitignore 2>/dev/null || echo "specs/" >> .gitignore
-grep -qxF '.worktrees/' .gitignore 2>/dev/null || echo ".worktrees/" >> .gitignore
+for item in auto-claude-framework/ specs/ .worktrees/; do
+    grep -qxF "$item" .gitignore 2>/dev/null || echo "$item" >> .gitignore
+done
 ```
 
 ---
