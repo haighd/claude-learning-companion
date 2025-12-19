@@ -274,6 +274,26 @@ def get_default_branch() -> str:
         # Fallback to 'main' if detection fails
         return 'main'
 
+def generate_id() -> str:
+    """Generate a safe alphanumeric experiment ID."""
+    import uuid
+    # Use hex representation (0-9, a-f) which passes validate_exp_id
+    return uuid.uuid4().hex[:12]
+
+def is_working_tree_clean() -> bool:
+    """Check if the git working tree has no uncommitted changes."""
+    result = subprocess.run(
+        ['git', 'diff-index', '--quiet', 'HEAD', '--'],
+        capture_output=True
+    )
+    return result.returncode == 0
+
+# NOTE: The following functions are CONCEPTUAL PLACEHOLDERS that require
+# implementation in the storage/persistence layer:
+# - save_experiment_metadata(exp_id, description): Stores experiment metadata
+# - validate_experiment(exp_id): Checks if experiment succeeded (tests passed, etc.)
+# - merge_databases(source, target): Merges SQLite databases with conflict resolution
+
 def start_experiment(description: str) -> str:
     """Create isolated worktree for experiment."""
     exp_id = generate_id()  # Must return safe alphanumeric ID
@@ -321,6 +341,10 @@ def merge_experiment(exp_id: str) -> bool:
     # resolution, deduplication, and timestamp reconciliation.
 
     # Step 1: Stage git merge (--no-commit allows abort if DB merge fails)
+    # Ensure working tree is clean before switching branches
+    if not is_working_tree_clean():
+        raise RuntimeError("Working tree has uncommitted changes. Commit or stash before merging.")
+
     default_branch = get_default_branch()
     try:
         run_git('checkout', default_branch)
