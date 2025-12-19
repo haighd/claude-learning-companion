@@ -318,7 +318,6 @@ These are tracked in [GitHub Issue #14](https://github.com/haighd/claude-learnin
 
 ## References
 
-- [Full Comparative Analysis](../plans/abundant-seeking-hickey.md)
 - [Technical Spec](implementation-plans/auto-claude-integration-spec.md)
 - [Auto-Claude Repository](https://github.com/AndyMik90/Auto-Claude)
 - [Enhancement Tracking Issue](https://github.com/haighd/claude-learning-companion/issues/14)

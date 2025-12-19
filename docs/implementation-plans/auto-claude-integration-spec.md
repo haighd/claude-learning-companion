@@ -262,7 +262,8 @@ def merge_experiment(exp_id: str) -> bool:
     if not validate_experiment(exp_id):
         return False
 
-    # Merge branch
+    # Merge branch into main
+    run("git checkout main")
     run(f"git merge exp-{exp_id}")
 
     # Merge database changes
@@ -400,6 +401,8 @@ This is a larger architectural change. High-level approach:
 
 #### Mode Toggle
 ```python
+from enum import Enum
+
 class AgentMode(Enum):
     ADVISORY = "advisory"      # Current behavior
     EXECUTOR = "executor"      # New: can take actions

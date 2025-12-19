@@ -37,7 +37,7 @@ echo ".worktrees/" >> ../.gitignore
 
 ### Option B: Root Installation
 
-See [full integration guide](../docs/auto-claude-integration-guide.md).
+See [full integration guide](https://github.com/haighd/claude-learning-companion/blob/main/docs/auto-claude-integration-guide.md).
 
 ## Potential Issues
 
@@ -86,7 +86,6 @@ Auto-Claude doesn't query CLC. Manually inject context into specs.
 
 ## References
 
-- [Full Integration Guide](../docs/auto-claude-integration-guide.md)
-- [Technical Spec](../docs/implementation-plans/auto-claude-integration-spec.md)
-- [Comparative Analysis](../plans/abundant-seeking-hickey.md)
+- [Full Integration Guide](https://github.com/haighd/claude-learning-companion/blob/main/docs/auto-claude-integration-guide.md)
+- [Technical Spec](https://github.com/haighd/claude-learning-companion/blob/main/docs/implementation-plans/auto-claude-integration-spec.md)
 - [GitHub Issue #14](https://github.com/haighd/claude-learning-companion/issues/14)
