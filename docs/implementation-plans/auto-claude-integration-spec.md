@@ -261,6 +261,19 @@ def run_git(*args: str) -> subprocess.CompletedProcess:
     """Run git command safely using argument list (no shell interpolation)."""
     return subprocess.run(['git'] + list(args), check=True)
 
+def get_default_branch() -> str:
+    """Detect the default branch name (handles main, master, or custom names)."""
+    try:
+        result = subprocess.run(
+            ['git', 'symbolic-ref', 'refs/remotes/origin/HEAD'],
+            capture_output=True, text=True, check=True
+        )
+        # Output is like "refs/remotes/origin/main" - extract branch name
+        return result.stdout.strip().split('/')[-1]
+    except subprocess.CalledProcessError:
+        # Fallback to 'main' if detection fails
+        return 'main'
+
 def start_experiment(description: str) -> str:
     """Create isolated worktree for experiment."""
     exp_id = generate_id()  # Must return safe alphanumeric ID
@@ -308,8 +321,9 @@ def merge_experiment(exp_id: str) -> bool:
     # resolution, deduplication, and timestamp reconciliation.
 
     # Step 1: Stage git merge (--no-commit allows abort if DB merge fails)
+    default_branch = get_default_branch()
     try:
-        run_git('checkout', 'main')
+        run_git('checkout', default_branch)
         run_git('merge', '--no-ff', '--no-commit', branch_name)
     except subprocess.CalledProcessError as e:
         # Git merge failed (conflicts) - abort and report
@@ -479,6 +493,7 @@ const Column: React.FC<{ id: ColumnId; children: React.ReactNode }> = ({ id, chi
 const Kanban: React.FC = () => {
   const [items, setItems] = useState<WorkflowItem[]>([]);
   const columns: ColumnId[] = ['pending', 'in_progress', 'review', 'done'];
+  // Column drop IDs use 'column:' prefix to avoid collision with item IDs
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -500,10 +515,12 @@ const Kanban: React.FC = () => {
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    // Determine target column: if dropped on a column, use that;
-    // if dropped on an item, use that item's column
-    const targetColumn = columns.includes(overId as ColumnId)
-      ? (overId as ColumnId)
+    // Determine target column: check for prefixed column IDs to avoid
+    // collision with item IDs (e.g., an item with id 'done' wouldn't
+    // be mistaken for the 'done' column)
+    const isColumnDrop = overId.startsWith('column:');
+    const targetColumn = isColumnDrop
+      ? (overId.replace('column:', '') as ColumnId)
       : findContainer(overId);
 
     if (targetColumn) {
@@ -518,7 +535,7 @@ const Kanban: React.FC = () => {
       onDragEnd={handleDragEnd}
     >
       {columns.map(columnId => (
-        <Column key={columnId} id={columnId}>
+        <Column key={columnId} id={`column:${columnId}`}>
           <SortableContext
             items={items.filter(i => i.status === columnId).map(i => i.id)}
             strategy={verticalListSortingStrategy}
