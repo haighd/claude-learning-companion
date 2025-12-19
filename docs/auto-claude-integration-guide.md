@@ -171,7 +171,7 @@ cd auto-claude-framework && uv venv && uv pip install -r requirements.txt
 cd ..
 if [ -f CLAUDE.md ]; then
     BACKUP_NAME="CLAUDE.md.bak.$(date +%Y%m%d_%H%M%S)"
-    mv CLAUDE.md "$BACKUP_NAME"
+    mv CLAUDE.md "$BACKUP_NAME" || { echo 'Failed to back up CLAUDE.md. Aborting.' >&2; exit 1; }
     echo "Backed up existing CLAUDE.md to $BACKUP_NAME"
 fi
 { cat << 'EOF'

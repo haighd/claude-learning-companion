@@ -274,7 +274,8 @@ def start_experiment(description: str) -> str:
     # Create worktree using subprocess with argument list (safe)
     run_git('worktree', 'add', str(worktree_path), '-b', branch_name)
 
-    # Copy database (isolated state)
+    # Copy database (isolated state) - ensure directory exists first
+    (worktree_path / "memory").mkdir(parents=True, exist_ok=True)
     shutil.copy("memory/index.db", worktree_path / "memory" / "index.db")
 
     # Record experiment
