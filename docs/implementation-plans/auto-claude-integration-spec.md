@@ -475,12 +475,15 @@ import {
 
 type ColumnId = 'pending' | 'in_progress' | 'review' | 'done';
 
+// Canonical identifiers of learnings from the learning catalog (e.g. slugs or IDs)
+type LearningId = string;
+
 interface WorkflowItem {
   id: string;
   title: string;
   description: string;
   status: ColumnId;
-  linkedLearnings: string[];
+  linkedLearnings: LearningId[];
   createdAt: Date;
 }
 
