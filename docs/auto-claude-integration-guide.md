@@ -59,7 +59,8 @@ Before any task, query accumulated knowledge:
 ```bash
 python ~/.claude/clc/query/query.py --context
 ```
-Apply relevant golden rules and heuristics.
+This returns: golden rules, domain-specific heuristics, recent failures to avoid,
+and success patterns to replicate. Apply these insights to your task approach.
 ```
 
 #### 2. Learning Hook Noise
@@ -153,9 +154,9 @@ cd ~/Projects/my-project
 git clone https://github.com/AndyMik90/Auto-Claude.git auto-claude-framework
 cd auto-claude-framework && uv venv && uv pip install -r requirements.txt
 
-# Create merged CLAUDE.md at project root
+# Create merged CLAUDE.md at project root (preserves existing content)
 cd ..
-cat > CLAUDE.md << 'EOF'
+{ cat << 'EOF'
 # Project Instructions
 
 ## CLC Integration (Always)
@@ -172,8 +173,12 @@ For complex features, use Auto-Claude:
 - Builds: `./.worktrees/`
 
 ## Project-Specific Rules
-[Your existing .claude/CLAUDE.md content here]
 EOF
+# Append existing project config if present
+if [ -f .claude/CLAUDE.md ]; then
+  cat .claude/CLAUDE.md
+fi
+} > CLAUDE.md
 
 # Update .gitignore
 echo "auto-claude-framework/" >> .gitignore

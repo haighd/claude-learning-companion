@@ -17,7 +17,7 @@ They're complementary: CLC remembers, Auto-Claude executes.
 
 | Resource | CLC | Auto-Claude |
 |----------|-----|-------------|
-| Config | `~/.claude/CLAUDE.md` | `./CLAUDE.md` |
+| Config | Global: `~/.claude/CLAUDE.md` (project-local `.claude/` also supported) | `./CLAUDE.md` |
 | Data | `~/.claude/clc/` | `./specs/`, `./.worktrees/` |
 | Hooks | Global hooks | None (Python orchestration) |
 

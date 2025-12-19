@@ -239,15 +239,32 @@ CLC operates directly in the main workspace. Experimental changes can corrupt st
 #### Implementation
 ```python
 # scripts/experiment.py
+import re
 import shutil
+import subprocess
+
+def validate_exp_id(exp_id: str) -> bool:
+    """Validate experiment ID to prevent command injection.
+
+    Only allows alphanumeric characters, hyphens, and underscores.
+    """
+    return bool(re.match(r'^[a-zA-Z0-9_-]+$', exp_id))
+
+def run_git(*args: str) -> subprocess.CompletedProcess:
+    """Run git command safely using argument list (no shell interpolation)."""
+    return subprocess.run(['git'] + list(args), check=True)
 
 def start_experiment(description: str) -> str:
     """Create isolated worktree for experiment."""
-    exp_id = generate_id()
-    worktree_path = f".worktrees/exp-{exp_id}"
+    exp_id = generate_id()  # Must return safe alphanumeric ID
+    if not validate_exp_id(exp_id):
+        raise ValueError(f"Invalid experiment ID: {exp_id}")
 
-    # Create worktree
-    run(f"git worktree add {worktree_path} -b exp-{exp_id}")
+    worktree_path = f".worktrees/exp-{exp_id}"
+    branch_name = f"exp-{exp_id}"
+
+    # Create worktree using subprocess with argument list (safe)
+    run_git('worktree', 'add', worktree_path, '-b', branch_name)
 
     # Copy database (isolated state)
     shutil.copy("memory/index.db", f"{worktree_path}/memory/index.db")
@@ -259,30 +276,38 @@ def start_experiment(description: str) -> str:
 
 def merge_experiment(exp_id: str) -> bool:
     """Merge successful experiment back to main."""
+    if not validate_exp_id(exp_id):
+        raise ValueError(f"Invalid experiment ID: {exp_id}")
+
     worktree_path = f".worktrees/exp-{exp_id}"
+    branch_name = f"exp-{exp_id}"
 
     # Validate experiment succeeded
     if not validate_experiment(exp_id):
         return False
 
-    # Merge branch into main
-    run("git checkout main")
-    run(f"git merge exp-{exp_id}")
+    # Merge branch into main using argument lists (safe)
+    run_git('checkout', 'main')
+    run_git('merge', branch_name)
 
     # Merge database changes
     merge_databases("memory/index.db", f"{worktree_path}/memory/index.db")
 
     # Cleanup
-    run(f"git worktree remove {worktree_path}")
-    run(f"git branch -d exp-{exp_id}")
+    run_git('worktree', 'remove', worktree_path)
+    run_git('branch', '-d', branch_name)
 
     return True
 
 def discard_experiment(exp_id: str):
     """Discard failed experiment."""
+    if not validate_exp_id(exp_id):
+        raise ValueError(f"Invalid experiment ID: {exp_id}")
+
     worktree_path = f".worktrees/exp-{exp_id}"
-    run(f"git worktree remove --force {worktree_path}")
-    run(f"git branch -D exp-{exp_id}")
+    branch_name = f"exp-{exp_id}"
+    run_git('worktree', 'remove', '--force', worktree_path)
+    run_git('branch', '-D', branch_name)
 ```
 
 #### Slash Command
@@ -354,11 +379,13 @@ import React, { useState } from 'react';
 import {
   DndContext,
   DragEndEvent,
-  closestCenter,
+  DragOverEvent,
+  closestCorners,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -366,17 +393,26 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 
+type ColumnId = 'pending' | 'in_progress' | 'review' | 'done';
+
 interface WorkflowItem {
   id: string;
   title: string;
   description: string;
-  status: 'pending' | 'in_progress' | 'review' | 'done';
+  status: ColumnId;
   linkedLearnings: string[];
   createdAt: Date;
 }
 
+// Droppable column component
+const Column: React.FC<{ id: ColumnId; children: React.ReactNode }> = ({ id, children }) => {
+  const { setNodeRef } = useDroppable({ id });
+  return <div ref={setNodeRef}>{children}</div>;
+};
+
 const Kanban: React.FC = () => {
   const [items, setItems] = useState<WorkflowItem[]>([]);
+  const columns: ColumnId[] = ['pending', 'in_progress', 'review', 'done'];
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -385,27 +421,45 @@ const Kanban: React.FC = () => {
     })
   );
 
+  // Find which column contains an item
+  const findContainer = (id: string): ColumnId | undefined => {
+    const item = items.find(i => i.id === id);
+    return item?.status;
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      updateWorkflowStatus(active.id as string, over.id as string);
+    if (!over) return;
+
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    // Determine target column: if dropped on a column, use that;
+    // if dropped on an item, use that item's column
+    const targetColumn = columns.includes(overId as ColumnId)
+      ? (overId as ColumnId)
+      : findContainer(overId);
+
+    if (targetColumn) {
+      updateWorkflowStatus(activeId, targetColumn);
     }
   };
 
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCenter}
+      collisionDetection={closestCorners}
       onDragEnd={handleDragEnd}
     >
-      {columns.map(column => (
-        <SortableContext
-          key={column.id}
-          items={items.filter(i => i.status === column.id).map(i => i.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          {/* Render sortable items */}
-        </SortableContext>
+      {columns.map(columnId => (
+        <Column key={columnId} id={columnId}>
+          <SortableContext
+            items={items.filter(i => i.status === columnId).map(i => i.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {/* Render sortable items */}
+          </SortableContext>
+        </Column>
       ))}
     </DndContext>
   );
