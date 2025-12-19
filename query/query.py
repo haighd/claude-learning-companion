@@ -767,17 +767,19 @@ class QuerySystem:
                 # Calculate cutoff date in Python (SQLite datetime() equivalent)
                 cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=days)
 
-                query = Learning.select()
-                if type_filter:
-                    query = query.where(
-                        (Learning.type == type_filter) &
-                        (Learning.created_at >= cutoff)
-                    )
-                else:
-                    query = query.where(Learning.created_at >= cutoff)
+                # Use allow_sync context for synchronous queries with peewee_aio
+                with self._db_manager.allow_sync():
+                    query = Learning.select()
+                    if type_filter:
+                        query = query.where(
+                            (Learning.type == type_filter) &
+                            (Learning.created_at >= cutoff)
+                        )
+                    else:
+                        query = query.where(Learning.created_at >= cutoff)
 
-                query = query.order_by(Learning.created_at.desc()).limit(limit)
-                results = [l.__data__.copy() for l in query]
+                    query = query.order_by(Learning.created_at.desc()).limit(limit)
+                    results = [l.__data__.copy() for l in query]
 
             self._log_debug(f"Found {len(results)} recent learnings")
             return results
@@ -968,13 +970,16 @@ class QuerySystem:
             from datetime import timedelta
 
             cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=days)
-            query = Violation.select().where(Violation.violation_date >= cutoff)
 
-            if acknowledged is not None:
-                query = query.where(Violation.acknowledged == acknowledged)
+            # Use allow_sync context for synchronous queries with peewee_aio
+            with self._db_manager.allow_sync():
+                query = Violation.select().where(Violation.violation_date >= cutoff)
 
-            query = query.order_by(Violation.violation_date.desc())
-            results = [v.__data__.copy() for v in query]
+                if acknowledged is not None:
+                    query = query.where(Violation.acknowledged == acknowledged)
+
+                query = query.order_by(Violation.violation_date.desc())
+                results = [v.__data__.copy() for v in query]
 
         self._log_debug(f"Found {len(results)} violations")
         return results
@@ -1100,33 +1105,35 @@ class QuerySystem:
 
             cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=days)
 
-            # Total count
-            total = Violation.select().where(Violation.violation_date >= cutoff).count()
+            # Use allow_sync context for synchronous queries with peewee_aio
+            with self._db_manager.allow_sync():
+                # Total count
+                total = Violation.select().where(Violation.violation_date >= cutoff).count()
 
-            # By rule (group by)
-            by_rule_query = (Violation
-                .select(Violation.rule_id, Violation.rule_name, fn.COUNT(Violation.id).alias('count'))
-                .where(Violation.violation_date >= cutoff)
-                .group_by(Violation.rule_id, Violation.rule_name)
-                .order_by(fn.COUNT(Violation.id).desc()))
-            by_rule = [{'rule_id': r.rule_id, 'rule_name': r.rule_name, 'count': r.count}
-                      for r in by_rule_query]
+                # By rule (group by)
+                by_rule_query = (Violation
+                    .select(Violation.rule_id, Violation.rule_name, fn.COUNT(Violation.id).alias('count'))
+                    .where(Violation.violation_date >= cutoff)
+                    .group_by(Violation.rule_id, Violation.rule_name)
+                    .order_by(fn.COUNT(Violation.id).desc()))
+                by_rule = [{'rule_id': r.rule_id, 'rule_name': r.rule_name, 'count': r.count}
+                          for r in by_rule_query]
 
-            # Acknowledged count
-            acknowledged = (Violation
-                .select()
-                .where((Violation.violation_date >= cutoff) & (Violation.acknowledged == True))
-                .count())
+                # Acknowledged count
+                acknowledged = (Violation
+                    .select()
+                    .where((Violation.violation_date >= cutoff) & (Violation.acknowledged == True))
+                    .count())
 
-            # Recent violations (last 5)
-            recent_query = (Violation
-                .select(Violation.rule_id, Violation.rule_name, Violation.description, Violation.violation_date)
-                .where(Violation.violation_date >= cutoff)
-                .order_by(Violation.violation_date.desc())
-                .limit(5))
-            recent = [{'rule_id': r.rule_id, 'rule_name': r.rule_name,
-                      'description': r.description, 'date': str(r.violation_date) if r.violation_date else None}
-                     for r in recent_query]
+                # Recent violations (last 5)
+                recent_query = (Violation
+                    .select(Violation.rule_id, Violation.rule_name, Violation.description, Violation.violation_date)
+                    .where(Violation.violation_date >= cutoff)
+                    .order_by(Violation.violation_date.desc())
+                    .limit(5))
+                recent = [{'rule_id': r.rule_id, 'rule_name': r.rule_name,
+                          'description': r.description, 'date': str(r.violation_date) if r.violation_date else None}
+                         for r in recent_query]
 
         summary = {
             'total': total,
@@ -1270,35 +1277,37 @@ class QuerySystem:
 
             with TimeoutHandler(timeout):
                 try:
-                    query = Invariant.select()
+                    # Use allow_sync context for synchronous queries with peewee_aio
+                    with self._db_manager.allow_sync():
+                        query = Invariant.select()
 
-                    if status:
-                        query = query.where(Invariant.status == status)
+                        if status:
+                            query = query.where(Invariant.status == status)
 
-                    if domain:
-                        domain = self._validate_domain(domain)
-                        query = query.where(
-                            (Invariant.domain == domain) | (Invariant.domain.is_null())
-                        )
+                        if domain:
+                            domain = self._validate_domain(domain)
+                            query = query.where(
+                                (Invariant.domain == domain) | (Invariant.domain.is_null())
+                            )
 
-                    if scope:
-                        query = query.where(Invariant.scope == scope)
+                        if scope:
+                            query = query.where(Invariant.scope == scope)
 
-                    if severity:
-                        query = query.where(Invariant.severity == severity)
+                        if severity:
+                            query = query.where(Invariant.severity == severity)
 
-                    query = query.order_by(Invariant.created_at.desc()).limit(limit)
+                        query = query.order_by(Invariant.created_at.desc()).limit(limit)
 
-                    results = [{
-                        'id': inv.id,
-                        'statement': inv.statement,
-                        'rationale': inv.rationale,
-                        'domain': inv.domain,
-                        'scope': inv.scope,
-                        'severity': inv.severity,
-                        'status': inv.status,
-                        'created_at': inv.created_at
-                    } for inv in query]
+                        results = [{
+                            'id': inv.id,
+                            'statement': inv.statement,
+                            'rationale': inv.rationale,
+                            'domain': inv.domain,
+                            'scope': inv.scope,
+                            'severity': inv.severity,
+                            'status': inv.status,
+                            'created_at': inv.created_at
+                        } for inv in query]
                 except Exception as e:
                     # Table might not exist yet
                     if 'no such table' in str(e).lower():
@@ -1556,54 +1565,56 @@ class QuerySystem:
 
             with TimeoutHandler(timeout):
                 try:
-                    query = SpikeReport.select()
+                    # Use allow_sync context for synchronous queries with peewee_aio
+                    with self._db_manager.allow_sync():
+                        query = SpikeReport.select()
 
-                    if domain:
-                        domain = self._validate_domain(domain)
-                        query = query.where(
-                            (SpikeReport.domain == domain) | (SpikeReport.domain.is_null())
-                        )
+                        if domain:
+                            domain = self._validate_domain(domain)
+                            query = query.where(
+                                (SpikeReport.domain == domain) | (SpikeReport.domain.is_null())
+                            )
 
-                    if tags:
-                        tags = self._validate_tags(tags)
-                        from functools import reduce
-                        from operator import or_
-                        tag_conditions = reduce(
-                            or_,
-                            [SpikeReport.tags.contains(tag) for tag in tags]
-                        )
-                        query = query.where(tag_conditions)
+                        if tags:
+                            tags = self._validate_tags(tags)
+                            from functools import reduce
+                            from operator import or_
+                            tag_conditions = reduce(
+                                or_,
+                                [SpikeReport.tags.contains(tag) for tag in tags]
+                            )
+                            query = query.where(tag_conditions)
 
-                    if search:
-                        escaped_search = f"%{search}%"
-                        query = query.where(
-                            (SpikeReport.title.contains(search)) |
-                            (SpikeReport.topic.contains(search)) |
-                            (SpikeReport.question.contains(search)) |
-                            (SpikeReport.findings.contains(search))
-                        )
+                        if search:
+                            escaped_search = f"%{search}%"
+                            query = query.where(
+                                (SpikeReport.title.contains(search)) |
+                                (SpikeReport.topic.contains(search)) |
+                                (SpikeReport.question.contains(search)) |
+                                (SpikeReport.findings.contains(search))
+                            )
 
-                    query = query.order_by(
-                        SpikeReport.usefulness_score.desc(),
-                        SpikeReport.created_at.desc()
-                    ).limit(limit)
+                        query = query.order_by(
+                            SpikeReport.usefulness_score.desc(),
+                            SpikeReport.created_at.desc()
+                        ).limit(limit)
 
-                    results = [{
-                        'id': sr.id,
-                        'title': sr.title,
-                        'topic': sr.topic,
-                        'question': sr.question,
-                        'findings': sr.findings,
-                        'gotchas': sr.gotchas,
-                        'resources': sr.resources,
-                        'time_invested_minutes': sr.time_invested_minutes,
-                        'domain': sr.domain,
-                        'tags': sr.tags,
-                        'usefulness_score': sr.usefulness_score,
-                        'access_count': sr.access_count,
-                        'created_at': sr.created_at,
-                        'updated_at': sr.updated_at
-                    } for sr in query]
+                        results = [{
+                            'id': sr.id,
+                            'title': sr.title,
+                            'topic': sr.topic,
+                            'question': sr.question,
+                            'findings': sr.findings,
+                            'gotchas': sr.gotchas,
+                            'resources': sr.resources,
+                            'time_invested_minutes': sr.time_invested_minutes,
+                            'domain': sr.domain,
+                            'tags': sr.tags,
+                            'usefulness_score': sr.usefulness_score,
+                            'access_count': sr.access_count,
+                            'created_at': sr.created_at,
+                            'updated_at': sr.updated_at
+                        } for sr in query]
                 except Exception as e:
                     # Table might not exist yet
                     if 'no such table' in str(e).lower():
@@ -2101,56 +2112,58 @@ class QuerySystem:
 
             stats = {}
 
-            # Count learnings by type
-            learnings_type_query = (Learning
-                .select(Learning.type, fn.COUNT(Learning.id).alias('count'))
-                .group_by(Learning.type))
-            stats['learnings_by_type'] = {r.type: r.count for r in learnings_type_query}
+            # Use allow_sync context for synchronous queries with peewee_aio
+            with self._db_manager.allow_sync():
+                # Count learnings by type
+                learnings_type_query = (Learning
+                    .select(Learning.type, fn.COUNT(Learning.id).alias('count'))
+                    .group_by(Learning.type))
+                stats['learnings_by_type'] = {r.type: r.count for r in learnings_type_query}
 
-            # Count learnings by domain
-            learnings_domain_query = (Learning
-                .select(Learning.domain, fn.COUNT(Learning.id).alias('count'))
-                .group_by(Learning.domain))
-            stats['learnings_by_domain'] = {r.domain: r.count for r in learnings_domain_query}
+                # Count learnings by domain
+                learnings_domain_query = (Learning
+                    .select(Learning.domain, fn.COUNT(Learning.id).alias('count'))
+                    .group_by(Learning.domain))
+                stats['learnings_by_domain'] = {r.domain: r.count for r in learnings_domain_query}
 
-            # Count heuristics by domain
-            heuristics_domain_query = (Heuristic
-                .select(Heuristic.domain, fn.COUNT(Heuristic.id).alias('count'))
-                .group_by(Heuristic.domain))
-            stats['heuristics_by_domain'] = {r.domain: r.count for r in heuristics_domain_query}
+                # Count heuristics by domain
+                heuristics_domain_query = (Heuristic
+                    .select(Heuristic.domain, fn.COUNT(Heuristic.id).alias('count'))
+                    .group_by(Heuristic.domain))
+                stats['heuristics_by_domain'] = {r.domain: r.count for r in heuristics_domain_query}
 
-            # Count golden heuristics
-            stats['golden_heuristics'] = Heuristic.select().where(Heuristic.is_golden == True).count()
+                # Count golden heuristics
+                stats['golden_heuristics'] = Heuristic.select().where(Heuristic.is_golden == True).count()
 
-            # Count experiments by status
-            experiments_status_query = (Experiment
-                .select(Experiment.status, fn.COUNT(Experiment.id).alias('count'))
-                .group_by(Experiment.status))
-            stats['experiments_by_status'] = {r.status: r.count for r in experiments_status_query}
+                # Count experiments by status
+                experiments_status_query = (Experiment
+                    .select(Experiment.status, fn.COUNT(Experiment.id).alias('count'))
+                    .group_by(Experiment.status))
+                stats['experiments_by_status'] = {r.status: r.count for r in experiments_status_query}
 
-            # Count CEO reviews by status
-            ceo_status_query = (CeoReview
-                .select(CeoReview.status, fn.COUNT(CeoReview.id).alias('count'))
-                .group_by(CeoReview.status))
-            stats['ceo_reviews_by_status'] = {r.status: r.count for r in ceo_status_query}
+                # Count CEO reviews by status
+                ceo_status_query = (CeoReview
+                    .select(CeoReview.status, fn.COUNT(CeoReview.id).alias('count'))
+                    .group_by(CeoReview.status))
+                stats['ceo_reviews_by_status'] = {r.status: r.count for r in ceo_status_query}
 
-            # Total counts
-            stats['total_learnings'] = Learning.select().count()
-            stats['total_heuristics'] = Heuristic.select().count()
-            stats['total_experiments'] = Experiment.select().count()
-            stats['total_ceo_reviews'] = CeoReview.select().count()
+                # Total counts
+                stats['total_learnings'] = Learning.select().count()
+                stats['total_heuristics'] = Heuristic.select().count()
+                stats['total_experiments'] = Experiment.select().count()
+                stats['total_ceo_reviews'] = CeoReview.select().count()
 
-            # Violation statistics (last 7 days)
-            cutoff_7d = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=7)
-            stats['violations_7d'] = Violation.select().where(Violation.violation_date >= cutoff_7d).count()
+                # Violation statistics (last 7 days)
+                cutoff_7d = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=7)
+                stats['violations_7d'] = Violation.select().where(Violation.violation_date >= cutoff_7d).count()
 
-            violations_rule_query = (Violation
-                .select(Violation.rule_id, Violation.rule_name, fn.COUNT(Violation.id).alias('count'))
-                .where(Violation.violation_date >= cutoff_7d)
-                .group_by(Violation.rule_id, Violation.rule_name)
-                .order_by(fn.COUNT(Violation.id).desc()))
-            stats['violations_by_rule_7d'] = {f"Rule {r.rule_id}: {r.rule_name}": r.count
-                                              for r in violations_rule_query}
+                violations_rule_query = (Violation
+                    .select(Violation.rule_id, Violation.rule_name, fn.COUNT(Violation.id).alias('count'))
+                    .where(Violation.violation_date >= cutoff_7d)
+                    .group_by(Violation.rule_id, Violation.rule_name)
+                    .order_by(fn.COUNT(Violation.id).desc()))
+                stats['violations_by_rule_7d'] = {f"Rule {r.rule_id}: {r.rule_name}": r.count
+                                                  for r in violations_rule_query}
 
         self._log_debug(f"Statistics gathered: {stats['total_learnings']} learnings total")
         return stats
