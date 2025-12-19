@@ -33,11 +33,11 @@ uv venv && uv pip install -r requirements.txt
 cp .env.example .env
 claude setup-token
 
-# Update .gitignore
+# Update .gitignore (idempotent - only add if not present)
 cd ..
-echo ".auto-claude/" >> .gitignore
-echo ".worktrees/" >> .gitignore
-echo "specs/" >> .gitignore
+grep -qxF '.auto-claude/' .gitignore 2>/dev/null || echo ".auto-claude/" >> .gitignore
+grep -qxF '.worktrees/' .gitignore 2>/dev/null || echo ".worktrees/" >> .gitignore
+grep -qxF 'specs/' .gitignore 2>/dev/null || echo "specs/" >> .gitignore
 ```
 
 ### Option B: Root Installation
@@ -52,7 +52,11 @@ Project-local CLAUDE.md overrides global. Add CLC integration:
 
 ```markdown
 ## CLC Integration
+Before any task, query accumulated knowledge:
+```bash
 python ~/.claude/clc/query/query.py --context
+```
+Apply relevant golden rules and heuristics.
 ```
 
 ### 2. Hook Noise

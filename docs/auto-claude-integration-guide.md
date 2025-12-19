@@ -125,11 +125,11 @@ uv venv && uv pip install -r requirements.txt
 cp .env.example .env
 claude setup-token
 
-# Update project .gitignore
+# Update project .gitignore (idempotent - only add if not present)
 cd ..
-echo ".auto-claude/" >> .gitignore
-echo ".worktrees/" >> .gitignore
-echo "specs/" >> .gitignore
+grep -qxF '.auto-claude/' .gitignore 2>/dev/null || echo ".auto-claude/" >> .gitignore
+grep -qxF '.worktrees/' .gitignore 2>/dev/null || echo ".worktrees/" >> .gitignore
+grep -qxF 'specs/' .gitignore 2>/dev/null || echo "specs/" >> .gitignore
 ```
 
 **Directory structure after**:
@@ -206,10 +206,10 @@ elif [ -f .claude/CLAUDE.md ]; then
 fi
 } > CLAUDE.md
 
-# Update .gitignore
-echo "auto-claude-framework/" >> .gitignore
-echo "specs/" >> .gitignore
-echo ".worktrees/" >> .gitignore
+# Update .gitignore (idempotent - only add if not present)
+grep -qxF 'auto-claude-framework/' .gitignore 2>/dev/null || echo "auto-claude-framework/" >> .gitignore
+grep -qxF 'specs/' .gitignore 2>/dev/null || echo "specs/" >> .gitignore
+grep -qxF '.worktrees/' .gitignore 2>/dev/null || echo ".worktrees/" >> .gitignore
 ```
 
 ---
@@ -319,7 +319,11 @@ Is it a quick fix (< 30 min)?
 **Fix**: Ensure your project's CLAUDE.md includes CLC query instruction:
 ```markdown
 ## CLC Integration
+Before any task, query accumulated knowledge:
+```bash
 python ~/.claude/clc/query/query.py --context
+```
+Apply relevant golden rules and heuristics.
 ```
 
 ### "Learning database is huge after Auto-Claude build"
