@@ -1,0 +1,567 @@
+# Technical Specification: Auto-Claude Integration Opportunities
+
+**Status**: Draft
+**Created**: 2025-12-18
+**Related Issue**: https://github.com/haighd/claude-learning-companion/issues/14
+
+---
+
+## Overview
+
+This spec details implementation approaches for integrating key Auto-Claude concepts into CLC. Prioritized by value/effort ratio.
+
+---
+
+## 1. Self-Healing QA Loops
+
+### Problem Statement
+CLC escalates to CEO immediately when encountering uncertainty or failures. This creates bottlenecks and unnecessary human intervention for fixable issues.
+
+### Proposed Solution
+
+#### Architecture
+```
+┌─────────────────────────────────────────────────────┐
+│  Failure Detection                                  │
+│  └─ Categorize: fixable vs unfixable               │
+├─────────────────────────────────────────────────────┤
+│  Self-Healing Loop (for fixable failures)          │
+│  ├─ Attempt 1: Same context, retry                 │
+│  ├─ Attempt 2: Add error context, retry            │
+│  ├─ Attempt 3: Escalate model tier                 │
+│  └─ Attempt N: Give up, escalate to CEO            │
+├─────────────────────────────────────────────────────┤
+│  CEO Escalation (for unfixable or exhausted)       │
+└─────────────────────────────────────────────────────┘
+```
+
+#### Fixable Failure Types
+| Type | Detection | Fix Strategy |
+|------|-----------|--------------|
+| Lint errors | Exit code + pattern | Apply linter suggestions |
+| Type errors | TypeScript/mypy output | Add types, fix signatures |
+| Test failures | pytest/jest output | Analyze failure, modify code |
+| Import errors | Module not found | Install package or fix path |
+| Syntax errors | Parse errors | Fix syntax based on error |
+
+#### Unfixable Failure Types (Immediate Escalation)
+- Architectural decisions required
+- Multiple valid approaches with tradeoffs
+- External service failures
+- Permission/access issues
+- Data integrity concerns
+
+#### Configuration
+```python
+# ~/.claude/clc/config/self-healing.yaml
+self_healing:
+  enabled: true
+  max_attempts: 5
+  model_escalation:
+    - haiku    # attempts 1-2
+    - sonnet   # attempts 3-4
+    - opus     # attempt 5
+  fixable_patterns:
+    - "SyntaxError"
+    - "TypeError"
+    - "ImportError"
+    - "eslint"
+    - "mypy"
+  unfixable_patterns:
+    - "EACCES"
+    - "EPERM"
+    - "architectural"
+```
+
+#### Implementation Files
+| File | Purpose |
+|------|---------|
+| `query/self_healer.py` | Main healing loop logic |
+| `query/failure_classifier.py` | Categorize fixable vs unfixable |
+| `query/fix_strategies.py` | Strategy per failure type |
+| `config/self-healing.yaml` | Configuration |
+
+#### Database Schema Addition
+```sql
+CREATE TABLE healing_attempts (
+    id INTEGER PRIMARY KEY,
+    failure_id TEXT NOT NULL,
+    attempt_number INTEGER NOT NULL,
+    model_used TEXT NOT NULL,
+    strategy_used TEXT,
+    success BOOLEAN NOT NULL,
+    error_context TEXT,
+    fix_applied TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### Success Metrics
+- CEO escalation reduction: Target 30%
+- Auto-fix success rate: Track per failure type
+- Time to resolution: Compare with/without healing
+
+---
+
+## 2. Graph-Based Memory (FalkorDB/Graphiti)
+
+### Problem Statement
+SQLite stores heuristics as flat records. No way to query semantic relationships like "heuristics that often apply together" or "conflicting rules."
+
+### Proposed Solution
+
+#### Architecture
+```
+┌─────────────────────────────────────────────────────┐
+│  Query Interface (unchanged API)                    │
+├─────────────────────────────────────────────────────┤
+│  Hybrid Storage Layer                               │
+│  ├─ SQLite: Primary (structured data, fast)        │
+│  └─ FalkorDB: Secondary (relationships, semantic)  │
+├─────────────────────────────────────────────────────┤
+│  Sync Service                                       │
+│  └─ Keep SQLite ↔ FalkorDB consistent              │
+└─────────────────────────────────────────────────────┘
+```
+
+#### Graph Schema
+```cypher
+// Node types
+(:Heuristic {id, content, confidence, domain})
+(:GoldenRule {id, content, domain})
+(:Failure {id, description, root_cause})
+(:Success {id, description, approach})
+(:Domain {name})
+
+// Relationships
+(:Heuristic)-[:DERIVED_FROM]->(:Failure)
+(:Heuristic)-[:VALIDATED_BY]->(:Success)
+(:Heuristic)-[:CONFLICTS_WITH]->(:Heuristic)
+(:Heuristic)-[:COMPLEMENTS]->(:Heuristic)
+(:Heuristic)-[:BELONGS_TO]->(:Domain)
+(:GoldenRule)-[:PROMOTED_FROM]->(:Heuristic)
+(:Heuristic)-[:SIMILAR_TO {score}]->(:Heuristic)
+```
+
+#### New Query Capabilities
+```python
+# Related heuristics
+graph.query("""
+  MATCH (h:Heuristic {id: $id})-[:COMPLEMENTS|SIMILAR_TO*1..2]-(related)
+  RETURN related
+""", id=heuristic_id)
+
+# Conflict detection
+graph.query("""
+  MATCH (h1:Heuristic)-[:CONFLICTS_WITH]-(h2:Heuristic)
+  WHERE h1.domain = $domain AND h2.domain = $domain
+  RETURN h1, h2
+""", domain=domain)
+
+# Knowledge graph visualization data
+graph.query("""
+  MATCH (h:Heuristic)-[r]-(connected)
+  RETURN h, r, connected
+  LIMIT 100
+""")
+```
+
+#### Implementation Files
+| File | Purpose |
+|------|---------|
+| `memory/graph_store.py` | FalkorDB interface |
+| `memory/graph_sync.py` | SQLite ↔ Graph sync |
+| `memory/relationship_detector.py` | Auto-detect relationships |
+| `dashboard-app/frontend/src/KnowledgeGraph.tsx` | Visualization |
+
+#### Docker Compose Addition
+```yaml
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - falkordb_data:/data
+
+volumes:
+  falkordb_data:
+```
+
+#### Fallback Behavior
+- If FalkorDB unavailable: Use SQLite only (current behavior)
+- Log warning, continue operation
+- Queue relationship updates for when graph is available
+
+---
+
+## 3. Worktree Isolation
+
+### Problem Statement
+CLC operates directly in the main workspace. Experimental changes can corrupt state.
+
+### Proposed Solution
+
+#### Commands
+```bash
+# Start isolated experiment
+/experiment start "test new heuristic promotion logic"
+
+# Check experiment status
+/experiment status
+
+# Merge successful experiment
+/experiment merge
+
+# Discard failed experiment
+/experiment discard
+```
+
+#### Architecture
+```
+┌─────────────────────────────────────────────────────┐
+│  Main Workspace (~/.claude/clc/)                    │
+│  └─ Protected during experiments                    │
+├─────────────────────────────────────────────────────┤
+│  Worktree (~/.claude/clc/.worktrees/exp-{id}/)     │
+│  ├─ Full copy of CLC                               │
+│  ├─ Isolated database                              │
+│  └─ Experiment-specific changes                    │
+├─────────────────────────────────────────────────────┤
+│  Merge/Discard                                      │
+│  └─ Clean integration or rollback                  │
+└─────────────────────────────────────────────────────┘
+```
+
+#### Implementation
+```python
+# scripts/experiment.py
+
+def start_experiment(description: str) -> str:
+    """Create isolated worktree for experiment."""
+    exp_id = generate_id()
+    worktree_path = f".worktrees/exp-{exp_id}"
+
+    # Create worktree
+    run(f"git worktree add {worktree_path} -b exp-{exp_id}")
+
+    # Copy database (isolated state)
+    shutil.copy("memory/index.db", f"{worktree_path}/memory/index.db")
+
+    # Record experiment
+    save_experiment_metadata(exp_id, description)
+
+    return exp_id
+
+def merge_experiment(exp_id: str) -> bool:
+    """Merge successful experiment back to main."""
+    worktree_path = f".worktrees/exp-{exp_id}"
+
+    # Validate experiment succeeded
+    if not validate_experiment(exp_id):
+        return False
+
+    # Merge branch
+    run(f"git merge exp-{exp_id}")
+
+    # Merge database changes
+    merge_databases("memory/index.db", f"{worktree_path}/memory/index.db")
+
+    # Cleanup
+    run(f"git worktree remove {worktree_path}")
+    run(f"git branch -d exp-{exp_id}")
+
+    return True
+
+def discard_experiment(exp_id: str):
+    """Discard failed experiment."""
+    worktree_path = f".worktrees/exp-{exp_id}"
+    run(f"git worktree remove --force {worktree_path}")
+    run(f"git branch -D exp-{exp_id}")
+```
+
+#### Slash Command
+```markdown
+# ~/.claude/clc/setup/commands/experiment.md
+---
+description: Manage isolated experiments for risky CLC changes
+---
+
+Run experiment management:
+- `start [description]`: Create isolated worktree
+- `status`: Show active experiments
+- `merge`: Integrate successful experiment
+- `discard`: Remove failed experiment
+
+Command: $ARGUMENTS
+```
+
+---
+
+## 4. Dashboard Kanban Enhancement
+
+### Problem Statement
+Dashboard shows analytics but no workflow management. Users can't track task progress visually.
+
+### Proposed Solution
+
+#### New Tab: Workflows
+```
+┌─────────────────────────────────────────────────────┐
+│  [Overview] [Heuristics] [Runs] [Workflows] [Query] │
+├─────────────────────────────────────────────────────┤
+│  Pending    │  In Progress  │  Review   │  Done     │
+│  ─────────  │  ───────────  │  ───────  │  ─────    │
+│  ┌───────┐  │  ┌───────┐    │           │  ┌─────┐  │
+│  │Task 1 │  │  │Task 2 │    │           │  │Done │  │
+│  └───────┘  │  └───────┘    │           │  └─────┘  │
+│  ┌───────┐  │               │           │           │
+│  │Task 3 │  │               │           │           │
+│  └───────┘  │               │           │           │
+└─────────────────────────────────────────────────────┘
+```
+
+#### Backend Endpoints
+```python
+# dashboard-app/backend/main.py
+
+@app.get("/api/workflows")
+async def get_workflows():
+    """Get all workflow items grouped by status."""
+
+@app.post("/api/workflows")
+async def create_workflow(item: WorkflowItem):
+    """Create new workflow item."""
+
+@app.patch("/api/workflows/{id}/status")
+async def update_status(id: str, status: str):
+    """Move item between columns."""
+
+@app.post("/api/workflows/{id}/link")
+async def link_to_learning(id: str, learning_id: str):
+    """Link workflow to heuristic/learning."""
+```
+
+#### Frontend Component
+```typescript
+// dashboard-app/frontend/src/components/Kanban.tsx
+
+interface WorkflowItem {
+  id: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'in_progress' | 'review' | 'done';
+  linkedLearnings: string[];
+  createdAt: Date;
+}
+
+const Kanban: React.FC = () => {
+  const [items, setItems] = useState<WorkflowItem[]>([]);
+
+  const handleDragEnd = (result: DropResult) => {
+    // Update status on drag
+    updateWorkflowStatus(result.draggableId, result.destination.droppableId);
+  };
+
+  return (
+    <DragDropContext onDragEnd={handleDragEnd}>
+      {columns.map(column => (
+        <Droppable droppableId={column.id}>
+          {/* Render items */}
+        </Droppable>
+      ))}
+    </DragDropContext>
+  );
+};
+```
+
+#### Dependencies
+```json
+{
+  "dependencies": {
+    "react-beautiful-dnd": "^13.1.1"
+  }
+}
+```
+
+---
+
+## 5. Execution Agents (Future Phase)
+
+### Problem Statement
+CLC agents only advise; they don't execute. This requires human implementation of all suggestions.
+
+### Proposed Solution (Sketch)
+
+This is a larger architectural change. High-level approach:
+
+#### Mode Toggle
+```python
+class AgentMode(Enum):
+    ADVISORY = "advisory"      # Current behavior
+    EXECUTOR = "executor"      # New: can take actions
+
+# Per-agent configuration
+agent_config = {
+    "researcher": {
+        "mode": AgentMode.ADVISORY,
+        "allowed_actions": ["web_search", "file_read", "grep"]
+    },
+    "architect": {
+        "mode": AgentMode.ADVISORY,
+        "allowed_actions": ["file_read", "mkdir", "scaffold"]
+    },
+    "skeptic": {
+        "mode": AgentMode.EXECUTOR,  # Opt-in per agent
+        "allowed_actions": ["run_tests", "lint", "type_check"]
+    }
+}
+```
+
+#### Safety Controls
+- Whitelist of allowed actions per agent
+- Require confirmation for destructive actions
+- Automatic rollback on failure
+- Audit log of all executions
+
+**Note**: This feature requires significant design work. Recommend deferring to Phase 2 after simpler integrations prove valuable.
+
+---
+
+## Implementation Priority
+
+| Feature | Value | Effort | Priority |
+|---------|-------|--------|----------|
+| Self-Healing QA | High | Medium | P0 |
+| Worktree Isolation | Medium | Low | P1 |
+| Kanban Dashboard | Medium | Medium | P2 |
+| Graph Memory | High | High | P3 |
+| Execution Agents | High | High | Future |
+
+## Next Steps
+
+1. Implement self-healing QA loops (P0)
+2. Add `/experiment` slash command (P1)
+3. Dashboard Kanban tab (P2)
+4. Evaluate graph DB needs after 1-3 are stable
+
+---
+
+## 6. Coexistence Guide: Running CLC + Auto-Claude Together
+
+### Overview
+
+CLC and Auto-Claude can coexist on the same system without technical conflicts. This section documents compatibility considerations and recommended configurations.
+
+### Resource Separation
+
+| Resource | CLC Location | Auto-Claude Location | Conflict? |
+|----------|--------------|---------------------|-----------|
+| CLAUDE.md | `~/.claude/CLAUDE.md` (global) | `./CLAUDE.md` (project-local) | No |
+| Settings | `~/.claude/settings.json` | `.env` in project | No |
+| Data storage | `~/.claude/clc/` | `./specs/`, `./.worktrees/` | No |
+| Hooks | Global PreToolUse/PostToolUse | None (Python orchestration) | No |
+| Git operations | Main workspace | Isolated worktrees | No |
+
+### Potential Issues & Mitigations
+
+#### Issue 1: CLAUDE.md Instruction Precedence
+
+Claude Code loads global CLAUDE.md first, then project-local overrides. If Auto-Claude's local `./CLAUDE.md` conflicts with CLC's global instructions, local wins.
+
+**Mitigation**: Add CLC query requirement to Auto-Claude's CLAUDE.md:
+```markdown
+## CLC Integration
+Before starting any spec or build, query CLC:
+python ~/.claude/clc/query/query.py --context
+```
+
+#### Issue 2: Hook Noise from Autonomous Builds
+
+CLC's learning hooks capture all tool usage. Auto-Claude's autonomous builds generate hundreds of tool calls, potentially flooding the learning database.
+
+**Mitigation**: Add exclusion to CLC hooks:
+```python
+# In pre_tool_learning.py / post_tool_learning.py
+if "auto-claude" in os.getcwd() or ".worktrees" in os.getcwd():
+    sys.exit(0)  # Skip learning capture for Auto-Claude operations
+```
+
+#### Issue 3: Knowledge Gap
+
+Auto-Claude agents don't query CLC, so accumulated wisdom isn't applied to autonomous builds.
+
+**Mitigation**: Inject CLC knowledge into specs manually:
+```bash
+# Before creating spec
+python ~/.claude/clc/query/query.py --context > /tmp/clc-context.txt
+# Include relevant learnings in spec description
+```
+
+### Installation Options for Existing CLC Projects
+
+#### Option A: Subdirectory Installation (Recommended)
+
+```bash
+cd ~/Projects/my-clc-project
+git clone https://github.com/AndyMik90/Auto-Claude.git .auto-claude
+cd .auto-claude && uv venv && uv pip install -r requirements.txt
+
+# Add to .gitignore
+echo ".auto-claude/" >> ../.gitignore
+echo ".worktrees/" >> ../.gitignore
+```
+
+**Benefit**: Complete isolation. Auto-Claude's CLAUDE.md stays in subdirectory.
+
+#### Option B: Root Installation with Merged Config
+
+```bash
+# Create merged CLAUDE.md at project root
+cat > CLAUDE.md << 'EOF'
+# Project Instructions
+
+## CLC Integration
+python ~/.claude/clc/query/query.py --context
+
+## Auto-Claude
+For autonomous builds, see .auto-claude/
+
+## Project Rules
+[Your existing rules here]
+EOF
+```
+
+### Recommended Hybrid Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  1. PLANNING (CLC)                                              │
+│     Query CLC for golden rules and relevant heuristics          │
+├─────────────────────────────────────────────────────────────────┤
+│  2. SPEC CREATION (Auto-Claude)                                 │
+│     Inject CLC learnings into spec requirements                 │
+├─────────────────────────────────────────────────────────────────┤
+│  3. AUTONOMOUS BUILD (Auto-Claude)                              │
+│     Agents implement in isolated worktree                       │
+├─────────────────────────────────────────────────────────────────┤
+│  4. REVIEW & MERGE (CLC PR Workflow)                            │
+│     Use existing /gemini review → /run-ci workflow              │
+├─────────────────────────────────────────────────────────────────┤
+│  5. LEARNING CAPTURE (CLC)                                      │
+│     Record successes/failures from the build                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### .gitignore Additions
+
+```gitignore
+# Auto-Claude artifacts
+.auto-claude/
+specs/
+.worktrees/
+```
+
+---
+
+*Spec Version: 1.1 - Added Coexistence Guide*
