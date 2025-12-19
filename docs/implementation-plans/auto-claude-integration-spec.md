@@ -379,7 +379,6 @@ import React, { useState } from 'react';
 import {
   DndContext,
   DragEndEvent,
-  DragOverEvent,
   closestCorners,
   KeyboardSensor,
   PointerSensor,

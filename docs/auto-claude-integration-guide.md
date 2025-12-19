@@ -154,8 +154,12 @@ cd ~/Projects/my-project
 git clone https://github.com/AndyMik90/Auto-Claude.git auto-claude-framework
 cd auto-claude-framework && uv venv && uv pip install -r requirements.txt
 
-# Create merged CLAUDE.md at project root (preserves existing content)
+# Create merged CLAUDE.md at project root (backs up existing, then merges)
 cd ..
+if [ -f CLAUDE.md ]; then
+    mv CLAUDE.md CLAUDE.md.bak
+    echo "Backed up existing CLAUDE.md to CLAUDE.md.bak"
+fi
 { cat << 'EOF'
 # Project Instructions
 
