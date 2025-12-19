@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { TimelineEvent, Heuristic } from '../types'
-import { Clock, Play, Pause, SkipBack, SkipForward, CheckCircle, XCircle, Brain, Star, AlertTriangle, FileText, Terminal, Cpu, Globe, Workflow } from 'lucide-react'
+import { Clock, Play, Pause, SkipBack, SkipForward, CheckCircle, CheckSquare, XCircle, Brain, Star, AlertTriangle, FileText, Terminal, Cpu, Globe, Workflow } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface TimelineViewProps {
@@ -16,7 +16,7 @@ const eventConfig = {
   // Learning events
   auto_failure_capture: { icon: AlertTriangle, color: 'bg-orange-500', label: 'Failure Captured' },
   golden_rule_promotion: { icon: Star, color: 'bg-amber-500', label: 'Golden Rule Promoted' },
-  task_outcome: { icon: CheckCircle, color: 'bg-sky-500', label: 'Task Outcome' },
+  task_outcome: { icon: CheckSquare, color: 'bg-sky-500', label: 'Task Outcome' },
   // Tool types
   bash_run: { icon: Terminal, color: 'bg-green-500', label: 'Bash Command' },
   task_run: { icon: Workflow, color: 'bg-blue-500', label: 'Task Agent' },
