@@ -64,16 +64,16 @@ Apply relevant golden rules and heuristics.
 CLC hooks capture Auto-Claude's builds (noisy). Add exclusion:
 
 ```python
-# In pre_tool_learning.py
+# In pre_tool_learning.py - traverse up to find markers from any subdirectory
 import os
 import sys
 from pathlib import Path
 
-cwd = Path(os.getcwd())
-auto_claude_markers = [cwd / ".auto-claude", cwd / "auto-claude-framework"]
-in_worktree = (cwd / ".git").is_file()
-if any(marker.exists() for marker in auto_claude_markers) or in_worktree:
-    sys.exit(0)
+path = Path(os.getcwd()).resolve()
+while path != path.parent:
+    if any((path / m).exists() for m in [".auto-claude", "auto-claude-framework"]) or (path / ".git").is_file():
+        sys.exit(0)
+    path = path.parent
 ```
 
 ### 3. Knowledge Gap

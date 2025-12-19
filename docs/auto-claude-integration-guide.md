@@ -77,19 +77,17 @@ import os
 import sys
 from pathlib import Path
 
-cwd = Path(os.getcwd())
+# Traverse up from the current directory to find project markers
+# This handles running from subdirectories of an Auto-Claude project
+path_to_check = Path(os.getcwd()).resolve()
+while path_to_check != path_to_check.parent:
+    is_auto_claude_dir = any((path_to_check / m).exists() for m in [".auto-claude", "auto-claude-framework"])
+    is_worktree = (path_to_check / ".git").is_file()  # Worktrees have .git as file, not directory
 
-# Check for Auto-Claude marker files/directories (more robust than substring matching)
-auto_claude_markers = [
-    cwd / ".auto-claude",           # Subdirectory installation
-    cwd / "auto-claude-framework",  # Root installation
-]
+    if is_auto_claude_dir or is_worktree:
+        sys.exit(0)  # Skip Auto-Claude operations
 
-# Check if we're inside a git worktree (used by Auto-Claude for isolated builds)
-in_worktree = (cwd / ".git").is_file()  # Worktrees have .git as file, not directory
-
-if any(marker.exists() for marker in auto_claude_markers) or in_worktree:
-    sys.exit(0)  # Skip Auto-Claude operations
+    path_to_check = path_to_check.parent
 ```
 
 #### 3. Knowledge Not Shared
