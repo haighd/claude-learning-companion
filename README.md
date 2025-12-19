@@ -54,6 +54,10 @@ Claude: [Queries CLC, starts dashboard, returns golden rules + heuristics]
 | **Session History** | Browse all Claude Code sessions in dashboard - search, filter by project/date, expand to see full conversations |
 | **Cross-Session Continuity** | Pick up where you left off - search what you asked in previous sessions. Lightweight retrieval (~500 tokens), or ~20k for heavy users reviewing full day |
 | **Async Watcher** | Background Haiku monitors your work, escalates to Opus only when needed. 95% cheaper than constant Opus monitoring |
+| **Self-Healing QA** | Automatic failure classification and fix spawning with model escalation (haiku → sonnet → opus) |
+| **Experiment Isolation** | Git worktree-based experiments with separate databases - safely test changes without affecting main |
+| **Kanban Board** | Visual task management in dashboard with drag-drop, priorities, and links to learnings |
+| **Graph Memory** | FalkorDB graph database for semantic relationships between heuristics (SQLite fallback when unavailable) |
 
 ### Hotspots
 ![Hotspots](assets/Hotspots.png)
@@ -66,6 +70,40 @@ Interactive knowledge graph showing how heuristics connect across domains.
 ### Analytics
 ![Analytics](assets/analytics.png)
 Track learning velocity, success rates, and confidence trends over time.
+
+### Kanban Board
+
+Manage tasks visually in the dashboard's **Workflows** tab:
+
+- **4 Columns**: Pending → In Progress → Review → Done
+- **Drag & Drop**: Move tasks between columns
+- **Priority Levels**: Set task importance
+- **Link to Learnings**: Connect tasks to related heuristics
+
+### Self-Healing QA
+
+When Claude encounters errors, CLC automatically:
+
+1. **Classifies** the failure (fixable vs unfixable)
+2. **Spawns** a fix agent with appropriate model tier
+3. **Escalates** through haiku → sonnet → opus if needed
+4. **Circuit breaks** after repeated failures to prevent loops
+
+Configure in `config/self-healing.yaml`.
+
+### Experiment Isolation
+
+Test risky changes safely with isolated git worktrees:
+
+```bash
+/experiment start my-feature    # Create isolated worktree + database
+/experiment status              # See active experiments
+/experiment merge my-feature    # Merge successful experiment back
+/experiment discard my-feature  # Abandon failed experiment
+/experiment clean               # Remove stale worktrees
+```
+
+Each experiment gets its own database, so learnings don't pollute main until you're ready.
 
 ### Cross-Session Continuity
 
@@ -145,6 +183,14 @@ cd ~/.claude/clc/dashboard-app && ./run-dashboard.sh
 
 # Multi-agent swarm (Pro/Max plans)
 /swarm investigate the authentication system
+
+# Experiment isolation
+/experiment start my-feature    # Start isolated experiment
+/experiment status              # List active experiments
+/experiment merge my-feature    # Merge back to main
+
+# Start FalkorDB graph database (optional, for graph features)
+cd ~/.claude/clc && docker compose up -d
 ```
 
 ## Programmatic Usage (v0.2.0+)
