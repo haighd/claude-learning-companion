@@ -310,6 +310,15 @@ def validate_heuristics(heuristic_ids: List[int], outcome: str):
                     VALUES ('heuristic_validated', 'validation', 1, ?, ?)
                 """, (f"heuristic_id:{hid}", "success"))
 
+                # Move associated Kanban task to done
+                try:
+                    from memory.kanban_automation import find_linked_task, move_task_to_done
+                    task = find_linked_task(heuristic_id=hid)
+                    if task:
+                        move_task_to_done(task['id'])
+                except Exception as kanban_error:
+                    sys.stderr.write(f"Warning: Failed to update Kanban task for heuristic {hid}: {kanban_error}\n")
+
         elif outcome == "failure":
             placeholders = ",".join("?" * len(heuristic_ids))
             cursor.execute(f"""
@@ -488,7 +497,19 @@ def extract_and_record_learnings(tool_output: dict, domains: List[str]):
                     VALUES (?, ?, 'Auto-extracted from task output', 0.5, 'auto', ?)
                 """, (domain, learning.strip(), datetime.now().isoformat()))
 
+                heuristic_id = cursor.lastrowid
                 sys.stderr.write(f"AUTO-EXTRACTED HEURISTIC: {learning[:50]}...\n")
+
+                # Auto-create Kanban task for heuristic validation
+                try:
+                    from memory.kanban_automation import create_task_from_heuristic
+                    create_task_from_heuristic(
+                        heuristic_id=heuristic_id,
+                        rule=learning.strip(),
+                        domain=domain
+                    )
+                except Exception as kanban_error:
+                    sys.stderr.write(f"Warning: Failed to create Kanban task for heuristic: {kanban_error}\n")
             else:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 cursor.execute("""
