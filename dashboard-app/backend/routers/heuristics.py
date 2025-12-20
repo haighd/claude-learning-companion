@@ -7,10 +7,11 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from models import HeuristicUpdate, ActionResult
 from utils import get_db, dict_from_row
+from utils.time_filters import parse_time_params, build_time_filter
 
 router = APIRouter(prefix="/api", tags=["heuristics"])
 
@@ -29,9 +30,11 @@ async def get_heuristics(
     domain: Optional[str] = None,
     golden_only: bool = False,
     sort_by: str = "confidence",
-    limit: int = 50
+    limit: int = 50,
+    at_time: Optional[str] = Query(None, description="View heuristics as of this timestamp"),
+    time_range: Optional[str] = Query(None, description="Time range filter")
 ):
-    """Get heuristics with optional filtering."""
+    """Get heuristics with optional filtering and time-based queries."""
     with get_db() as conn:
         cursor = conn.cursor()
 
@@ -43,6 +46,13 @@ async def get_heuristics(
             WHERE 1=1
         """
         params = []
+
+        # Time filtering
+        start_time, end_time = parse_time_params(at_time, time_range)
+        where_clause, time_params = build_time_filter("created_at", start_time, end_time)
+        if where_clause:
+            query += f" AND {where_clause}"
+            params.extend(time_params)
 
         if domain:
             query += " AND domain = ?"
