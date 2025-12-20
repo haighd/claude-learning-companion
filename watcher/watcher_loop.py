@@ -43,6 +43,11 @@ STOP_FILE = COORDINATION_DIR / "watcher-stop"
 DECISION_FILE = COORDINATION_DIR / "decision.md"
 
 
+def utc_timestamp() -> str:
+    """Return current UTC timestamp in ISO format."""
+    return datetime.now(timezone.utc).isoformat()
+
+
 def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = None) -> Optional[str]:
     """Write checkpoint trigger message to blackboard.
 
@@ -91,7 +96,7 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
                 "metrics": metrics or {},
             },
             "read": False,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": utc_timestamp()
         }
 
         bb["messages"].append(message)
@@ -103,7 +108,8 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
 
         return msg_id
 
-    except (json.JSONDecodeError, OSError) as e:
+    except (json.JSONDecodeError, OSError, RuntimeError) as e:
+        # RuntimeError: File locking not supported on this platform
         print(f"Failed to write checkpoint trigger: {e}", file=sys.stderr)
         return None
     finally:
@@ -333,7 +339,7 @@ RESULT: <outcome>
 def stop_watcher_loop():
     """Create stop signal file."""
     COORDINATION_DIR.mkdir(parents=True, exist_ok=True)
-    STOP_FILE.write_text(f"Stop requested at {datetime.now(timezone.utc).isoformat()}\n")
+    STOP_FILE.write_text(f"Stop requested at {utc_timestamp()}\n")
     print(f"Stop signal created: {STOP_FILE}")
     print("Monitoring will stop - no more watchers will be spawned.")
 

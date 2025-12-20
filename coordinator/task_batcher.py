@@ -184,6 +184,10 @@ class TaskBatcher:
                 if len(expanded_files) > 1:
                     return self._split_by_file_groups(task, list(expanded_files))
             except (AttributeError, TypeError, KeyError) as e:
+                # These exceptions can occur when:
+                # - AttributeError: dep_graph methods unavailable or return unexpected types
+                # - TypeError: get_cluster returns non-iterable or incompatible type
+                # - KeyError: internal graph data structure missing expected keys
                 sys.stderr.write(f"Warning: Failed to get dependency cluster for splitting task: {e}\n")
                 # Fall through to return task with warning
 
@@ -213,6 +217,7 @@ class TaskBatcher:
                     cluster = self.dep_graph.get_cluster(f, depth=1)
                     cluster = cluster.intersection(files_set)
                 except (AttributeError, TypeError, KeyError) as e:
+                    # See split_task_for_context for exception rationale
                     sys.stderr.write(f"Warning: Failed to get dependency cluster for file group: {e}\n")
                     cluster = {f}
             else:

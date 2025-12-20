@@ -64,7 +64,8 @@ def check_checkpoint_trigger() -> Optional[dict]:
                 and msg.get("to") == "claude-main"
                 and not msg.get("read", False)):
                 return msg
-    except (json.JSONDecodeError, IOError) as e:
+    except (json.JSONDecodeError, IOError, RuntimeError) as e:
+        # RuntimeError: File locking not supported on this platform
         sys.stderr.write(f"[checkpoint-responder] Error reading blackboard: {e}\n")
     finally:
         if lock_fd:
@@ -105,7 +106,8 @@ def mark_message_read(msg_id: str):
         temp_file.write_text(json.dumps(bb, indent=2))
         temp_file.rename(BLACKBOARD_FILE)
 
-    except (json.JSONDecodeError, IOError, OSError) as e:
+    except (json.JSONDecodeError, OSError, RuntimeError) as e:
+        # RuntimeError: File locking not supported on this platform
         sys.stderr.write(f"[checkpoint-responder] Error marking message read: {e}\n")
     finally:
         if lock_fd:

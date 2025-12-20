@@ -55,6 +55,9 @@ if [ "$CONTENT_LENGTH" -lt 200 ]; then
 fi
 
 # Verify frontmatter has required fields
+# Extract frontmatter (content between first --- and second ---) to avoid matching body content
+FRONTMATTER=$(sed -n '2,/^---$/p' "$CHECKPOINT_PATH" | head -n -1)
+
 REQUIRED_FIELDS=(
     "created:"
     "trigger:"
@@ -62,8 +65,8 @@ REQUIRED_FIELDS=(
 )
 
 for field in "${REQUIRED_FIELDS[@]}"; do
-    # Use word boundary or start-of-line to avoid false positives
-    if ! grep -qE "(^|[[:space:]])$field" "$CHECKPOINT_PATH"; then
+    # Search only within frontmatter to avoid false positives from body content
+    if ! echo "$FRONTMATTER" | grep -qE "(^|[[:space:]])$field"; then
         echo "WARNING: Missing recommended field: $field"
     fi
 done

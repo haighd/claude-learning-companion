@@ -78,7 +78,7 @@ def gather_state() -> Dict[str, Any]:
         try:
             state["context_status"] = get_context_status()
         except (AttributeError, TypeError, KeyError) as e:
-            state["context_status"] = {"error": str(e)}
+            state["context_status"] = {"error": f"Failed to get context status: {e}"}
 
     return state
 
