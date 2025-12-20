@@ -919,8 +919,8 @@ class Conductor:
             run_id and context are accepted for API consistency and future use
             (e.g., context-aware threshold adjustment, run-specific logging).
         """
-        # Parameters reserved for future enhancements (context-aware thresholds, logging)
-        _ = (run_id, context)
+        # Note: run_id and context are not used yet but kept for API stability
+        del run_id, context  # Explicitly mark as intentionally unused
 
         if not HAS_CONTEXT_MONITOR or get_context_status is None:
             return None

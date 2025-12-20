@@ -103,7 +103,7 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
 
         return msg_id
 
-    except (json.JSONDecodeError, IOError, OSError) as e:
+    except (json.JSONDecodeError, OSError) as e:
         print(f"Failed to write checkpoint trigger: {e}", file=sys.stderr)
         return None
     finally:
@@ -125,7 +125,7 @@ def gather_state() -> Dict[str, Any]:
     if BLACKBOARD_FILE.exists():
         try:
             state["blackboard"] = json.loads(BLACKBOARD_FILE.read_text())
-        except (json.JSONDecodeError, IOError, OSError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             state["blackboard"] = {"error": f"Could not parse blackboard.json: {e}"}
 
     for f in COORDINATION_DIR.glob("agent_*.md"):

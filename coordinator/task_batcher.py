@@ -202,6 +202,7 @@ class TaskBatcher:
         # Group files by dependency clusters
         clusters: List[List[str]] = []
         assigned: Set[str] = set()
+        files_set = set(files)  # Convert once for efficient intersection
 
         for f in files:
             if f in assigned:
@@ -210,7 +211,7 @@ class TaskBatcher:
             if self.dep_graph is not None:
                 try:
                     cluster = self.dep_graph.get_cluster(f, depth=1)
-                    cluster = cluster.intersection(set(files))
+                    cluster = cluster.intersection(files_set)
                 except (AttributeError, TypeError, KeyError) as e:
                     sys.stderr.write(f"Warning: Failed to get dependency cluster for file group: {e}\n")
                     cluster = {f}

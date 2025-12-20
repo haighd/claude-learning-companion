@@ -62,7 +62,7 @@ def get_default_context_metrics() -> Dict[str, Any]:
     }
 
 
-def estimate_context_usage(metrics: dict[str, int]) -> float:
+def estimate_context_usage(metrics: Dict[str, Any]) -> float:
     """
     Estimate context usage as percentage (0.0 - 1.0).
 
