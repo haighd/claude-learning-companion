@@ -3,7 +3,7 @@ import Header from '../components/Header'
 import { NotificationPanel } from '../components/NotificationPanel'
 import { CommandPalette } from '../components/CommandPalette'
 import { LearningVelocity } from '../components/learning-velocity'
-import { KnowledgeGraph } from '../components'
+import { KnowledgeGraph, TimeControls } from '../components'
 import { useNotificationContext } from '../context/NotificationContext'
 
 interface DashboardLayoutProps {
@@ -62,6 +62,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 onTabChange={onTabChange as any}
             />
 
+            <TimeControls />
+
             <main id="main-content" className="w-full" tabIndex={-1}>
                 {/* Overview Tab - Stats + Runs */}
                 {activeTab === 'overview' && (
@@ -90,8 +92,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
                 {/* Other tabs */}
                 {activeTab !== 'overview' && activeTab !== 'graph' && activeTab !== 'analytics' && (
-                    <div className="container mx-auto px-4 py-2">
-                        <div className="bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] p-4 rounded-lg min-h-[calc(100vh-100px)]">
+                    <div className="container mx-auto px-4 py-2 flex flex-col flex-grow">
+                        <div className="bg-[var(--theme-bg-secondary)] border border-[var(--theme-border)] p-4 rounded-lg flex-grow overflow-y-auto">
                             {children}
                         </div>
                     </div>

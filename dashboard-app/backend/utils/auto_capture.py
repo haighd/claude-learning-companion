@@ -23,12 +23,29 @@ Usage:
 import asyncio
 import json
 import logging
+import os
 from datetime import datetime
 from typing import Optional
 
 from utils.database import get_db
 
 logger = logging.getLogger(__name__)
+
+# Feature flag for Kanban auto-creation
+KANBAN_AUTO_CREATE_ENABLED = os.getenv('KANBAN_AUTO_CREATE_ENABLED', 'true').lower() == 'true'
+
+# Import kanban automation (optional, fails gracefully)
+try:
+    import sys
+    from pathlib import Path
+    clc_path = Path.home() / ".claude" / "clc"
+    if str(clc_path) not in sys.path:
+        sys.path.insert(0, str(clc_path))
+    from memory.kanban_automation import create_task_from_failure
+    KANBAN_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Kanban automation not available: {e}")
+    KANBAN_AVAILABLE = False
 
 
 class AutoCapture:
@@ -139,7 +156,22 @@ class AutoCapture:
                         """,
                         (f"workflow_runs/{run_id}", title, summary, created_at),
                     )
+                    learning_id = cursor.lastrowid
                     captured += 1
+
+                    # Auto-create Kanban task from failure
+                    # TODO(kanban): Move feature flag check into create_task_from_failure for centralization
+                    if KANBAN_AUTO_CREATE_ENABLED and KANBAN_AVAILABLE:
+                        try:
+                            create_task_from_failure(
+                                learning_id=learning_id,
+                                title=f"Fix: {title}",
+                                summary=summary,
+                                domain='workflow'
+                            )
+                        except Exception as kanban_error:
+                            logger.warning(f"Failed to create Kanban task for failure {learning_id}: {kanban_error}")
+
                 except Exception as e:
                     logger.warning(f"Failed to capture run {run_id}: {e}")
 

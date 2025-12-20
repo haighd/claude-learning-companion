@@ -75,6 +75,7 @@ async def create_workflow(workflow: WorkflowCreate) -> ActionResult:
             data={"workflow_id": workflow_id}
         )
     except Exception as e:
+        # TODO(error-handling): Replace broad except with specific exceptions throughout this file
         logger.error(f"Error creating workflow '{workflow.name}': {e}", exc_info=True)
         return ActionResult(success=False, message="Failed to create workflow. Please check workflow configuration.")
 
@@ -296,3 +297,52 @@ async def link_task_to_learning(task_id: int, learning_id: str) -> ActionResult:
     except Exception as e:
         logger.error(f"Error linking task to learning: {e}", exc_info=True)
         return ActionResult(success=False, message=f"Failed to link: {str(e)}")
+
+
+@router.get("/kanban/stats")
+async def get_kanban_stats():
+    """
+    Get Kanban task statistics including auto-creation breakdown.
+
+    Returns counts by:
+    - Auto-created vs manual
+    - Source type (failure, CEO inbox, heuristic)
+    - Status (pending, in_progress, review, done)
+    """
+    try:
+        # Try importing kanban_automation for detailed stats
+        # TODO(utils): Extract CLC path setup to shared utility (also used in auto_capture.py)
+        try:
+            clc_path = Path.home() / ".claude" / "clc"
+            if str(clc_path) not in sys.path:
+                sys.path.insert(0, str(clc_path))
+            from memory.kanban_automation import get_auto_creation_stats
+            return get_auto_creation_stats()
+        except ImportError:
+            # Fallback: calculate stats directly
+            with get_db() as conn:
+                cursor = conn.cursor()
+
+                # Basic counts
+                cursor.execute("SELECT COUNT(*) FROM kanban_tasks WHERE auto_created = 1")
+                auto_total = cursor.fetchone()[0]
+
+                cursor.execute("SELECT COUNT(*) FROM kanban_tasks WHERE auto_created = 0")
+                manual_total = cursor.fetchone()[0]
+
+                return {
+                    'auto_created_total': auto_total,
+                    'manually_created_total': manual_total,
+                    'failures_pending': 0,
+                    'ceo_decisions_pending': 0,
+                    'validations_pending': 0
+                }
+    except Exception as e:
+        logger.error(f"Error getting Kanban stats: {e}", exc_info=True)
+        return {
+            'auto_created_total': 0,
+            'manually_created_total': 0,
+            'failures_pending': 0,
+            'ceo_decisions_pending': 0,
+            'validations_pending': 0
+        }

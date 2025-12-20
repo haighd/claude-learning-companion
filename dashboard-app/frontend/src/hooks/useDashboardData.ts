@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Stats, Hotspot, ApiRun, RawEvent, TimelineData, ApiAnomaly } from '../types'
 import { useAPI } from './useAPI'
+import { useTimeTravel } from './useTimeTravel'
 
 export function useDashboardData() {
   const [stats, setStats] = useState<Stats | null>(null)
@@ -12,16 +13,17 @@ export function useDashboardData() {
   const [isLoading, setIsLoading] = useState(true)
 
   const api = useAPI()
+  const { buildUrl, isLive, currentTime } = useTimeTravel()
 
   const loadData = useCallback(async () => {
     try {
       const [statsData, hotspotsData, runsData, timelineData, anomaliesData, eventsData] = await Promise.all([
-        api.get('/api/stats').catch(() => null),
-        api.get('/api/hotspots').catch(() => []),
-        api.get('/api/runs?limit=100').catch(() => []),
-        api.get('/api/timeline').catch(() => null),
-        api.get('/api/anomalies').catch(() => []),
-        api.get('/api/events?limit=100').catch(() => []),
+        api.get(buildUrl('/api/stats')).catch(() => null),
+        api.get(buildUrl('/api/hotspots')).catch(() => []),
+        api.get(buildUrl('/api/runs?limit=100')).catch(() => []),
+        api.get(buildUrl('/api/timeline')).catch(() => null),
+        api.get(buildUrl('/api/anomalies')).catch(() => []),
+        api.get(buildUrl('/api/events?limit=100')).catch(() => []),
       ])
       if (statsData) setStats(statsData)
       setHotspots(hotspotsData || [])
@@ -34,7 +36,7 @@ export function useDashboardData() {
     } finally {
       setIsLoading(false)
     }
-  }, [api])
+  }, [api, buildUrl])
 
   const reload = useCallback(() => {
     setIsLoading(true)
@@ -43,35 +45,43 @@ export function useDashboardData() {
 
   const loadStats = useCallback(async () => {
     try {
-      const data = await api.get('/api/stats')
+      const data = await api.get(buildUrl('/api/stats'))
       if (data) setStats(data)
     } catch (err) {
       console.error('Failed to load stats:', err)
     }
-  }, [api])
+  }, [api, buildUrl])
 
-  // Initial data load
+  // Initial data load and refresh when time changes
   useEffect(() => {
     loadData()
+  }, [loadData, currentTime, isLive]) // Reload when time context changes
+
+  // Auto-refresh only in live mode
+  useEffect(() => {
+    if (!isLive) {
+      // Don't auto-refresh in historical mode
+      return
+    }
 
     // Auto-refresh stats, runs, and events every 10 seconds
     const interval = setInterval(() => {
       // Refresh stats
-      api.get('/api/stats').then(data => {
+      api.get(buildUrl('/api/stats')).then(data => {
         if (data) setStats(data)
       }).catch(() => {})
       // Refresh runs
-      api.get('/api/runs?limit=100').then(data => {
+      api.get(buildUrl('/api/runs?limit=100')).then(data => {
         if (data) setRuns(data)
       }).catch(() => {})
       // Refresh events
-      api.get('/api/events?limit=100').then(data => {
+      api.get(buildUrl('/api/events?limit=100')).then(data => {
         if (data) setEvents(data)
       }).catch(() => {})
     }, 10000)
 
     return () => clearInterval(interval)
-  }, [loadData, api])
+  }, [api, buildUrl, isLive])
 
   return useMemo(() => ({
     stats,

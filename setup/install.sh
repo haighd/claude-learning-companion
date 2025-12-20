@@ -23,11 +23,15 @@ fi
 mkdir -p "$CLAUDE_DIR/commands"
 
 install_commands() {
+    local force="${1:-false}"
     for file in "$SCRIPT_DIR/commands/"*; do
         [ -f "$file" ] || continue
         filename=$(basename "$file")
-        if [ ! -f "$CLAUDE_DIR/commands/$filename" ]; then
+        if [ "$force" = "true" ] || [ ! -f "$CLAUDE_DIR/commands/$filename" ]; then
             cp "$file" "$CLAUDE_DIR/commands/$filename"
+            if [ "$force" = "true" ]; then
+                echo "[CLC] Updated: $filename"
+            fi
         fi
     done
 }
@@ -121,6 +125,15 @@ case "$MODE" in
         install_settings
         install_git_hooks
         echo "[CLC] Fresh install complete"
+        ;;
+
+    update)
+        # Update all commands (force overwrite)
+        echo "[CLC] Updating all commands..."
+        install_commands true
+        install_settings
+        install_git_hooks
+        echo "[CLC] Update complete"
         ;;
 
     merge)
