@@ -108,7 +108,7 @@ def get_haiku_prompt(state: Dict[str, Any]) -> str:
 ## Current Coordination State
 
 ```json
-{json.dumps(state, indent=2)}
+{json.dumps(state, indent=2, default=str)}
 ```
 {context_section}
 ## Your Task

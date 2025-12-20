@@ -183,7 +183,7 @@ class TaskBatcher:
         # If task has files, split by file groups
         files = task.get('files', task.get('scope', []))
         if files and len(files) > 1:
-            return self._split_by_file_groups(task, files, available_tokens)
+            return self._split_by_file_groups(task, files)
 
         # Try using dependency graph to find related files
         self._ensure_graph_scanned()
@@ -193,7 +193,7 @@ class TaskBatcher:
                 for f in files:
                     cluster.update(self.dep_graph.get_cluster(f, depth=1))
                 if len(cluster) > 1:
-                    return self._split_by_file_groups(task, list(cluster), available_tokens)
+                    return self._split_by_file_groups(task, list(cluster))
             except (AttributeError, TypeError, KeyError) as e:
                 sys.stderr.write(f"Warning: Failed to get dependency cluster for splitting task: {e}\n")
                 # Fall through to return task with warning
@@ -206,8 +206,7 @@ class TaskBatcher:
         )
         return [task_copy]
 
-    def _split_by_file_groups(self, task: Dict, files: List[str],
-                              available_tokens: int) -> List[Dict]:
+    def _split_by_file_groups(self, task: Dict, files: List[str]) -> List[Dict]:
         """Split task by file groups that fit within budget."""
         self._ensure_graph_scanned()
 

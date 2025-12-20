@@ -245,7 +245,7 @@ The existing `/checkpoint` command captures **structured semantic context**:
 
 | File | Action | Purpose |
 |------|--------|---------|
-| `~/.claude/hooks/pre-compact.cjs` | Create | PreCompact auto-checkpoint hook |
+| `~/.claude/hooks/pre-compact-checkpoint.cjs` | Create | PreCompact auto-checkpoint hook |
 | `~/.claude/clc/watcher/context_monitor.py` | Create | Multi-agent context monitoring |
 | `~/.claude/clc/coordinator/task_batcher.py` | Create | Context-aware task batching |
 | `~/.claude/clc/scripts/verify-checkpoint.sh` | Create | Checkpoint verification |

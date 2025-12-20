@@ -12,7 +12,7 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 # Paths
 SESSION_STATE_PATH = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
@@ -76,7 +76,7 @@ def estimate_context_usage(metrics: dict[str, int]) -> float:
     return min(usage, 1.0)
 
 
-def get_last_checkpoint_time() -> str | None:
+def get_last_checkpoint_time() -> Optional[str]:
     """Get timestamp of most recent checkpoint for current project."""
     if not CHECKPOINT_INDEX_PATH.exists():
         return None
@@ -96,7 +96,7 @@ def get_last_checkpoint_time() -> str | None:
     return state.get('context_metrics', {}).get('last_checkpoint_time')
 
 
-def check_cooldown(last_checkpoint_time: str | None) -> bool:
+def check_cooldown(last_checkpoint_time: Optional[str]) -> bool:
     """Check if we're still in cooldown period."""
     if not last_checkpoint_time:
         return False  # No cooldown if never checkpointed

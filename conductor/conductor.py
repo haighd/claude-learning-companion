@@ -911,13 +911,13 @@ class Conductor:
 
     # Phase 3: Batch boundary checkpoint methods
 
-    def _check_batch_boundary(self, run_id: int, context: Dict) -> bool:
+    def _check_batch_boundary(self, _run_id: int, _context: Dict) -> bool:
         """
         Check if checkpoint should be triggered at batch boundary.
 
         Args:
-            run_id: Current workflow run ID
-            context: Current workflow context
+            _run_id: Current workflow run ID (reserved for future logging)
+            _context: Current workflow context (reserved for future context-aware decisions)
 
         Returns:
             True if context usage exceeds threshold
@@ -928,7 +928,7 @@ class Conductor:
         try:
             status = get_context_status()
             return status.get('should_checkpoint', False)
-        except (AttributeError, TypeError, KeyError) as e:
+        except (AttributeError, TypeError) as e:
             sys.stderr.write(f"Warning: Context check failed: {e}\n")
             return False
 

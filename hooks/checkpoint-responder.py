@@ -16,6 +16,7 @@ import json
 import sys
 from pathlib import Path
 from datetime import datetime, timezone
+from typing import Optional
 
 # Cross-platform file locking
 try:
@@ -65,7 +66,7 @@ def output_result(result: dict):
     print(json.dumps(result))
 
 
-def check_checkpoint_trigger() -> dict | None:
+def check_checkpoint_trigger() -> Optional[dict]:
     """Check blackboard for unread checkpoint_trigger messages.
 
     Returns:
@@ -148,9 +149,10 @@ def main():
                 content = json.loads(content)
             except json.JSONDecodeError:
                 content = {}  # Fallback to empty dict if not valid JSON
-        reason = content.get("reason", "watcher request") if isinstance(content, dict) else "watcher request"
-        usage = content.get("estimated_usage", 0) if isinstance(content, dict) else 0
-        usage_pct = usage * 100 if usage else 0
+        # content is now guaranteed to be a dict
+        reason = content.get("reason", "watcher request")
+        usage = content.get("estimated_usage", 0)
+        usage_pct = usage * 100
 
         sys.stderr.write(f"[checkpoint-responder] Checkpoint trigger detected: {reason}\n")
 
