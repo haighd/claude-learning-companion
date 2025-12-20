@@ -30,6 +30,9 @@ custom/agents/
 debug-*.json
 **/debug-*.json
 
+# Experiments state (local development)
+.experiments.json
+
 # Wiki clone
 wiki-repo/
 

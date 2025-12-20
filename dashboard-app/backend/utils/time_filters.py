@@ -4,8 +4,24 @@ Time filtering utilities for historical data queries.
 Provides functions to build SQL WHERE clauses for time-based filtering.
 """
 
+import re
 from datetime import datetime
 from typing import Optional, Tuple
+
+# Valid SQL column name pattern (alphanumeric and underscores only)
+VALID_COLUMN_PATTERN = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]*$')
+
+
+def validate_column_name(column: str) -> str:
+    """
+    Validate that a column name is safe for SQL interpolation.
+
+    Raises:
+        ValueError: If the column name contains invalid characters
+    """
+    if not VALID_COLUMN_PATTERN.match(column):
+        raise ValueError(f"Invalid column name: {column}")
+    return column
 
 
 def parse_time_params(at_time: Optional[str] = None, time_range: Optional[str] = None) -> Tuple[Optional[datetime], Optional[datetime]]:
@@ -52,16 +68,22 @@ def build_time_filter(
 
     Returns:
         Tuple of (where_clause, params) to use in SQL query
+
+    Raises:
+        ValueError: If timestamp_column contains invalid characters
     """
+    # Validate column name to prevent SQL injection
+    validated_column = validate_column_name(timestamp_column)
+
     conditions = []
     params = []
 
     if start_time:
-        conditions.append(f"{timestamp_column} >= ?")
+        conditions.append(f"{validated_column} >= ?")
         params.append(start_time.isoformat())
 
     if end_time:
-        conditions.append(f"{timestamp_column} <= ?")
+        conditions.append(f"{validated_column} <= ?")
         params.append(end_time.isoformat())
 
     if conditions:

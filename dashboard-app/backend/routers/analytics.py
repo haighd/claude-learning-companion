@@ -95,6 +95,7 @@ async def get_stats(
             cursor.execute(query, params)
             stats["total_spike_time_invested"] = cursor.fetchone()[0] or 0
         except Exception:
+            # TODO(error-handling): Replace broad except with specific exceptions (sqlite3.OperationalError, etc.)
             stats["total_spike_reports"] = 0
             stats["avg_spike_usefulness"] = 0
             stats["total_spike_time_invested"] = 0
