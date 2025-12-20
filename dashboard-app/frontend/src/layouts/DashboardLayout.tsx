@@ -3,7 +3,7 @@ import Header from '../components/Header'
 import { NotificationPanel } from '../components/NotificationPanel'
 import { CommandPalette } from '../components/CommandPalette'
 import { LearningVelocity } from '../components/learning-velocity'
-import { KnowledgeGraph } from '../components'
+import { KnowledgeGraph, TimeControls } from '../components'
 import { useNotificationContext } from '../context/NotificationContext'
 
 interface DashboardLayoutProps {
@@ -61,6 +61,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 activeTab={activeTab as any}
                 onTabChange={onTabChange as any}
             />
+
+            <TimeControls />
 
             <main id="main-content" className="w-full" tabIndex={-1}>
                 {/* Overview Tab - Stats + Runs */}
