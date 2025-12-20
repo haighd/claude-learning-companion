@@ -946,15 +946,16 @@ class Conductor:
 
         try:
             # Write checkpoint trigger to blackboard
+            # Pass content as dict (not JSON string) for consistency with watcher_loop.py
             self.blackboard.send_message(
                 from_agent="conductor",
                 to_agent="claude-main",
-                content=json.dumps({
+                content={
                     "action": "checkpoint",
                     "reason": reason,
                     "run_id": run_id,
                     "timestamp": datetime.now(timezone.utc).isoformat()
-                }),
+                },
                 msg_type="checkpoint_trigger"
             )
 

@@ -142,6 +142,12 @@ def main():
         mark_message_read(msg_id)
 
         content = trigger.get("content") or {}
+        # Handle both dict and JSON string formats for robustness
+        if isinstance(content, str):
+            try:
+                content = json.loads(content)
+            except json.JSONDecodeError:
+                content = {}  # Fallback to empty dict if not valid JSON
         reason = content.get("reason", "watcher request") if isinstance(content, dict) else "watcher request"
         usage = content.get("estimated_usage", 0) if isinstance(content, dict) else 0
         usage_pct = usage * 100 if usage else 0
