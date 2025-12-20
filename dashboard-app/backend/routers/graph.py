@@ -462,7 +462,7 @@ async def trigger_graph_sync():
         from graph_sync import GraphSync
 
         sync = GraphSync()
-        result = sync.sync_all()
+        result = sync.full_sync()
 
         return {
             "success": True,

@@ -13,6 +13,7 @@ Part of the Auto-Claude Integration (P3: Graph-Based Memory).
 
 import logging
 import sys
+import time
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any, Tuple
 from pathlib import Path
@@ -83,31 +84,49 @@ class GraphStore:
             return False
         return self._connected
 
-    def connect(self) -> bool:
-        """Connect to FalkorDB."""
+    def connect(self, max_retries: int = 3, retry_delay: float = 1.0) -> bool:
+        """
+        Connect to FalkorDB with retry logic.
+
+        Args:
+            max_retries: Maximum number of connection attempts
+            retry_delay: Initial delay between retries (exponential backoff)
+
+        Returns:
+            True if connected successfully, False otherwise
+        """
         if not FALKORDB_AVAILABLE:
             logger.warning("FalkorDB client not installed. Install with: pip install redis")
             return False
 
-        try:
-            self._client = redis.Redis(host=self.host, port=self.port, decode_responses=True)
-            self._client.ping()
-            self._graph = self._client.graph(self.graph_name)
-            self._connected = True
-            logger.info(f"Connected to FalkorDB at {self.host}:{self.port}")
+        for attempt in range(max_retries):
+            try:
+                self._client = redis.Redis(host=self.host, port=self.port, decode_responses=True)
+                self._client.ping()
+                self._graph = self._client.graph(self.graph_name)
+                self._connected = True
+                logger.info(f"Connected to FalkorDB at {self.host}:{self.port}")
 
-            # Process any pending operations
-            self._process_pending_operations()
+                # Process any pending operations
+                self._process_pending_operations()
 
-            return True
-        except redis.ConnectionError as e:
-            logger.warning(f"Could not connect to FalkorDB: {e}")
-            self._connected = False
-            return False
-        except Exception as e:
-            logger.error(f"Error connecting to FalkorDB: {e}")
-            self._connected = False
-            return False
+                return True
+
+            except redis.ConnectionError as e:
+                wait_time = retry_delay * (2 ** attempt)
+                if attempt < max_retries - 1:
+                    logger.warning(f"FalkorDB connection failed (attempt {attempt + 1}/{max_retries}): {e}. Retrying in {wait_time}s...")
+                    time.sleep(wait_time)
+                else:
+                    logger.error(f"FalkorDB connection failed after {max_retries} attempts: {e}")
+                    self._connected = False
+
+            except Exception as e:
+                logger.error(f"Error connecting to FalkorDB: {e}")
+                self._connected = False
+                return False
+
+        return False
 
     def disconnect(self):
         """Disconnect from FalkorDB."""

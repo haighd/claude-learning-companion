@@ -510,6 +510,17 @@ def extract_and_record_learnings(tool_output: dict, domains: List[str]):
                     )
                 except Exception as kanban_error:
                     sys.stderr.write(f"Warning: Failed to create Kanban task for heuristic: {kanban_error}\n")
+
+                # Detect relationships for new heuristic
+                try:
+                    from memory.relationship_detector import RelationshipDetector
+                    detector = RelationshipDetector()
+                    candidates = detector.find_related_for_heuristic(heuristic_id)
+                    if candidates:
+                        detector.apply_relationships_to_graph(candidates)
+                        sys.stderr.write(f"GRAPH: Detected {len(candidates)} relationship(s) for heuristic {heuristic_id}\n")
+                except Exception as graph_error:
+                    sys.stderr.write(f"Warning: Failed to detect relationships for heuristic: {graph_error}\n")
             else:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 cursor.execute("""
