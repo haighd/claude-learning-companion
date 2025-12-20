@@ -98,8 +98,8 @@ def get_last_checkpoint_time() -> Optional[str]:
 
 def check_cooldown(last_checkpoint_time: Optional[str]) -> bool:
     """Check if we're still in cooldown period."""
-    if not last_checkpoint_time:
-        return False  # No cooldown if never checkpointed
+    if not last_checkpoint_time or last_checkpoint_time == "":
+        return False  # No cooldown if never checkpointed or empty timestamp
 
     try:
         # Handle both Z suffix and +00:00 format

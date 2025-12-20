@@ -167,7 +167,7 @@ Agent resumes with clear context → Quality maintained
 
 - [ ] Can PreCompact hook block/delay compaction, or only observe?
 - [x] What's the exact structure needed for resume instructions? → **RESOLVED: Match existing checkpoint.md structure (What/Why/Where, Active Issues, Key Decisions, Next Steps)**
-- [x] Should watcher use Haiku or local heuristics for monitoring? → **RESOLVED: Haiku API calls (more accurate, ~$0.001/check)**
+- [x] Should watcher use Haiku or local heuristics for monitoring? → **RESOLVED: Local heuristic estimation (no API cost, immediate response)**
 - [ ] How to handle checkpoint during active file edits?
 
 ## Key Insight: Why /checkpoint > /compact
