@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { TimelineEvent, Heuristic } from '../types'
 import { Clock, Play, Pause, SkipBack, SkipForward, CheckCircle, CheckSquare, XCircle, Brain, Star, AlertTriangle, FileText, Terminal, Cpu, Globe, Workflow } from 'lucide-react'
 import { format } from 'date-fns'
+import { parseUTCTimestamp, formatLocalTime } from '../utils/formatDate'
 
 interface TimelineViewProps {
   events: TimelineEvent[]
@@ -31,6 +32,15 @@ export default function TimelineView({ events, heuristics, onEventClick }: Timel
   const [filterType, setFilterType] = useState<string | null>(null)
   const [speed, setSpeed] = useState(1)
 
+  // Refs for playback (avoid useEffect dependency issues per golden rule #9)
+  const eventRefs = useRef<Map<number, HTMLDivElement>>(new Map())
+  const playbackRef = useRef({ isPlaying, speed, playbackIndex })
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    playbackRef.current = { isPlaying, speed, playbackIndex }
+  }, [isPlaying, speed, playbackIndex])
+
   // Group events by date
   const groupedEvents = useMemo(() => {
     const filtered = filterType
@@ -39,7 +49,8 @@ export default function TimelineView({ events, heuristics, onEventClick }: Timel
 
     const groups: { [key: string]: TimelineEvent[] } = {}
     filtered.forEach(event => {
-      const date = format(new Date(event.timestamp), 'yyyy-MM-dd')
+      const parsedDate = parseUTCTimestamp(event.timestamp)
+      const date = parsedDate ? format(parsedDate, 'yyyy-MM-dd') : 'unknown'
       if (!groups[date]) groups[date] = []
       groups[date].push(event)
     })
@@ -48,18 +59,70 @@ export default function TimelineView({ events, heuristics, onEventClick }: Timel
 
   const dates = Object.keys(groupedEvents).sort().reverse()
 
+  // Flat list of events in display order (for playback navigation)
+  const orderedEvents = useMemo(() => {
+    const result: TimelineEvent[] = []
+    dates.forEach(date => {
+      result.push(...groupedEvents[date])
+    })
+    return result
+  }, [dates, groupedEvents])
+
+  // Reset playback index when filter changes or events update
+  useEffect(() => {
+    setPlaybackIndex(0)
+    setIsPlaying(false)
+  }, [filterType, events.length])
+
+  // Auto-play effect
+  useEffect(() => {
+    if (!isPlaying || orderedEvents.length === 0) return
+
+    const intervalMs = 1500 / speed // Base interval of 1.5s, adjusted by speed
+
+    const interval = setInterval(() => {
+      setPlaybackIndex(prev => {
+        const next = prev + 1
+        if (next >= orderedEvents.length) {
+          setIsPlaying(false)
+          return prev
+        }
+        return next
+      })
+    }, intervalMs)
+
+    return () => clearInterval(interval)
+  }, [isPlaying, speed, orderedEvents.length])
+
+  // Scroll current event into view
+  useEffect(() => {
+    if (orderedEvents.length === 0) return
+    const currentEvent = orderedEvents[playbackIndex]
+    if (!currentEvent) return
+
+    const element = eventRefs.current.get(currentEvent.id)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [playbackIndex, orderedEvents])
+
   // Playback controls
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying)
-  }
+  const handlePlayPause = useCallback(() => {
+    if (orderedEvents.length === 0) return
+    // If at end, restart from beginning
+    if (playbackIndex >= orderedEvents.length - 1 && !isPlaying) {
+      setPlaybackIndex(0)
+    }
+    setIsPlaying(prev => !prev)
+  }, [orderedEvents.length, playbackIndex, isPlaying])
 
-  const handleSkipBack = () => {
-    setPlaybackIndex(Math.max(0, playbackIndex - 1))
-  }
+  const handleSkipBack = useCallback(() => {
+    setPlaybackIndex(prev => Math.max(0, prev - 1))
+  }, [])
 
-  const handleSkipForward = () => {
-    setPlaybackIndex(Math.min(events.length - 1, playbackIndex + 1))
-  }
+  const handleSkipForward = useCallback(() => {
+    setPlaybackIndex(prev => Math.min(orderedEvents.length - 1, prev + 1))
+  }, [orderedEvents.length])
 
   const getEventIcon = (type: string) => {
     const config = eventConfig[type as keyof typeof eventConfig]
@@ -83,41 +146,57 @@ export default function TimelineView({ events, heuristics, onEventClick }: Timel
           <span className="text-sm text-slate-400">({events.length} events)</span>
         </div>
 
-        {/* Playback controls */}
+        {/* Playback controls - hidden until session replay features are implemented
+            See: https://github.com/haighd/claude-learning-companion/issues/25 (Session Replay)
+                 https://github.com/haighd/claude-learning-companion/issues/26 (Time-Scrubbing)
+                 https://github.com/haighd/claude-learning-companion/issues/27 (Debug Stepping)
+        {false && (
+          <>
+            <div className="flex items-center space-x-2 bg-slate-700 rounded-lg p-1">
+              <button
+                onClick={handleSkipBack}
+                className="p-1.5 rounded hover:bg-slate-600 text-slate-400 hover:text-white transition"
+              >
+                <SkipBack className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handlePlayPause}
+                className={`p-1.5 rounded transition ${isPlaying ? 'bg-sky-500 text-white' : 'hover:bg-slate-600 text-slate-400 hover:text-white'}`}
+              >
+                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              </button>
+              <button
+                onClick={handleSkipForward}
+                className="p-1.5 rounded hover:bg-slate-600 text-slate-400 hover:text-white transition"
+              >
+                <SkipForward className="w-4 h-4" />
+              </button>
+            </div>
+
+            <select
+              value={speed}
+              onChange={(e) => setSpeed(Number(e.target.value))}
+              className="bg-slate-700 text-sm text-white rounded-md px-2 py-1 border border-slate-600"
+              aria-label="Playback speed"
+            >
+              <option value={0.5}>0.5x</option>
+              <option value={1}>1x</option>
+              <option value={2}>2x</option>
+              <option value={5}>5x</option>
+            </select>
+
+            {orderedEvents.length > 0 && (
+              <div className="flex items-center space-x-2 text-sm text-slate-400">
+                <span>{playbackIndex + 1}</span>
+                <span>/</span>
+                <span>{orderedEvents.length}</span>
+              </div>
+            )}
+          </>
+        )}
+        End playback controls */}
+
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 bg-slate-700 rounded-lg p-1">
-            <button
-              onClick={handleSkipBack}
-              className="p-1.5 rounded hover:bg-slate-600 text-slate-400 hover:text-white transition"
-            >
-              <SkipBack className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handlePlayPause}
-              className={`p-1.5 rounded transition ${isPlaying ? 'bg-sky-500 text-white' : 'hover:bg-slate-600 text-slate-400 hover:text-white'}`}
-            >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={handleSkipForward}
-              className="p-1.5 rounded hover:bg-slate-600 text-slate-400 hover:text-white transition"
-            >
-              <SkipForward className="w-4 h-4" />
-            </button>
-          </div>
-
-          <select
-            value={speed}
-            onChange={(e) => setSpeed(Number(e.target.value))}
-            className="bg-slate-700 text-sm text-white rounded-md px-2 py-1 border border-slate-600"
-            aria-label="Playback speed"
-          >
-            <option value={0.5}>0.5x</option>
-            <option value={1}>1x</option>
-            <option value={2}>2x</option>
-            <option value={5}>5x</option>
-          </select>
-
           {/* Filter */}
           <select
             value={filterType || ''}
@@ -153,7 +232,7 @@ export default function TimelineView({ events, heuristics, onEventClick }: Timel
         {dates.map(date => (
           <div key={date}>
             <div className="sticky top-0 bg-slate-800 py-2 z-10">
-              <h4 className="text-sm font-medium text-slate-400">{format(new Date(date), 'EEEE, MMMM d, yyyy')}</h4>
+              <h4 className="text-sm font-medium text-slate-400">{date !== 'unknown' ? format(new Date(date), 'EEEE, MMMM d, yyyy') : 'Unknown Date'}</h4>
             </div>
 
             <div className="relative ml-4 border-l-2 border-slate-700">
@@ -161,20 +240,38 @@ export default function TimelineView({ events, heuristics, onEventClick }: Timel
                 const Icon = getEventIcon(event.event_type)
                 const color = getEventColor(event.event_type)
                 const config = eventConfig[event.event_type as keyof typeof eventConfig]
+                const isCurrentPlayback = orderedEvents[playbackIndex]?.id === event.id
 
                 return (
                   <div
                     key={event.id}
-                    className="relative pl-6 pb-4 cursor-pointer group"
-                    onClick={() => onEventClick(event)}
+                    ref={(el) => {
+                      if (el) eventRefs.current.set(event.id, el)
+                      else eventRefs.current.delete(event.id)
+                    }}
+                    className={`relative pl-6 pb-4 cursor-pointer group transition-all duration-300 ${
+                      isCurrentPlayback ? 'scale-[1.02]' : ''
+                    }`}
+                    onClick={() => {
+                      // Set playback position when clicking an event
+                      const idx = orderedEvents.findIndex(e => e.id === event.id)
+                      if (idx !== -1) setPlaybackIndex(idx)
+                      onEventClick(event)
+                    }}
                   >
                     {/* Timeline dot */}
-                    <div className={`absolute left-0 top-0 -translate-x-1/2 w-4 h-4 rounded-full ${color} flex items-center justify-center ring-4 ring-slate-800`}>
+                    <div className={`absolute left-0 top-0 -translate-x-1/2 w-4 h-4 rounded-full ${color} flex items-center justify-center ring-4 ${
+                      isCurrentPlayback ? 'ring-cyan-500 ring-2' : 'ring-slate-800'
+                    } transition-all duration-300`}>
                       <Icon className="w-2.5 h-2.5 text-white" />
                     </div>
 
                     {/* Event card */}
-                    <div className="bg-slate-700/50 rounded-lg p-3 group-hover:bg-slate-700 transition">
+                    <div className={`rounded-lg p-3 transition-all duration-300 ${
+                      isCurrentPlayback
+                        ? 'bg-slate-600 ring-2 ring-cyan-500/50 shadow-lg shadow-cyan-500/20'
+                        : 'bg-slate-700/50 group-hover:bg-slate-700'
+                    }`}>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-2 mb-1">
@@ -209,7 +306,7 @@ export default function TimelineView({ events, heuristics, onEventClick }: Timel
                         </div>
 
                         <div className="text-xs text-slate-500 ml-4 flex-shrink-0">
-                          {format(new Date(event.timestamp), 'HH:mm:ss')}
+                          {formatLocalTime(event.timestamp, 'HH:mm:ss')}
                         </div>
                       </div>
                     </div>
