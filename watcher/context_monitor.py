@@ -87,7 +87,8 @@ def get_last_checkpoint_time() -> str | None:
         if checkpoints:
             # Get most recent
             return max(cp.get('created', '') for cp in checkpoints)
-    except (json.JSONDecodeError, IOError):
+    except (json.JSONDecodeError, IOError) as e:
+        sys.stderr.write(f"[context_monitor] Error reading checkpoint index: {e}\n")
         pass
 
     # Also check session state for last_checkpoint_time
