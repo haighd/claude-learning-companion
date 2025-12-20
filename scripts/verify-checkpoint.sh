@@ -2,9 +2,9 @@
 # ABOUTME: Checkpoint verification script
 # Validates that a checkpoint file exists and contains required sections
 
-set -e
+set -euo pipefail
 
-CHECKPOINT_PATH="$1"
+CHECKPOINT_PATH="${1:-}"
 
 if [ -z "$CHECKPOINT_PATH" ]; then
     echo "Usage: verify-checkpoint.sh <checkpoint-path>"
@@ -23,9 +23,15 @@ if [ ! -s "$CHECKPOINT_PATH" ]; then
     exit 1
 fi
 
-# Check for YAML frontmatter
+# Check for opening YAML frontmatter delimiter
 if ! head -1 "$CHECKPOINT_PATH" | grep -q "^---$"; then
-    echo "ERROR: Missing YAML frontmatter"
+    echo "ERROR: Missing opening YAML frontmatter delimiter"
+    exit 1
+fi
+
+# Check for closing YAML frontmatter delimiter (should appear after line 1)
+if ! tail -n +2 "$CHECKPOINT_PATH" | grep -q "^---$"; then
+    echo "ERROR: Missing closing YAML frontmatter delimiter"
     exit 1
 fi
 

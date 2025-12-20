@@ -24,16 +24,18 @@ Usage:
     python watcher_loop.py summary                             # Show last watcher actions
 """
 
+import fcntl
 import json
 import sys
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, Optional
 
 # Paths
 COORDINATION_DIR = Path.home() / ".claude" / "clc" / ".coordination"
 BLACKBOARD_FILE = COORDINATION_DIR / "blackboard.json"
+LOCK_FILE = BLACKBOARD_FILE.with_suffix(".lock")
 WATCHER_LOG = COORDINATION_DIR / "watcher-log.md"
 STOP_FILE = COORDINATION_DIR / "watcher-stop"
 DECISION_FILE = COORDINATION_DIR / "decision.md"
@@ -46,6 +48,8 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
     The main Claude agent's checkpoint-responder hook will read this message
     and prompt the user/agent to run /checkpoint.
 
+    Uses file locking to prevent race conditions with concurrent readers/writers.
+
     Args:
         reason: Why checkpoint is being triggered (e.g., "context_60_percent")
         metrics: Optional dict of context metrics (usage, counts, etc.)
@@ -53,8 +57,16 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
     Returns:
         Message ID if successful, None on failure
     """
+    lock_fd = None
     try:
-        # Load or create blackboard
+        # Ensure directory exists before locking
+        COORDINATION_DIR.mkdir(parents=True, exist_ok=True)
+
+        # Acquire exclusive lock to prevent race conditions
+        lock_fd = open(LOCK_FILE, "w")
+        fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)
+
+        # Load or create blackboard under lock
         if BLACKBOARD_FILE.exists():
             bb = json.loads(BLACKBOARD_FILE.read_text())
         else:
@@ -77,28 +89,32 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
                 "metrics": metrics or {},
             },
             "read": False,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
         bb["messages"].append(message)
 
         # Write atomically
-        COORDINATION_DIR.mkdir(parents=True, exist_ok=True)
         temp_file = BLACKBOARD_FILE.with_suffix(".tmp")
         temp_file.write_text(json.dumps(bb, indent=2))
         temp_file.rename(BLACKBOARD_FILE)
 
         return msg_id
 
-    except Exception as e:
+    except (json.JSONDecodeError, IOError, OSError) as e:
         print(f"Failed to write checkpoint trigger: {e}", file=sys.stderr)
         return None
+    finally:
+        if lock_fd:
+            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_UN)
+            lock_fd.close()
 
 
 def gather_state() -> Dict[str, Any]:
     """Gather current coordination state."""
+    now = datetime.now(timezone.utc)
     state = {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": now.isoformat(),
         "blackboard": {},
         "agent_files": [],
         "stop_requested": STOP_FILE.exists(),
@@ -111,8 +127,8 @@ def gather_state() -> Dict[str, Any]:
             state["blackboard"] = {"error": f"Could not parse blackboard.json: {e}"}
 
     for f in COORDINATION_DIR.glob("agent_*.md"):
-        mtime = datetime.fromtimestamp(f.stat().st_mtime)
-        age_seconds = (datetime.now() - mtime).total_seconds()
+        mtime = datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc)
+        age_seconds = (now - mtime).total_seconds()
         state["agent_files"].append({
             "name": f.name,
             "age_seconds": round(age_seconds),
@@ -315,7 +331,7 @@ RESULT: <outcome>
 def stop_watcher_loop():
     """Create stop signal file."""
     COORDINATION_DIR.mkdir(parents=True, exist_ok=True)
-    STOP_FILE.write_text(f"Stop requested at {datetime.now().isoformat()}\n")
+    STOP_FILE.write_text(f"Stop requested at {datetime.now(timezone.utc).isoformat()}\n")
     print(f"Stop signal created: {STOP_FILE}")
     print("Monitoring will stop - no more watchers will be spawned.")
 
@@ -362,12 +378,16 @@ def check_status():
         print(f"   Active: {active} | Completed: {completed} | Other: {other}")
 
         # Check for stale
+        now = datetime.now(timezone.utc)
         for aid, agent in agents.items():
             last_seen = agent.get("last_seen", "")
             if last_seen:
                 try:
                     ls_time = datetime.fromisoformat(last_seen.replace("Z", "+00:00"))
-                    age = (datetime.now(ls_time.tzinfo) - ls_time).total_seconds()
+                    # Ensure timezone-aware comparison
+                    if ls_time.tzinfo is None:
+                        ls_time = ls_time.replace(tzinfo=timezone.utc)
+                    age = (now - ls_time).total_seconds()
                     if age > 120 and agent.get("status") == "active":
                         print(f"   [!] {aid}: STALE ({int(age)}s since last update)")
                 except (ValueError, TypeError, AttributeError) as e:

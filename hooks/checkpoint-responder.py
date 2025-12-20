@@ -12,12 +12,14 @@ When a checkpoint_trigger message is found:
 Part of Phase 2: Proactive Context Management.
 """
 
+import fcntl
 import json
 import sys
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 BLACKBOARD_FILE = Path.home() / ".claude" / "clc" / ".coordination" / "blackboard.json"
+LOCK_FILE = BLACKBOARD_FILE.with_suffix(".lock")
 
 
 def get_hook_input() -> dict:
@@ -60,18 +62,27 @@ def check_checkpoint_trigger() -> dict | None:
 def mark_message_read(msg_id: str):
     """Mark a blackboard message as read.
 
+    Uses file locking to prevent race conditions with concurrent writers.
+
     Args:
         msg_id: The ID of the message to mark as read.
     """
     if not BLACKBOARD_FILE.exists():
         return
 
+    lock_fd = None
     try:
+        # Acquire exclusive lock to prevent race conditions
+        LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+        lock_fd = open(LOCK_FILE, "w")
+        fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)
+
+        # Re-read blackboard under lock (may have changed)
         bb = json.loads(BLACKBOARD_FILE.read_text())
         for msg in bb.get("messages", []):
             if msg.get("id") == msg_id:
                 msg["read"] = True
-                msg["read_at"] = datetime.now().isoformat()
+                msg["read_at"] = datetime.now(timezone.utc).isoformat()
                 break
 
         # Write atomically
@@ -79,8 +90,12 @@ def mark_message_read(msg_id: str):
         temp_file.write_text(json.dumps(bb, indent=2))
         temp_file.rename(BLACKBOARD_FILE)
 
-    except (json.JSONDecodeError, IOError) as e:
+    except (json.JSONDecodeError, IOError, OSError) as e:
         sys.stderr.write(f"[checkpoint-responder] Error marking message read: {e}\n")
+    finally:
+        if lock_fd:
+            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_UN)
+            lock_fd.close()
 
 
 def main():
@@ -96,9 +111,9 @@ def main():
         msg_id = trigger.get("id", "")
         mark_message_read(msg_id)
 
-        content = trigger.get("content", {})
-        reason = content.get("reason", "watcher request")
-        usage = content.get("estimated_usage", 0)
+        content = trigger.get("content") or {}
+        reason = content.get("reason", "watcher request") if isinstance(content, dict) else "watcher request"
+        usage = content.get("estimated_usage", 0) if isinstance(content, dict) else 0
         usage_pct = usage * 100 if usage else 0
 
         sys.stderr.write(f"[checkpoint-responder] Checkpoint trigger detected: {reason}\n")
