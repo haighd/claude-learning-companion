@@ -1186,6 +1186,7 @@ def main():
                     conductor.update_run_status(run_id, 'failed', error_message=reason)
 
                     # SELF-HEALING: Attempt automatic recovery
+                    # TODO(refactor): Extract self-healing logic into helper function (duplicated at lines ~1255)
                     if SELF_HEALING_AVAILABLE and process_self_healing_failure:
                         try:
                             # Extract error content for healing analysis

@@ -234,7 +234,7 @@ function AppContent() {
         onDomainSelect={setSelectedDomain}
         selectedDomain={selectedDomain}
       >
-        <div className="space-y-6" style={!isLive ? { marginTop: HISTORICAL_BANNER_HEIGHT } : {}}>
+        <div className="space-y-6" style={!isLive && currentTime ? { marginTop: HISTORICAL_BANNER_HEIGHT } : {}}>
           {/* Stats Bar */}
           <StatsBar stats={statsForBar} />
 

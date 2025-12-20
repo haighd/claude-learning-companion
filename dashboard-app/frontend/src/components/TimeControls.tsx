@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTimeContext } from '../context/TimeContext'
 import { Play, Pause, SkipBack, SkipForward, Radio, Clock } from 'lucide-react'
 
@@ -23,6 +23,40 @@ export function TimeControls() {
   const [showCustomRange, setShowCustomRange] = useState(false)
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
+
+  // Playback effect: advance time when playing
+  const playbackRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    if (isPlaying && currentTime && !isLive) {
+      // Clear any existing interval
+      if (playbackRef.current) {
+        clearInterval(playbackRef.current)
+      }
+
+      // Advance time every second by playbackSpeed seconds
+      playbackRef.current = setInterval(() => {
+        const advanceMs = 1000 * playbackSpeed
+        const newTime = new Date(currentTime.getTime() + advanceMs)
+
+        if (newTime >= timeRange.end) {
+          setCurrentTime(timeRange.end)
+          setPlaying(false)
+        } else {
+          setCurrentTime(newTime)
+        }
+      }, 1000)
+
+      return () => {
+        if (playbackRef.current) {
+          clearInterval(playbackRef.current)
+        }
+      }
+    } else if (playbackRef.current) {
+      clearInterval(playbackRef.current)
+      playbackRef.current = null
+    }
+  }, [isPlaying, currentTime, isLive, playbackSpeed, timeRange.end, setCurrentTime, setPlaying])
 
   const handlePreset = (preset: string) => {
     switch (preset) {
