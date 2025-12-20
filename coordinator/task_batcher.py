@@ -170,7 +170,9 @@ class TaskBatcher:
         self._ensure_graph_scanned()
         if files and self.dep_graph is not None:
             try:
-                # Track seen files to avoid redundant get_cluster calls
+                # Track seen files to avoid redundant get_cluster calls.
+                # Once a file is in a cluster, we don't need to compute its cluster
+                # again since dependency clusters are transitive.
                 seen_files: Set[str] = set()
                 expanded_files: Set[str] = set()
                 for f in files:

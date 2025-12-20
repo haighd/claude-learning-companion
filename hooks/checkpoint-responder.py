@@ -51,7 +51,7 @@ def check_checkpoint_trigger() -> Optional[dict]:
 
     lock_fd = None
     try:
-        # Acquire shared lock for reading to prevent race with concurrent writes
+        # Acquire exclusive lock to prevent race with concurrent writes
         LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
         lock_fd = open(LOCK_FILE, "w")
         acquire_lock(lock_fd)
@@ -131,8 +131,9 @@ def main():
         if isinstance(content, str):
             try:
                 content = json.loads(content)
-            except json.JSONDecodeError:
-                content = {}  # Fallback to empty dict if not valid JSON
+            except json.JSONDecodeError as e:
+                sys.stderr.write(f"[checkpoint-responder] Invalid JSON in content: {e}\n")
+                content = {}  # Fallback to empty dict
         # content is now guaranteed to be a dict
         reason = content.get("reason", "watcher request")
         usage = content.get("estimated_usage", 0)

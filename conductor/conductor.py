@@ -903,17 +903,24 @@ class Conductor:
 
     # Phase 3: Batch boundary checkpoint methods
 
-    def _check_batch_boundary(self, _run_id: int, _context: Dict) -> bool:
+    def _check_batch_boundary(self, run_id: int, context: Dict) -> bool:
         """
         Check if checkpoint should be triggered at batch boundary.
 
         Args:
-            _run_id: Current workflow run ID (reserved for future logging)
-            _context: Current workflow context (reserved for future context-aware decisions)
+            run_id: Current workflow run ID (reserved for future logging)
+            context: Current workflow context (reserved for future context-aware decisions)
 
         Returns:
             True if context usage exceeds threshold
+
+        Note:
+            run_id and context are accepted for API consistency and future use
+            (e.g., context-aware threshold adjustment, run-specific logging).
         """
+        # Parameters reserved for future enhancements (context-aware thresholds, logging)
+        _ = (run_id, context)
+
         if not HAS_CONTEXT_MONITOR or get_context_status is None:
             return False
 
@@ -960,6 +967,9 @@ class Conductor:
                 }, f"Checkpoint triggered at batch boundary: {reason}")
 
         except (IOError, OSError, AttributeError, sqlite3.Error) as e:
+            # AttributeError: blackboard module may not have trigger function
+            # IOError/OSError: file system issues with blackboard
+            # sqlite3.Error: database logging failures
             sys.stderr.write(f"Warning: Failed to trigger checkpoint: {e}\n")
 
     def run_workflow(self, workflow_name: str, input_data: Dict = None,
