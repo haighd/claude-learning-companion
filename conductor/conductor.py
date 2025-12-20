@@ -89,22 +89,12 @@ except ImportError:
         Blackboard = None  # Will run without blackboard if not available
 
 # Phase 3: Context monitoring for batch boundary checkpoints
-# Use importlib to avoid sys.path manipulation
-import importlib.util
+from utils.module_loader import get_module_attribute
+
 _context_monitor_path = Path(__file__).parent.parent / "watcher" / "context_monitor.py"
-if _context_monitor_path.exists():
-    _spec = importlib.util.spec_from_file_location("context_monitor", _context_monitor_path)
-    _context_monitor = importlib.util.module_from_spec(_spec)
-    try:
-        _spec.loader.exec_module(_context_monitor)
-        get_context_status = _context_monitor.get_context_status
-        HAS_CONTEXT_MONITOR = True
-    except (AttributeError, ImportError):
-        get_context_status = None
-        HAS_CONTEXT_MONITOR = False
-else:
-    get_context_status = None
-    HAS_CONTEXT_MONITOR = False
+get_context_status, HAS_CONTEXT_MONITOR = get_module_attribute(
+    "context_monitor", _context_monitor_path, "get_context_status"
+)
 
 
 class NodeType(Enum):

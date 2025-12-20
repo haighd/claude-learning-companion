@@ -31,37 +31,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, Optional
 
-# Cross-platform file locking
-try:
-    import fcntl
-    HAS_FCNTL = True
-except ImportError:
-    HAS_FCNTL = False
-    try:
-        import msvcrt
-        HAS_MSVCRT = True
-    except ImportError:
-        HAS_MSVCRT = False
-
-
-def acquire_lock(fd):
-    """Acquire exclusive lock on file descriptor (cross-platform)."""
-    if HAS_FCNTL:
-        fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
-    elif HAS_MSVCRT:
-        msvcrt.locking(fd.fileno(), msvcrt.LK_LOCK, 1)
-    else:
-        raise RuntimeError("File locking is not supported on this platform.")
-
-
-def release_lock(fd):
-    """Release lock on file descriptor (cross-platform)."""
-    if HAS_FCNTL:
-        fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
-    elif HAS_MSVCRT:
-        msvcrt.locking(fd.fileno(), msvcrt.LK_UNLCK, 1)
-    else:
-        raise RuntimeError("File locking is not supported on this platform.")
+# Use shared file locking utility
+from utils.file_locking import acquire_lock, release_lock
 
 # Paths
 COORDINATION_DIR = Path.home() / ".claude" / "clc" / ".coordination"

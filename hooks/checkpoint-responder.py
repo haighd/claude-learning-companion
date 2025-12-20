@@ -18,41 +18,11 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
 
-# Cross-platform file locking
-try:
-    import fcntl
-    HAS_FCNTL = True
-except ImportError:
-    # Windows doesn't have fcntl - use msvcrt or no-op fallback
-    HAS_FCNTL = False
-    try:
-        import msvcrt
-        HAS_MSVCRT = True
-    except ImportError:
-        HAS_MSVCRT = False
+# Use shared file locking utility
+from utils.file_locking import acquire_lock, release_lock
 
 BLACKBOARD_FILE = Path.home() / ".claude" / "clc" / ".coordination" / "blackboard.json"
 LOCK_FILE = BLACKBOARD_FILE.with_suffix(".lock")
-
-
-def acquire_lock(fd):
-    """Acquire exclusive lock on file descriptor (cross-platform)."""
-    if HAS_FCNTL:
-        fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
-    elif HAS_MSVCRT:
-        msvcrt.locking(fd.fileno(), msvcrt.LK_LOCK, 1)
-    else:
-        raise RuntimeError("File locking is not supported on this platform.")
-
-
-def release_lock(fd):
-    """Release lock on file descriptor (cross-platform)."""
-    if HAS_FCNTL:
-        fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
-    elif HAS_MSVCRT:
-        msvcrt.locking(fd.fileno(), msvcrt.LK_UNLCK, 1)
-    else:
-        raise RuntimeError("File locking is not supported on this platform.")
 
 
 def get_hook_input() -> dict:

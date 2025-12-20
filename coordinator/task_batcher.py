@@ -17,42 +17,23 @@ Usage:
 from pathlib import Path
 from typing import Dict, List, Any, Set, Optional
 import sys
-import importlib.util
 
-# Use importlib to avoid sys.path manipulation
+# Use shared module loader utility
+from utils.module_loader import get_module_attribute, load_module_from_path
+
 _clc_root = Path(__file__).parent.parent
 
 # Load context_monitor module
 _context_monitor_path = _clc_root / "watcher" / "context_monitor.py"
-if _context_monitor_path.exists():
-    _spec = importlib.util.spec_from_file_location("context_monitor", _context_monitor_path)
-    _context_monitor = importlib.util.module_from_spec(_spec)
-    try:
-        _spec.loader.exec_module(_context_monitor)
-        get_context_status = _context_monitor.get_context_status
-        HAS_CONTEXT_MONITOR = True
-    except (AttributeError, ImportError):
-        get_context_status = None
-        HAS_CONTEXT_MONITOR = False
-else:
-    get_context_status = None
-    HAS_CONTEXT_MONITOR = False
+get_context_status, HAS_CONTEXT_MONITOR = get_module_attribute(
+    "context_monitor", _context_monitor_path, "get_context_status"
+)
 
 # Load dependency_graph module
 _dep_graph_path = Path(__file__).parent / "dependency_graph.py"
-if _dep_graph_path.exists():
-    _spec = importlib.util.spec_from_file_location("dependency_graph", _dep_graph_path)
-    _dep_graph_mod = importlib.util.module_from_spec(_spec)
-    try:
-        _spec.loader.exec_module(_dep_graph_mod)
-        DependencyGraph = _dep_graph_mod.DependencyGraph
-        HAS_DEPENDENCY_GRAPH = True
-    except (AttributeError, ImportError):
-        DependencyGraph = None
-        HAS_DEPENDENCY_GRAPH = False
-else:
-    DependencyGraph = None
-    HAS_DEPENDENCY_GRAPH = False
+DependencyGraph, HAS_DEPENDENCY_GRAPH = get_module_attribute(
+    "dependency_graph", _dep_graph_path, "DependencyGraph"
+)
 
 
 # Token estimation constants (conservative)
