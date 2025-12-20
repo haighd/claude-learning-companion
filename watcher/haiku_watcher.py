@@ -21,6 +21,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional
 
+# Import context monitor for Phase 2 proactive checkpoint management
+try:
+    from context_monitor import get_context_status
+    CONTEXT_MONITOR_AVAILABLE = True
+except ImportError:
+    get_context_status = None
+    CONTEXT_MONITOR_AVAILABLE = False
+
 # Paths
 COORDINATION_DIR = Path.home() / ".claude" / "clc" / ".coordination"
 BLACKBOARD_FILE = COORDINATION_DIR / "blackboard.json"
@@ -34,6 +42,7 @@ def gather_state() -> Dict[str, Any]:
         "blackboard": {},
         "agent_files": [],
         "recent_activity": [],
+        "context_status": None,  # Phase 2: Context utilization monitoring
     }
 
     # Read blackboard
@@ -64,11 +73,36 @@ def gather_state() -> Dict[str, Any]:
                 "last_heartbeat_seconds_ago": round(age_seconds),
             })
 
+    # Phase 2: Get context utilization status
+    if CONTEXT_MONITOR_AVAILABLE and get_context_status:
+        try:
+            state["context_status"] = get_context_status()
+        except Exception as e:
+            state["context_status"] = {"error": str(e)}
+
     return state
 
 
 def get_haiku_prompt(state: Dict[str, Any]) -> str:
     """Build the prompt for the Haiku monitoring agent."""
+
+    # Format context status section if available
+    context_section = ""
+    context_status = state.get("context_status")
+    if context_status and isinstance(context_status, dict) and "estimated_usage" in context_status:
+        usage_pct = context_status.get("estimated_usage", 0) * 100
+        should_checkpoint = context_status.get("should_checkpoint", False)
+        reason = context_status.get("reason", "N/A")
+        in_cooldown = context_status.get("in_cooldown", False)
+        context_section = f"""
+## Context Utilization (Phase 2)
+
+- **Estimated Usage**: {usage_pct:.0f}%
+- **Should Checkpoint**: {should_checkpoint}
+- **Reason**: {reason}
+- **In Cooldown**: {in_cooldown}
+"""
+
     return f"""You are a lightweight monitoring agent checking on a multi-agent swarm.
 
 ## Current Coordination State
@@ -76,7 +110,7 @@ def get_haiku_prompt(state: Dict[str, Any]) -> str:
 ```json
 {json.dumps(state, indent=2)}
 ```
-
+{context_section}
 ## Your Task
 
 Analyze this state and determine if anything needs attention:
@@ -85,6 +119,7 @@ Analyze this state and determine if anything needs attention:
 2. Are there any error indicators in the blackboard?
 3. Is there a deadlock or conflict between agents?
 4. Are tasks progressing or stuck?
+5. **Is context utilization > 60%?** (trigger checkpoint if not in cooldown)
 
 ## Response Format
 
@@ -92,6 +127,13 @@ If everything looks fine:
 ```
 STATUS: nominal
 NOTES: [brief observation]
+```
+
+If context needs checkpointing (usage > 60% and not in cooldown):
+```
+STATUS: context_high
+REASON: Context at XX% utilization
+RECOMMENDED_ACTION: trigger_checkpoint
 ```
 
 If there's a problem requiring intervention:

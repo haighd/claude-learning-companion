@@ -26,9 +26,10 @@ Usage:
 
 import json
 import sys
+import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 # Paths
 COORDINATION_DIR = Path.home() / ".claude" / "clc" / ".coordination"
@@ -36,6 +37,62 @@ BLACKBOARD_FILE = COORDINATION_DIR / "blackboard.json"
 WATCHER_LOG = COORDINATION_DIR / "watcher-log.md"
 STOP_FILE = COORDINATION_DIR / "watcher-stop"
 DECISION_FILE = COORDINATION_DIR / "decision.md"
+
+
+def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = None) -> Optional[str]:
+    """Write checkpoint trigger message to blackboard.
+
+    This allows the watcher to request a checkpoint without directly executing it.
+    The main Claude agent's checkpoint-responder hook will read this message
+    and prompt the user/agent to run /checkpoint.
+
+    Args:
+        reason: Why checkpoint is being triggered (e.g., "context_60_percent")
+        metrics: Optional dict of context metrics (usage, counts, etc.)
+
+    Returns:
+        Message ID if successful, None on failure
+    """
+    try:
+        # Load or create blackboard
+        if BLACKBOARD_FILE.exists():
+            bb = json.loads(BLACKBOARD_FILE.read_text())
+        else:
+            bb = {"messages": [], "context": {}}
+
+        # Ensure messages list exists
+        if "messages" not in bb:
+            bb["messages"] = []
+
+        # Create checkpoint trigger message
+        msg_id = f"msg-{uuid.uuid4().hex[:8]}"
+        message = {
+            "id": msg_id,
+            "from": "watcher",
+            "to": "claude-main",
+            "type": "checkpoint_trigger",
+            "content": {
+                "reason": reason,
+                "estimated_usage": metrics.get("estimated_usage", 0) if metrics else 0,
+                "metrics": metrics or {},
+            },
+            "read": False,
+            "timestamp": datetime.now().isoformat()
+        }
+
+        bb["messages"].append(message)
+
+        # Write atomically
+        COORDINATION_DIR.mkdir(parents=True, exist_ok=True)
+        temp_file = BLACKBOARD_FILE.with_suffix(".tmp")
+        temp_file.write_text(json.dumps(bb, indent=2))
+        temp_file.rename(BLACKBOARD_FILE)
+
+        return msg_id
+
+    except Exception as e:
+        print(f"Failed to write checkpoint trigger: {e}", file=sys.stderr)
+        return None
 
 
 def gather_state() -> Dict[str, Any]:
