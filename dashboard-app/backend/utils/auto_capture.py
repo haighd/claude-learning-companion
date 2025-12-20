@@ -160,6 +160,7 @@ class AutoCapture:
                     captured += 1
 
                     # Auto-create Kanban task from failure
+                    # TODO(kanban): Move feature flag check into create_task_from_failure for centralization
                     if KANBAN_AUTO_CREATE_ENABLED and KANBAN_AVAILABLE:
                         try:
                             create_task_from_failure(

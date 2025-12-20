@@ -1202,8 +1202,8 @@ def main():
                                 sys.stderr.write(f"[SELF_HEALING] Healing triggered for failure (attempt {healing_result.get('attempt_number')}/{healing_result.get('max_attempts')})\n")
                                 sys.stderr.write(f"[SELF_HEALING] Failure type: {healing_result.get('failure_type')}\n")
                                 sys.stderr.write(f"[SELF_HEALING] Using model: {healing_result.get('model')}\n")
-                                # Note: Actual healing agent spawn would require Task tool integration
-                                # For now, we log the intent. Full integration requires async agent spawn.
+                                # NOTE: Self-healing currently logs intent only; it does NOT spawn healing agents.
+                                # TODO(self-healing): Integrate with the Task tool to spawn async healing agent runs when available.
                             elif healing_result and healing_result.get('action') == 'escalate':
                                 sys.stderr.write(f"[SELF_HEALING] Escalated to CEO: {healing_result.get('reason')}\n")
                         except Exception as e:

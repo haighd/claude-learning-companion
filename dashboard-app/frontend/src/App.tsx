@@ -22,6 +22,9 @@ import {
 } from './types'
 import { TabId, getTabFromPath, getPathFromTab } from './router'
 
+// Height of the historical mode banner, used to offset content
+const HISTORICAL_BANNER_HEIGHT = '40px'
+
 function AppContent() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -231,7 +234,7 @@ function AppContent() {
         onDomainSelect={setSelectedDomain}
         selectedDomain={selectedDomain}
       >
-        <div className="space-y-6" style={!isLive ? { marginTop: '40px' } : {}}>
+        <div className="space-y-6" style={!isLive ? { marginTop: HISTORICAL_BANNER_HEIGHT } : {}}>
           {/* Stats Bar */}
           <StatsBar stats={statsForBar} />
 

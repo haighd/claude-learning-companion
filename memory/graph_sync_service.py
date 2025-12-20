@@ -113,8 +113,9 @@ class GraphSyncService:
             if full:
                 result = self.sync.full_sync()
             else:
-                # For incremental sync, we'll just do a full sync for now
-                # In production, you might track last sync time and only sync new records
+                # TODO(incremental-sync): Implement true incremental sync by tracking
+                # last_sync_time and only syncing records modified since then.
+                # Currently falls back to full sync for simplicity.
                 result = self.sync.full_sync()
 
             duration = time.time() - start_time

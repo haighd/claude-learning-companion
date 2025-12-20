@@ -310,6 +310,7 @@ async def get_kanban_stats():
     """
     try:
         # Try importing kanban_automation for detailed stats
+        # TODO(utils): Extract CLC path setup to shared utility (also used in auto_capture.py)
         try:
             clc_path = Path.home() / ".claude" / "clc"
             if str(clc_path) not in sys.path:

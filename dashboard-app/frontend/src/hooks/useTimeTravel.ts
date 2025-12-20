@@ -1,17 +1,12 @@
-import { useEffect, useRef } from 'react'
 import { useTimeContext } from '../context/TimeContext'
 
 /**
- * Hook for managing time-based queries
- * Returns query parameters to add to API calls
+ * Hook for managing time-based queries.
+ * Returns query parameters to add to API calls.
+ * Note: Playback controls are handled in TimeControls component.
  */
 export function useTimeTravel() {
   const { currentTime, timeRange, isLive, isPlaying, playbackSpeed } = useTimeContext()
-
-  // Note: Auto-advance playback is handled in TimeControls component
-  // This hook provides query parameters for time-based API calls
-  const _playbackRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  void _playbackRef // Placeholder for future playback implementation
 
   /**
    * Get query parameters to add to API calls
@@ -59,7 +54,3 @@ export function useTimeTravel() {
     buildUrl,
   }
 }
-
-// Note: This is a simplified version. The useEffect playback logic needs
-// access to setCurrentTime from context, which requires a different approach.
-// We'll implement proper playback control in the TimeControls component.
