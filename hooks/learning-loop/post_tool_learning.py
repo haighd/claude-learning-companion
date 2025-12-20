@@ -50,6 +50,17 @@ except ImportError:
         'file_operations': []
     }
 
+# Import self-healing module (optional - graceful degradation if unavailable)
+SELF_HEALING_AVAILABLE = False
+try:
+    sys.path.insert(0, str(CLC_PATH / "query"))
+    from self_healer import process_failure as process_self_healing_failure
+    SELF_HEALING_AVAILABLE = True
+    sys.stderr.write("[LEARNING_LOOP] Self-healing module loaded successfully\n")
+except ImportError as e:
+    sys.stderr.write(f"[LEARNING_LOOP] Self-healing not available: {e}\n")
+    process_self_healing_failure = None
+
 
 class AdvisoryVerifier:
     """
@@ -1173,6 +1184,30 @@ def main():
                         error_type='task_failure'
                     )
                     conductor.update_run_status(run_id, 'failed', error_message=reason)
+
+                    # SELF-HEALING: Attempt automatic recovery
+                    if SELF_HEALING_AVAILABLE and process_self_healing_failure:
+                        try:
+                            # Extract error content for healing analysis
+                            error_content = str(tool_output.get('content', reason) if isinstance(tool_output, dict) else reason)
+
+                            healing_result = process_self_healing_failure(
+                                error_output=error_content,
+                                tool_name="TaskOutput",
+                                tool_input=tool_input,
+                                exec_id=exec_id
+                            )
+
+                            if healing_result and healing_result.get('action') == 'heal':
+                                sys.stderr.write(f"[SELF_HEALING] Healing triggered for failure (attempt {healing_result.get('attempt_number')}/{healing_result.get('max_attempts')})\n")
+                                sys.stderr.write(f"[SELF_HEALING] Failure type: {healing_result.get('failure_type')}\n")
+                                sys.stderr.write(f"[SELF_HEALING] Using model: {healing_result.get('model')}\n")
+                                # Note: Actual healing agent spawn would require Task tool integration
+                                # For now, we log the intent. Full integration requires async agent spawn.
+                            elif healing_result and healing_result.get('action') == 'escalate':
+                                sys.stderr.write(f"[SELF_HEALING] Escalated to CEO: {healing_result.get('reason')}\n")
+                        except Exception as e:
+                            sys.stderr.write(f"[SELF_HEALING] Error during healing attempt (non-fatal): {e}\n")
                 else:
                     result_text = str(tool_output.get('content', '') if isinstance(tool_output, dict) else tool_output)[:1000]
                     conductor.record_node_completion(
@@ -1215,6 +1250,27 @@ def main():
                     if outcome == 'failure':
                         conductor.record_node_failure(exec_id=exec_id, error_message=reason, error_type='task_failure')
                         conductor.update_run_status(run_id, 'failed', error_message=reason)
+
+                        # SELF-HEALING: Attempt automatic recovery
+                        if SELF_HEALING_AVAILABLE and process_self_healing_failure:
+                            try:
+                                error_content = str(tool_output.get('content', reason) if isinstance(tool_output, dict) else reason)
+
+                                healing_result = process_self_healing_failure(
+                                    error_output=error_content,
+                                    tool_name="TaskOutput",
+                                    tool_input=tool_input,
+                                    exec_id=exec_id
+                                )
+
+                                if healing_result and healing_result.get('action') == 'heal':
+                                    sys.stderr.write(f"[SELF_HEALING] Healing triggered for failure (attempt {healing_result.get('attempt_number')}/{healing_result.get('max_attempts')})\n")
+                                    sys.stderr.write(f"[SELF_HEALING] Failure type: {healing_result.get('failure_type')}\n")
+                                    sys.stderr.write(f"[SELF_HEALING] Using model: {healing_result.get('model')}\n")
+                                elif healing_result and healing_result.get('action') == 'escalate':
+                                    sys.stderr.write(f"[SELF_HEALING] Escalated to CEO: {healing_result.get('reason')}\n")
+                            except Exception as e:
+                                sys.stderr.write(f"[SELF_HEALING] Error during healing attempt (non-fatal): {e}\n")
                     else:
                         result_text = str(tool_output.get('content', '') if isinstance(tool_output, dict) else tool_output)[:1000]
                         conductor.record_node_completion(exec_id=exec_id, result_text=result_text, result_dict={'outcome': outcome, 'reason': reason})
@@ -1394,6 +1450,35 @@ def main():
     # Auto-record failure if task failed
     if outcome == "failure":
         auto_record_failure(tool_input, tool_output, reason, domains_queried)
+
+        # SELF-HEALING: Attempt automatic recovery for tool failures
+        if SELF_HEALING_AVAILABLE and process_self_healing_failure and tool_name not in ["Task", "TaskOutput"]:
+            try:
+                # Extract error content from tool output
+                error_content = reason
+                if isinstance(tool_output, dict):
+                    if 'content' in tool_output:
+                        error_content = str(tool_output['content'])
+                    elif 'error' in tool_output:
+                        error_content = str(tool_output['error'])
+
+                healing_result = process_self_healing_failure(
+                    error_output=error_content,
+                    tool_name=tool_name,
+                    tool_input=tool_input,
+                    exec_id=None  # No exec_id for non-workflow tools
+                )
+
+                if healing_result and healing_result.get('action') == 'heal':
+                    sys.stderr.write(f"[SELF_HEALING] Healing triggered for {tool_name} failure\n")
+                    sys.stderr.write(f"[SELF_HEALING] Failure type: {healing_result.get('failure_type')}\n")
+                    sys.stderr.write(f"[SELF_HEALING] Attempt {healing_result.get('attempt_number')}/{healing_result.get('max_attempts')}\n")
+                    sys.stderr.write(f"[SELF_HEALING] Using model: {healing_result.get('model')}\n")
+                    # Note: Actual healing agent spawn would require Task tool integration
+                elif healing_result and healing_result.get('action') == 'escalate':
+                    sys.stderr.write(f"[SELF_HEALING] Escalated to CEO: {healing_result.get('reason')}\n")
+            except Exception as e:
+                sys.stderr.write(f"[SELF_HEALING] Error during healing attempt (non-fatal): {e}\n")
 
     # Extract any explicit learnings from output
     if outcome == "success":
