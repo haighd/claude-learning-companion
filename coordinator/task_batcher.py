@@ -203,7 +203,8 @@ class TaskBatcher:
                 try:
                     cluster = self.dep_graph.get_cluster(f, depth=1)
                     cluster = cluster.intersection(set(files))
-                except Exception:
+                except Exception as e:
+                    sys.stderr.write(f"Warning: Failed to get dependency cluster for file group: {e}\n")
                     cluster = {f}
             else:
                 cluster = {f}
