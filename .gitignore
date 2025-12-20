@@ -44,3 +44,4 @@ wiki-repo/
 desktop.ini
 sessions/.processed
 workflows/*/output/
+checkpoints/

@@ -89,11 +89,20 @@ except ImportError:
         Blackboard = None  # Will run without blackboard if not available
 
 # Phase 3: Context monitoring for batch boundary checkpoints
-sys.path.insert(0, str(Path(__file__).parent.parent / "watcher"))
-try:
-    from context_monitor import get_context_status
-    HAS_CONTEXT_MONITOR = True
-except ImportError:
+# Use importlib to avoid sys.path manipulation
+import importlib.util
+_context_monitor_path = Path(__file__).parent.parent / "watcher" / "context_monitor.py"
+if _context_monitor_path.exists():
+    _spec = importlib.util.spec_from_file_location("context_monitor", _context_monitor_path)
+    _context_monitor = importlib.util.module_from_spec(_spec)
+    try:
+        _spec.loader.exec_module(_context_monitor)
+        get_context_status = _context_monitor.get_context_status
+        HAS_CONTEXT_MONITOR = True
+    except (AttributeError, ImportError):
+        get_context_status = None
+        HAS_CONTEXT_MONITOR = False
+else:
     get_context_status = None
     HAS_CONTEXT_MONITOR = False
 
@@ -919,7 +928,7 @@ class Conductor:
         try:
             status = get_context_status()
             return status.get('should_checkpoint', False)
-        except Exception as e:
+        except (AttributeError, TypeError, KeyError) as e:
             sys.stderr.write(f"Warning: Context check failed: {e}\n")
             return False
 
@@ -957,7 +966,7 @@ class Conductor:
                     "context_keys": list(context.keys())[:10]  # First 10 keys
                 }, f"Checkpoint triggered at batch boundary: {reason}")
 
-        except Exception as e:
+        except (IOError, OSError, AttributeError, sqlite3.Error) as e:
             sys.stderr.write(f"Warning: Failed to trigger checkpoint: {e}\n")
 
     def run_workflow(self, workflow_name: str, input_data: Dict = None,

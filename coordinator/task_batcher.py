@@ -17,23 +17,40 @@ Usage:
 from pathlib import Path
 from typing import Dict, List, Any, Set, Optional
 import sys
+import importlib.util
 
-# Add paths for imports
+# Use importlib to avoid sys.path manipulation
 _clc_root = Path(__file__).parent.parent
-sys.path.insert(0, str(_clc_root / "watcher"))
-sys.path.insert(0, str(Path(__file__).parent))
 
-try:
-    from context_monitor import get_context_status
-    HAS_CONTEXT_MONITOR = True
-except ImportError:
+# Load context_monitor module
+_context_monitor_path = _clc_root / "watcher" / "context_monitor.py"
+if _context_monitor_path.exists():
+    _spec = importlib.util.spec_from_file_location("context_monitor", _context_monitor_path)
+    _context_monitor = importlib.util.module_from_spec(_spec)
+    try:
+        _spec.loader.exec_module(_context_monitor)
+        get_context_status = _context_monitor.get_context_status
+        HAS_CONTEXT_MONITOR = True
+    except (AttributeError, ImportError):
+        get_context_status = None
+        HAS_CONTEXT_MONITOR = False
+else:
     get_context_status = None
     HAS_CONTEXT_MONITOR = False
 
-try:
-    from dependency_graph import DependencyGraph
-    HAS_DEPENDENCY_GRAPH = True
-except ImportError:
+# Load dependency_graph module
+_dep_graph_path = Path(__file__).parent / "dependency_graph.py"
+if _dep_graph_path.exists():
+    _spec = importlib.util.spec_from_file_location("dependency_graph", _dep_graph_path)
+    _dep_graph_mod = importlib.util.module_from_spec(_spec)
+    try:
+        _spec.loader.exec_module(_dep_graph_mod)
+        DependencyGraph = _dep_graph_mod.DependencyGraph
+        HAS_DEPENDENCY_GRAPH = True
+    except (AttributeError, ImportError):
+        DependencyGraph = None
+        HAS_DEPENDENCY_GRAPH = False
+else:
     DependencyGraph = None
     HAS_DEPENDENCY_GRAPH = False
 
@@ -66,6 +83,9 @@ TOKEN_COSTS = {
     'tool_call': 1000,          # Tool invocation
 }
 
+# Default number of subagents assumed when parallel work is detected
+DEFAULT_SUBAGENT_COUNT = 2
+
 
 class TaskBatcher:
     """Context-aware task batching and splitting."""
@@ -93,9 +113,9 @@ class TaskBatcher:
             try:
                 self.dep_graph.scan()
                 self._graph_scanned = True
-            except Exception:
+            except (OSError, IOError, AttributeError) as e:
                 # Non-fatal - continue without dependency analysis
-                pass
+                sys.stderr.write(f"Warning: Dependency graph scan failed: {e}\n")
 
     def estimate_task_tokens(self, task: Dict) -> int:
         """
@@ -133,7 +153,7 @@ class TaskBatcher:
         subagent_cost = 0
         for kw in subagent_keywords:
             if kw in desc_lower:
-                subagent_cost = TOKEN_COSTS['subagent_spawn'] * 2  # Assume 2 subagents
+                subagent_cost = TOKEN_COSTS['subagent_spawn'] * DEFAULT_SUBAGENT_COUNT
                 break
 
         total = int((base_cost + file_cost + subagent_cost) * multiplier)
@@ -174,9 +194,9 @@ class TaskBatcher:
                     cluster.update(self.dep_graph.get_cluster(f, depth=1))
                 if len(cluster) > 1:
                     return self._split_by_file_groups(task, list(cluster), available_tokens)
-            except Exception as e:
+            except (AttributeError, TypeError, KeyError) as e:
                 sys.stderr.write(f"Warning: Failed to get dependency cluster for splitting task: {e}\n")
-                pass
+                # Fall through to return task with warning
 
         # Cannot split meaningfully - return with warning
         task_copy = dict(task)
@@ -203,7 +223,7 @@ class TaskBatcher:
                 try:
                     cluster = self.dep_graph.get_cluster(f, depth=1)
                     cluster = cluster.intersection(set(files))
-                except Exception as e:
+                except (AttributeError, TypeError, KeyError) as e:
                     sys.stderr.write(f"Warning: Failed to get dependency cluster for file group: {e}\n")
                     cluster = {f}
             else:
@@ -301,9 +321,9 @@ class TaskBatcher:
                 current_usage = status.get('estimated_usage', 0.0)
                 available = int(CONTEXT_BUDGET * (1.0 - current_usage))
                 return min(available, EFFECTIVE_BUDGET)
-            except Exception as e:
+            except (AttributeError, TypeError, KeyError) as e:
                 sys.stderr.write(f"Warning: Failed to get context status for available tokens: {e}\n")
-                pass
+                # Fall through to return fallback budget
 
         # Fallback to effective budget
         return EFFECTIVE_BUDGET

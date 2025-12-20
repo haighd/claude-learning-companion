@@ -77,7 +77,7 @@ def gather_state() -> Dict[str, Any]:
     if CONTEXT_MONITOR_AVAILABLE and get_context_status:
         try:
             state["context_status"] = get_context_status()
-        except Exception as e:
+        except (AttributeError, TypeError, KeyError) as e:
             state["context_status"] = {"error": str(e)}
 
     return state
