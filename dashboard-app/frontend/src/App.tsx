@@ -6,6 +6,7 @@ import { useWebSocket, useAPI } from './hooks'
 import {
   StatsBar,
   HeuristicPanel,
+  KnowledgeGraph,
   TimelineView,
   RunsPanel,
   QueryInterface,
