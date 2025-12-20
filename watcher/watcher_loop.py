@@ -50,7 +50,8 @@ def acquire_lock(fd):
         fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
     elif HAS_MSVCRT:
         msvcrt.locking(fd.fileno(), msvcrt.LK_LOCK, 1)
-    # else: no-op on platforms without locking support
+    else:
+        raise RuntimeError("File locking is not supported on this platform.")
 
 
 def release_lock(fd):
@@ -59,7 +60,8 @@ def release_lock(fd):
         fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
     elif HAS_MSVCRT:
         msvcrt.locking(fd.fileno(), msvcrt.LK_UNLCK, 1)
-    # else: no-op on platforms without locking support
+    else:
+        raise RuntimeError("File locking is not supported on this platform.")
 
 # Paths
 COORDINATION_DIR = Path.home() / ".claude" / "clc" / ".coordination"
@@ -156,7 +158,7 @@ def gather_state() -> Dict[str, Any]:
             state["blackboard"] = {"error": f"Could not parse blackboard.json: {e}"}
 
     for f in COORDINATION_DIR.glob("agent_*.md"):
-        mtime = datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc)
+        mtime = datetime.fromtimestamp(f.stat().st_mtime).astimezone(timezone.utc)
         age_seconds = (now - mtime).total_seconds()
         state["agent_files"].append({
             "name": f.name,

@@ -189,11 +189,17 @@ class TaskBatcher:
         self._ensure_graph_scanned()
         if files and self.dep_graph is not None:
             try:
-                cluster = set()
+                # Track processed files to avoid redundant get_cluster calls
+                processed_files: Set[str] = set()
+                all_related_files: Set[str] = set()
                 for f in files:
-                    cluster.update(self.dep_graph.get_cluster(f, depth=1))
-                if len(cluster) > 1:
-                    return self._split_by_file_groups(task, list(cluster))
+                    if f in processed_files:
+                        continue
+                    related = self.dep_graph.get_cluster(f, depth=1)
+                    all_related_files.update(related)
+                    processed_files.update(related)
+                if len(all_related_files) > 1:
+                    return self._split_by_file_groups(task, list(all_related_files))
             except (AttributeError, TypeError, KeyError) as e:
                 sys.stderr.write(f"Warning: Failed to get dependency cluster for splitting task: {e}\n")
                 # Fall through to return task with warning

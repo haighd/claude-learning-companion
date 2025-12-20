@@ -41,7 +41,8 @@ def acquire_lock(fd):
         fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
     elif HAS_MSVCRT:
         msvcrt.locking(fd.fileno(), msvcrt.LK_LOCK, 1)
-    # else: no-op on platforms without locking support
+    else:
+        raise RuntimeError("File locking is not supported on this platform.")
 
 
 def release_lock(fd):
@@ -50,7 +51,8 @@ def release_lock(fd):
         fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
     elif HAS_MSVCRT:
         msvcrt.locking(fd.fileno(), msvcrt.LK_UNLCK, 1)
-    # else: no-op on platforms without locking support
+    else:
+        raise RuntimeError("File locking is not supported on this platform.")
 
 
 def get_hook_input() -> dict:
