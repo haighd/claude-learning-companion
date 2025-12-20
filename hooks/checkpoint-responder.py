@@ -41,13 +41,21 @@ def output_result(result: dict):
 def check_checkpoint_trigger() -> Optional[dict]:
     """Check blackboard for unread checkpoint_trigger messages.
 
+    Uses file locking to prevent race conditions with concurrent writers.
+
     Returns:
         The first unread checkpoint_trigger message, or None if none found.
     """
     if not BLACKBOARD_FILE.exists():
         return None
 
+    lock_fd = None
     try:
+        # Acquire shared lock for reading to prevent race with concurrent writes
+        LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+        lock_fd = open(LOCK_FILE, "w")
+        acquire_lock(lock_fd)
+
         bb = json.loads(BLACKBOARD_FILE.read_text())
         messages = bb.get("messages", [])
 
@@ -58,6 +66,10 @@ def check_checkpoint_trigger() -> Optional[dict]:
                 return msg
     except (json.JSONDecodeError, IOError) as e:
         sys.stderr.write(f"[checkpoint-responder] Error reading blackboard: {e}\n")
+    finally:
+        if lock_fd:
+            release_lock(lock_fd)
+            lock_fd.close()
 
     return None
 

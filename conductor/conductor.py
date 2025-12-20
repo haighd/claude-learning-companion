@@ -226,6 +226,8 @@ class Conductor:
             yield conn
             conn.commit()
         except Exception:
+            # Broad catch is intentional: rollback on ANY error before re-raising.
+            # This ensures database consistency regardless of error type.
             conn.rollback()
             raise
         finally:
@@ -1021,6 +1023,9 @@ class Conductor:
             current_nodes = list(set(next_nodes))
 
             # Phase 3: Batch boundary context check
+            # Only check at batch boundaries when there are more nodes to process.
+            # If current_nodes is empty, the workflow is complete and no checkpoint
+            # is needed (the final state will be saved by update_run_context).
             if current_nodes and (auto_checkpoint or on_batch_boundary):
                 should_checkpoint = self._check_batch_boundary(run_id, context)
 
