@@ -12,14 +12,44 @@ When a checkpoint_trigger message is found:
 Part of Phase 2: Proactive Context Management.
 """
 
-import fcntl
 import json
 import sys
 from pathlib import Path
 from datetime import datetime, timezone
 
+# Cross-platform file locking
+try:
+    import fcntl
+    HAS_FCNTL = True
+except ImportError:
+    # Windows doesn't have fcntl - use msvcrt or no-op fallback
+    HAS_FCNTL = False
+    try:
+        import msvcrt
+        HAS_MSVCRT = True
+    except ImportError:
+        HAS_MSVCRT = False
+
 BLACKBOARD_FILE = Path.home() / ".claude" / "clc" / ".coordination" / "blackboard.json"
 LOCK_FILE = BLACKBOARD_FILE.with_suffix(".lock")
+
+
+def acquire_lock(fd):
+    """Acquire exclusive lock on file descriptor (cross-platform)."""
+    if HAS_FCNTL:
+        fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
+    elif HAS_MSVCRT:
+        msvcrt.locking(fd.fileno(), msvcrt.LK_LOCK, 1)
+    # else: no-op on platforms without locking support
+
+
+def release_lock(fd):
+    """Release lock on file descriptor (cross-platform)."""
+    if HAS_FCNTL:
+        fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
+    elif HAS_MSVCRT:
+        msvcrt.locking(fd.fileno(), msvcrt.LK_UNLCK, 1)
+    # else: no-op on platforms without locking support
 
 
 def get_hook_input() -> dict:
@@ -75,7 +105,7 @@ def mark_message_read(msg_id: str):
         # Acquire exclusive lock to prevent race conditions
         LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
         lock_fd = open(LOCK_FILE, "w")
-        fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)
+        acquire_lock(lock_fd)
 
         # Re-read blackboard under lock (may have changed)
         bb = json.loads(BLACKBOARD_FILE.read_text())
@@ -94,7 +124,7 @@ def mark_message_read(msg_id: str):
         sys.stderr.write(f"[checkpoint-responder] Error marking message read: {e}\n")
     finally:
         if lock_fd:
-            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_UN)
+            release_lock(lock_fd)
             lock_fd.close()
 
 

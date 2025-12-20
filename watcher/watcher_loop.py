@@ -24,13 +24,42 @@ Usage:
     python watcher_loop.py summary                             # Show last watcher actions
 """
 
-import fcntl
 import json
 import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, Optional
+
+# Cross-platform file locking
+try:
+    import fcntl
+    HAS_FCNTL = True
+except ImportError:
+    HAS_FCNTL = False
+    try:
+        import msvcrt
+        HAS_MSVCRT = True
+    except ImportError:
+        HAS_MSVCRT = False
+
+
+def acquire_lock(fd):
+    """Acquire exclusive lock on file descriptor (cross-platform)."""
+    if HAS_FCNTL:
+        fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
+    elif HAS_MSVCRT:
+        msvcrt.locking(fd.fileno(), msvcrt.LK_LOCK, 1)
+    # else: no-op on platforms without locking support
+
+
+def release_lock(fd):
+    """Release lock on file descriptor (cross-platform)."""
+    if HAS_FCNTL:
+        fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
+    elif HAS_MSVCRT:
+        msvcrt.locking(fd.fileno(), msvcrt.LK_UNLCK, 1)
+    # else: no-op on platforms without locking support
 
 # Paths
 COORDINATION_DIR = Path.home() / ".claude" / "clc" / ".coordination"
@@ -64,7 +93,7 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
 
         # Acquire exclusive lock to prevent race conditions
         lock_fd = open(LOCK_FILE, "w")
-        fcntl.flock(lock_fd.fileno(), fcntl.LOCK_EX)
+        acquire_lock(lock_fd)
 
         # Load or create blackboard under lock
         if BLACKBOARD_FILE.exists():
@@ -106,7 +135,7 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
         return None
     finally:
         if lock_fd:
-            fcntl.flock(lock_fd.fileno(), fcntl.LOCK_UN)
+            release_lock(lock_fd)
             lock_fd.close()
 
 
