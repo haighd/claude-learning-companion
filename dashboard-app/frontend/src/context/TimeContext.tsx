@@ -1,4 +1,4 @@
-import { createContext, useContext, ReactNode, useState, useCallback } from 'react'
+import { createContext, useContext, ReactNode, useState, useCallback, useMemo } from 'react'
 
 interface TimeRange {
   start: Date
@@ -107,7 +107,7 @@ export function TimeProvider({ children }: { children: ReactNode }) {
     setCurrentTime(end)
   }, [setTimeRange, setCurrentTime])
 
-  const value: TimeContextType = {
+  const value = useMemo<TimeContextType>(() => ({
     currentTime,
     timeRange,
     isLive,
@@ -122,7 +122,22 @@ export function TimeProvider({ children }: { children: ReactNode }) {
     goToLastHour,
     goToLastDay,
     goToLastWeek,
-  }
+  }), [
+    currentTime,
+    timeRange,
+    isLive,
+    isPlaying,
+    playbackSpeed,
+    setCurrentTime,
+    setTimeRange,
+    setLiveMode,
+    setPlaying,
+    setPlaybackSpeed,
+    goToNow,
+    goToLastHour,
+    goToLastDay,
+    goToLastWeek,
+  ])
 
   return (
     <TimeContext.Provider value={value}>

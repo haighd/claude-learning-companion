@@ -75,6 +75,7 @@ async def create_workflow(workflow: WorkflowCreate) -> ActionResult:
             data={"workflow_id": workflow_id}
         )
     except Exception as e:
+        # TODO(error-handling): Replace broad except with specific exceptions throughout this file
         logger.error(f"Error creating workflow '{workflow.name}': {e}", exc_info=True)
         return ActionResult(success=False, message="Failed to create workflow. Please check workflow configuration.")
 
