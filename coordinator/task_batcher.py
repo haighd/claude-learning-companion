@@ -174,7 +174,8 @@ class TaskBatcher:
                     cluster.update(self.dep_graph.get_cluster(f, depth=1))
                 if len(cluster) > 1:
                     return self._split_by_file_groups(task, list(cluster), available_tokens)
-            except Exception:
+            except Exception as e:
+                sys.stderr.write(f"Warning: Failed to get dependency cluster for splitting task: {e}\n")
                 pass
 
         # Cannot split meaningfully - return with warning
