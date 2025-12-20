@@ -25,7 +25,7 @@ import sqlite3
 import hashlib
 import time
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, List, Any, Callable, Tuple, Union
 from contextlib import contextmanager
 from dataclasses import dataclass, asdict
@@ -944,7 +944,7 @@ class Conductor:
                     "action": "checkpoint",
                     "reason": reason,
                     "run_id": run_id,
-                    "timestamp": datetime.now().isoformat()
+                    "timestamp": datetime.now(timezone.utc).isoformat()
                 }),
                 msg_type="checkpoint_trigger"
             )
