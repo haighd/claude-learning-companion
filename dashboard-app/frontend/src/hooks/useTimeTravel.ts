@@ -8,44 +8,10 @@ import { useTimeContext } from '../context/TimeContext'
 export function useTimeTravel() {
   const { currentTime, timeRange, isLive, isPlaying, playbackSpeed } = useTimeContext()
 
-  // Auto-advance time when playing
-  const playbackIntervalRef = useRef<NodeJS.Timeout | null>(null)
-
-  useEffect(() => {
-    if (isPlaying && currentTime && !isLive) {
-      // Clear any existing interval
-      if (playbackIntervalRef.current) {
-        clearInterval(playbackIntervalRef.current)
-      }
-
-      // Advance time by 1 second (real time) = playbackSpeed seconds (historical time)
-      const intervalMs = 1000 // Update every second
-      const advanceMs = intervalMs * playbackSpeed
-
-      playbackIntervalRef.current = setInterval(() => {
-        const { setCurrentTime, timeRange: range } = useTimeContext.getState?.() || {}
-        if (!setCurrentTime) return
-
-        const newTime = new Date(currentTime.getTime() + advanceMs)
-
-        // Stop at end of range
-        if (newTime > range.end) {
-          setCurrentTime(range.end)
-          // Stop playing
-          const { setPlaying } = useTimeContext.getState?.() || {}
-          setPlaying?.(false)
-        } else {
-          setCurrentTime(newTime)
-        }
-      }, intervalMs)
-
-      return () => {
-        if (playbackIntervalRef.current) {
-          clearInterval(playbackIntervalRef.current)
-        }
-      }
-    }
-  }, [isPlaying, currentTime, isLive, playbackSpeed])
+  // Note: Auto-advance playback is handled in TimeControls component
+  // This hook provides query parameters for time-based API calls
+  const _playbackRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  void _playbackRef // Placeholder for future playback implementation
 
   /**
    * Get query parameters to add to API calls
