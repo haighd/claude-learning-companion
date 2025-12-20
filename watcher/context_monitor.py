@@ -12,7 +12,7 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 # Paths
 SESSION_STATE_PATH = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
@@ -33,7 +33,7 @@ CHECKPOINT_THRESHOLD = 0.60  # Trigger at 60%
 COOLDOWN_SECONDS = 600       # 10 minute cooldown
 
 
-def load_session_state() -> dict[str, Any]:
+def load_session_state() -> Dict[str, Any]:
     """Load current session context metrics."""
     if not SESSION_STATE_PATH.exists():
         return get_default_context_metrics()
@@ -48,7 +48,7 @@ def load_session_state() -> dict[str, Any]:
         return get_default_context_metrics()
 
 
-def get_default_context_metrics() -> dict[str, Any]:
+def get_default_context_metrics() -> Dict[str, Any]:
     """Return default context metrics structure."""
     return {
         'context_metrics': {
@@ -119,7 +119,7 @@ def check_cooldown(last_checkpoint_time: Optional[str]) -> bool:
         return False
 
 
-def get_context_status() -> dict[str, Any]:
+def get_context_status() -> Dict[str, Any]:
     """
     Get current context status for watcher.
 
