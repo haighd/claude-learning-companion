@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react'
 import { Heuristic } from '../types'
 import { useAPI } from './useAPI'
+import { useTimeTravel } from './useTimeTravel'
 
 interface UseHeuristicsOptions {
   onStatsChange?: () => void
@@ -9,16 +10,17 @@ interface UseHeuristicsOptions {
 export function useHeuristics(options?: UseHeuristicsOptions) {
   const [heuristics, setHeuristics] = useState<Heuristic[]>([])
   const api = useAPI()
+  const { buildUrl, currentTime, isLive } = useTimeTravel()
   const { onStatsChange } = options || {}
 
   const reloadHeuristics = useCallback(async () => {
     try {
-      const data = await api.get('/api/heuristics')
+      const data = await api.get(buildUrl('/api/heuristics'))
       setHeuristics(data || [])
     } catch (err) {
       console.error('Failed to load heuristics:', err)
     }
-  }, [api])
+  }, [api, buildUrl])
 
   const promoteHeuristic = useCallback(async (id: number) => {
     try {
@@ -74,7 +76,7 @@ export function useHeuristics(options?: UseHeuristicsOptions) {
 
   useEffect(() => {
     reloadHeuristics()
-  }, [reloadHeuristics])
+  }, [reloadHeuristics, currentTime, isLive]) // Reload when time changes
 
   return useMemo(() => ({
     heuristics,

@@ -2,63 +2,97 @@
 Analytics Router - Stats, timeline, learning velocity, events, anomalies, domains.
 """
 
-from fastapi import APIRouter
+from typing import Optional
+from fastapi import APIRouter, Query
 from utils import get_db, dict_from_row
+from utils.time_filters import parse_time_params, build_time_filter
 
 router = APIRouter(prefix="/api", tags=["analytics"])
 
 
 @router.get("/stats")
-async def get_stats():
-    """Get overall statistics."""
+async def get_stats(
+    at_time: Optional[str] = Query(None, description="View stats as of this timestamp (ISO format)"),
+    time_range: Optional[str] = Query(None, description="Time range as 'start/end' (ISO format)")
+):
+    """Get overall statistics, optionally filtered by time."""
     with get_db() as conn:
         cursor = conn.cursor()
 
         stats = {}
 
-        # Counts
-        cursor.execute("SELECT COUNT(*) FROM workflow_runs")
+        # Parse time parameters
+        start_time, end_time = parse_time_params(at_time, time_range)
+
+        # Helper to build time-filtered query
+        def build_count_query(base_query: str, timestamp_col: str = "created_at") -> tuple:
+            where_clause, params = build_time_filter(timestamp_col, start_time, end_time)
+            if where_clause:
+                # Check if query already has WHERE
+                if "WHERE" in base_query.upper():
+                    query = f"{base_query} AND {where_clause}"
+                else:
+                    query = f"{base_query} WHERE {where_clause}"
+                return (query, params)
+            return (base_query, [])
+
+        # Counts with time filtering
+        query, params = build_count_query("SELECT COUNT(*) FROM workflow_runs")
+        cursor.execute(query, params)
         stats["total_runs"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM node_executions")
+        query, params = build_count_query("SELECT COUNT(*) FROM node_executions")
+        cursor.execute(query, params)
         stats["total_executions"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM trails")
+        query, params = build_count_query("SELECT COUNT(*) FROM trails")
+        cursor.execute(query, params)
         stats["total_trails"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM heuristics")
+        query, params = build_count_query("SELECT COUNT(*) FROM heuristics")
+        cursor.execute(query, params)
         stats["total_heuristics"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM heuristics WHERE is_golden = 1")
+        query, params = build_count_query("SELECT COUNT(*) FROM heuristics WHERE is_golden = 1")
+        cursor.execute(query, params)
         stats["golden_rules"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM learnings")
+        query, params = build_count_query("SELECT COUNT(*) FROM learnings")
+        cursor.execute(query, params)
         stats["total_learnings"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM learnings WHERE type = 'failure'")
+        query, params = build_count_query("SELECT COUNT(*) FROM learnings WHERE type = 'failure'")
+        cursor.execute(query, params)
         stats["failures"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM learnings WHERE type = 'success'")
+        query, params = build_count_query("SELECT COUNT(*) FROM learnings WHERE type = 'success'")
+        cursor.execute(query, params)
         stats["successes"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM decisions")
+        query, params = build_count_query("SELECT COUNT(*) FROM decisions")
+        cursor.execute(query, params)
         stats["total_decisions"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM decisions WHERE status = 'accepted'")
+        query, params = build_count_query("SELECT COUNT(*) FROM decisions WHERE status = 'accepted'")
+        cursor.execute(query, params)
         stats["accepted_decisions"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM decisions WHERE status = 'superseded'")
+        query, params = build_count_query("SELECT COUNT(*) FROM decisions WHERE status = 'superseded'")
+        cursor.execute(query, params)
         stats["superseded_decisions"] = cursor.fetchone()[0]
 
         # Spike reports stats
         try:
-            cursor.execute("SELECT COUNT(*) FROM spike_reports")
+            query, params = build_count_query("SELECT COUNT(*) FROM spike_reports")
+            cursor.execute(query, params)
             stats["total_spike_reports"] = cursor.fetchone()[0]
 
-            cursor.execute("SELECT AVG(usefulness_score) FROM spike_reports WHERE usefulness_score > 0")
+            query, params = build_count_query("SELECT AVG(usefulness_score) FROM spike_reports WHERE usefulness_score > 0")
+            cursor.execute(query, params)
             stats["avg_spike_usefulness"] = cursor.fetchone()[0] or 0
 
-            cursor.execute("SELECT SUM(time_invested_minutes) FROM spike_reports")
+            query, params = build_count_query("SELECT SUM(time_invested_minutes) FROM spike_reports")
+            cursor.execute(query, params)
             stats["total_spike_time_invested"] = cursor.fetchone()[0] or 0
         except Exception:
             stats["total_spike_reports"] = 0
@@ -66,63 +100,74 @@ async def get_stats():
             stats["total_spike_time_invested"] = 0
 
         # Get actual run success/failure counts from workflow_runs status
-        cursor.execute("SELECT COUNT(*) FROM workflow_runs WHERE status = 'completed'")
+        query, params = build_count_query("SELECT COUNT(*) FROM workflow_runs WHERE status = 'completed'")
+        cursor.execute(query, params)
         stats["successful_runs"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM workflow_runs WHERE status IN ('failed', 'cancelled')")
+        query, params = build_count_query("SELECT COUNT(*) FROM workflow_runs WHERE status IN ('failed', 'cancelled')")
+        cursor.execute(query, params)
         stats["failed_runs"] = cursor.fetchone()[0]
 
         # Averages
-        cursor.execute("SELECT AVG(confidence) FROM heuristics")
+        query, params = build_count_query("SELECT AVG(confidence) FROM heuristics")
+        cursor.execute(query, params)
         stats["avg_confidence"] = cursor.fetchone()[0] or 0
 
-        cursor.execute("SELECT SUM(times_validated) FROM heuristics")
+        query, params = build_count_query("SELECT SUM(times_validated) FROM heuristics")
+        cursor.execute(query, params)
         stats["total_validations"] = cursor.fetchone()[0] or 0
 
-        cursor.execute("SELECT SUM(times_violated) FROM heuristics")
+        query, params = build_count_query("SELECT SUM(times_violated) FROM heuristics")
+        cursor.execute(query, params)
         stats["total_violations"] = cursor.fetchone()[0] or 0
 
-        # Recent activity
-        cursor.execute("""
-            SELECT COUNT(*) FROM metrics
-            WHERE timestamp > datetime('now', '-1 hour')
-        """)
+        # Recent activity (metrics last hour)
+        query, params = build_count_query(
+            "SELECT COUNT(*) FROM metrics WHERE timestamp > datetime('now', '-1 hour')",
+            timestamp_col="timestamp"
+        )
+        cursor.execute(query, params)
         stats["metrics_last_hour"] = cursor.fetchone()[0]
 
         # Runs today (actual workflow runs in last 24 hours)
-        cursor.execute("""
-            SELECT COUNT(*) FROM workflow_runs
-            WHERE created_at > datetime('now', '-24 hours')
-        """)
+        query, params = build_count_query(
+            "SELECT COUNT(*) FROM workflow_runs WHERE created_at > datetime('now', '-24 hours')"
+        )
+        cursor.execute(query, params)
         stats["runs_today"] = cursor.fetchone()[0]
 
         # Query statistics
-        cursor.execute("SELECT COUNT(*) FROM building_queries")
+        query, params = build_count_query("SELECT COUNT(*) FROM building_queries")
+        cursor.execute(query, params)
         stats["total_queries"] = cursor.fetchone()[0]
 
-        cursor.execute("""
-            SELECT COUNT(*) FROM building_queries
-            WHERE created_at > datetime('now', '-24 hours')
-        """)
+        query, params = build_count_query(
+            "SELECT COUNT(*) FROM building_queries WHERE created_at > datetime('now', '-24 hours')"
+        )
+        cursor.execute(query, params)
         stats["queries_today"] = cursor.fetchone()[0]
 
-        cursor.execute("""
-            SELECT AVG(duration_ms) FROM building_queries
-            WHERE duration_ms IS NOT NULL
-        """)
+        query, params = build_count_query(
+            "SELECT AVG(duration_ms) FROM building_queries WHERE duration_ms IS NOT NULL"
+        )
+        cursor.execute(query, params)
         stats["avg_query_duration_ms"] = cursor.fetchone()[0] or 0
 
         # Invariant statistics
-        cursor.execute("SELECT COUNT(*) FROM invariants")
+        query, params = build_count_query("SELECT COUNT(*) FROM invariants")
+        cursor.execute(query, params)
         stats["total_invariants"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM invariants WHERE status = 'active'")
+        query, params = build_count_query("SELECT COUNT(*) FROM invariants WHERE status = 'active'")
+        cursor.execute(query, params)
         stats["active_invariants"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM invariants WHERE status = 'violated'")
+        query, params = build_count_query("SELECT COUNT(*) FROM invariants WHERE status = 'violated'")
+        cursor.execute(query, params)
         stats["violated_invariants"] = cursor.fetchone()[0]
 
-        cursor.execute("SELECT SUM(violation_count) FROM invariants")
+        query, params = build_count_query("SELECT SUM(violation_count) FROM invariants")
+        cursor.execute(query, params)
         stats["total_invariant_violations"] = cursor.fetchone()[0] or 0
 
         return stats

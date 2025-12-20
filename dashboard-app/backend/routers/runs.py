@@ -4,20 +4,28 @@ Runs Router - Workflow runs, hotspots, diffs, retry.
 
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from models import ActionResult
 from utils import get_db, dict_from_row, escape_like
+from utils.time_filters import parse_time_params, build_time_filter
 
 router = APIRouter(prefix="/api", tags=["runs"])
 
 
 @router.get("/runs")
-async def get_runs(days: int = 7, limit: int = 50, status: Optional[str] = None):
-    """Get workflow runs."""
+async def get_runs(
+    days: int = 7,
+    limit: int = 50,
+    status: Optional[str] = None,
+    at_time: Optional[str] = Query(None, description="View runs as of this timestamp"),
+    time_range: Optional[str] = Query(None, description="Time range filter")
+):
+    """Get workflow runs with optional time filtering."""
     with get_db() as conn:
         cursor = conn.cursor()
 
+        # Base query with time range
         query = """
             SELECT id, workflow_id, workflow_name, status, phase,
                    total_nodes, completed_nodes, failed_nodes,
@@ -26,6 +34,13 @@ async def get_runs(days: int = 7, limit: int = 50, status: Optional[str] = None)
             WHERE created_at > datetime('now', ?)
         """
         params = [f'-{days} days']
+
+        # Additional time filtering
+        start_time, end_time = parse_time_params(at_time, time_range)
+        where_clause, time_params = build_time_filter("created_at", start_time, end_time)
+        if where_clause:
+            query += f" AND {where_clause}"
+            params.extend(time_params)
 
         if status:
             query += " AND status = ?"
