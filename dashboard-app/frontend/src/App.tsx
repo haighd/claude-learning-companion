@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { BrowserRouter, useLocation, useNavigate } from 'react-router-dom'
-import { ThemeProvider, NotificationProvider, useNotificationContext, DataProvider, useDataContext } from './context'
+import { ThemeProvider, NotificationProvider, useNotificationContext, DataProvider, useDataContext, TimeProvider, useTimeContext } from './context'
 import { DashboardLayout } from './layouts/DashboardLayout'
 import { useWebSocket, useAPI } from './hooks'
 import {
@@ -24,6 +24,7 @@ import { TabId, getTabFromPath, getPathFromTab } from './router'
 function AppContent() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { isLive, currentTime } = useTimeContext()
 
   // Derive activeTab from URL
   const activeTab = getTabFromPath(location.pathname)
@@ -212,6 +213,13 @@ function AppContent() {
 
   return (
     <>
+      {/* Historical View Banner */}
+      {!isLive && currentTime && (
+        <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-white px-4 py-2 text-center text-sm font-medium">
+          Viewing Historical Data - {currentTime.toLocaleString()}
+        </div>
+      )}
+
       <DashboardLayout
         activeTab={activeTab}
         onTabChange={(tab) => setActiveTab(tab as any)}
@@ -222,7 +230,7 @@ function AppContent() {
         onDomainSelect={setSelectedDomain}
         selectedDomain={selectedDomain}
       >
-        <div className="space-y-6">
+        <div className="space-y-6" style={!isLive ? { marginTop: '40px' } : {}}>
           {/* Stats Bar */}
           <StatsBar stats={statsForBar} />
 
@@ -329,9 +337,11 @@ function App() {
     <BrowserRouter>
       <ThemeProvider>
         <NotificationProvider>
-          <DataProvider>
-            <AppContent />
-          </DataProvider>
+          <TimeProvider>
+            <DataProvider>
+              <AppContent />
+            </DataProvider>
+          </TimeProvider>
         </NotificationProvider>
       </ThemeProvider>
     </BrowserRouter>
