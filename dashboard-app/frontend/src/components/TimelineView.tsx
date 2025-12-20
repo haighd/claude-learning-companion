@@ -26,6 +26,15 @@ const eventConfig = {
   workflow_run: { icon: Play, color: 'bg-slate-500', label: 'Workflow Run' },
 }
 
+/**
+ * Feature flag for playback controls.
+ * Hidden until session replay features are implemented.
+ * See: https://github.com/haighd/claude-learning-companion/issues/25 (Session Replay)
+ *      https://github.com/haighd/claude-learning-companion/issues/26 (Time-Scrubbing)
+ *      https://github.com/haighd/claude-learning-companion/issues/27 (Debug Stepping)
+ */
+const ENABLE_PLAYBACK_CONTROLS = false
+
 export default function TimelineView({ events, heuristics, onEventClick }: TimelineViewProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [playbackIndex, setPlaybackIndex] = useState(0)
@@ -146,12 +155,9 @@ export default function TimelineView({ events, heuristics, onEventClick }: Timel
           <span className="text-sm text-slate-400">({events.length} events)</span>
         </div>
 
-        {/* Playback controls - hidden until session replay features are implemented
-            See: https://github.com/haighd/claude-learning-companion/issues/25 (Session Replay)
-                 https://github.com/haighd/claude-learning-companion/issues/26 (Time-Scrubbing)
-                 https://github.com/haighd/claude-learning-companion/issues/27 (Debug Stepping)
-        {false && (
-          <>
+        {/* Playback controls - hidden via ENABLE_PLAYBACK_CONTROLS feature flag */}
+        {ENABLE_PLAYBACK_CONTROLS && (
+          <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 bg-slate-700 rounded-lg p-1">
               <button
                 onClick={handleSkipBack}
@@ -192,9 +198,8 @@ export default function TimelineView({ events, heuristics, onEventClick }: Timel
                 <span>{orderedEvents.length}</span>
               </div>
             )}
-          </>
+          </div>
         )}
-        End playback controls */}
 
         <div className="flex items-center space-x-4">
           {/* Filter */}

@@ -15,8 +15,9 @@ import { format, formatDistanceToNow } from 'date-fns'
 export function parseUTCTimestamp(timestamp: string | null | undefined): Date | null {
   if (!timestamp) return null
 
-  // If already has timezone indicator, parse directly
-  if (timestamp.endsWith('Z') || timestamp.includes('+') || timestamp.includes('-')) {
+  // If already has timezone indicator (Z suffix or +HH:MM / -HH:MM offset), parse directly
+  const timezoneOffsetRegex = /[+-]\d{2}:\d{2}$/
+  if (timestamp.endsWith('Z') || timezoneOffsetRegex.test(timestamp)) {
     return new Date(timestamp)
   }
 
