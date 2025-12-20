@@ -301,7 +301,8 @@ class TaskBatcher:
                 current_usage = status.get('estimated_usage', 0.0)
                 available = int(CONTEXT_BUDGET * (1.0 - current_usage))
                 return min(available, EFFECTIVE_BUDGET)
-            except Exception:
+            except Exception as e:
+                sys.stderr.write(f"Warning: Failed to get context status for available tokens: {e}\n")
                 pass
 
         # Fallback to effective budget
