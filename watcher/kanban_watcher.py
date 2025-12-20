@@ -41,6 +41,8 @@ class CEOInboxWatcher:
         """
         self.check_interval = check_interval
         self.ceo_inbox_path = CLC_PATH / "ceo-inbox"
+        # TODO(persistence): Store processed_files to disk to survive restarts
+        # For now, duplicate task creation is prevented by database constraints
         self.processed_files: Set[str] = set()
         self.running = False
 
