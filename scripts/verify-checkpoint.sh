@@ -62,7 +62,8 @@ REQUIRED_FIELDS=(
 )
 
 for field in "${REQUIRED_FIELDS[@]}"; do
-    if ! grep -q "$field" "$CHECKPOINT_PATH"; then
+    # Use word boundary or start-of-line to avoid false positives
+    if ! grep -qE "(^|[[:space:]])$field" "$CHECKPOINT_PATH"; then
         echo "WARNING: Missing recommended field: $field"
     fi
 done
