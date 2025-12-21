@@ -164,7 +164,7 @@ def main():
 ---
 ## Checkpoint Reminder from Watcher
 
-The context monitor has detected high context utilization ({usage_pct:.0f}%).
+The context monitor has detected high context usage ({usage_pct:.0f}%).
 
 **Reason**: {reason}
 

@@ -59,6 +59,27 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+
+def _safe_env_float(name: str, default: str) -> float:
+    """Safely parse float from environment variable with helpful error."""
+    value = os.environ.get(name, default)
+    try:
+        return float(value)
+    except ValueError:
+        sys.stderr.write(f"[context_monitor] Invalid value for {name}: '{value}', using default {default}\n")
+        return float(default)
+
+
+def _safe_env_int(name: str, default: str) -> int:
+    """Safely parse int from environment variable with helpful error."""
+    value = os.environ.get(name, default)
+    try:
+        return int(value)
+    except ValueError:
+        sys.stderr.write(f"[context_monitor] Invalid value for {name}: '{value}', using default {default}\n")
+        return int(default)
+
+
 # Paths
 SESSION_STATE_PATH = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
 CHECKPOINT_INDEX_PATH = Path.home() / ".claude" / "clc" / "checkpoints" / "index.json"
@@ -66,7 +87,7 @@ CHECKPOINT_INDEX_PATH = Path.home() / ".claude" / "clc" / "checkpoints" / "index
 # Assumed context window size in tokens. Defaults to 200k tokens as a
 # conservative heuristic; override via CONTEXT_WINDOW_SIZE for different models
 # or context sizes.
-ASSUMED_CONTEXT_WINDOW = int(os.environ.get('CONTEXT_WINDOW_SIZE', '200000'))
+ASSUMED_CONTEXT_WINDOW = _safe_env_int('CONTEXT_WINDOW_SIZE', '200000')
 
 # Heuristic weights for estimating context consumption.
 #
@@ -83,18 +104,18 @@ ASSUMED_CONTEXT_WINDOW = int(os.environ.get('CONTEXT_WINDOW_SIZE', '200000'))
 #   CONTEXT_WEIGHT_FILE_EDITS, CONTEXT_WEIGHT_TOOL_CALLS,
 #   CONTEXT_WEIGHT_SUBAGENT_SPAWNS
 WEIGHTS = {
-    'message_count': float(os.environ.get('CONTEXT_WEIGHT_MESSAGE_COUNT', '0.01')),
-    'file_reads': float(os.environ.get('CONTEXT_WEIGHT_FILE_READS', '0.02')),
-    'file_edits': float(os.environ.get('CONTEXT_WEIGHT_FILE_EDITS', '0.015')),
-    'tool_calls': float(os.environ.get('CONTEXT_WEIGHT_TOOL_CALLS', '0.005')),
-    'subagent_spawns': float(os.environ.get('CONTEXT_WEIGHT_SUBAGENT_SPAWNS', '0.05')),
+    'message_count': _safe_env_float('CONTEXT_WEIGHT_MESSAGE_COUNT', '0.01'),
+    'file_reads': _safe_env_float('CONTEXT_WEIGHT_FILE_READS', '0.02'),
+    'file_edits': _safe_env_float('CONTEXT_WEIGHT_FILE_EDITS', '0.015'),
+    'tool_calls': _safe_env_float('CONTEXT_WEIGHT_TOOL_CALLS', '0.005'),
+    'subagent_spawns': _safe_env_float('CONTEXT_WEIGHT_SUBAGENT_SPAWNS', '0.05'),
 }
 
 # Thresholds (configurable via environment variables)
 # CHECKPOINT_THRESHOLD: fraction (0.0-1.0) at which to trigger checkpoint
 # COOLDOWN_SECONDS: minimum seconds between checkpoints
-CHECKPOINT_THRESHOLD = float(os.environ.get('CONTEXT_CHECKPOINT_THRESHOLD', '0.60'))
-COOLDOWN_SECONDS = int(os.environ.get('CONTEXT_COOLDOWN_SECONDS', '600'))
+CHECKPOINT_THRESHOLD = _safe_env_float('CONTEXT_CHECKPOINT_THRESHOLD', '0.60')
+COOLDOWN_SECONDS = _safe_env_int('CONTEXT_COOLDOWN_SECONDS', '600')
 
 
 def load_session_state() -> Dict[str, Any]:

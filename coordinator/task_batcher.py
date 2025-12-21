@@ -38,6 +38,7 @@ DependencyGraph, HAS_DEPENDENCY_GRAPH = get_module_attribute(
 
 
 # Token estimation constants (conservative)
+# CONTEXT_BUDGET aligned with context_monitor.ASSUMED_CONTEXT_WINDOW (200k tokens)
 CONTEXT_BUDGET = 200_000  # Total context window estimate
 SAFETY_MARGIN = 0.4  # Reserve 40% for safety (use only 60%)
 EFFECTIVE_BUDGET = int(CONTEXT_BUDGET * (1 - SAFETY_MARGIN))  # 120,000 tokens
@@ -68,7 +69,9 @@ TOKEN_COSTS = {
 # Default number of subagents assumed when parallel work is detected.
 # Value of 2 based on typical swarm patterns where tasks mention "parallel" work
 # but don't specify exact agent count. Conservative estimate to avoid underestimating
-# context consumption. Override via task metadata if known.
+# context consumption.
+#
+# Override via task metadata: {"subagent_count": 4} when spawning more agents.
 DEFAULT_SUBAGENT_COUNT = 2
 
 
@@ -241,6 +244,7 @@ class TaskBatcher:
         # Create subtasks for each cluster
         subtasks = []
         base_desc = task.get('task', '') or task.get('description', '')
+        available = self.get_available_tokens()
 
         for i, cluster_files in enumerate(clusters):
             subtask = {
@@ -253,6 +257,13 @@ class TaskBatcher:
                 'part_number': i + 1,
                 'total_parts': len(clusters),
             }
+            # Warn if subtask is still too large after splitting
+            subtask_tokens = self.estimate_task_tokens(subtask)
+            if subtask_tokens > available:
+                subtask['warning'] = (
+                    f'Subtask may exceed context budget '
+                    f'({subtask_tokens:,} estimated > {available:,} available)'
+                )
             subtasks.append(subtask)
 
         return subtasks
