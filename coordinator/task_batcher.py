@@ -266,8 +266,10 @@ class TaskBatcher:
     def _split_by_file_groups(self, task: Dict, files: List[str]) -> List[Dict]:
         """Split task by file groups that fit within budget.
 
-        Note: This method assumes files is non-empty. The caller
-        (split_task_for_context) ensures len(files) > 1 before calling.
+        Note: This method assumes files is non-empty with len(files) > 1.
+        The caller (split_task_for_context) ensures this precondition.
+        If called with empty files, returns an empty subtasks list.
+        If called with a single file, returns one subtask with that file.
         """
         self._ensure_graph_scanned()
 

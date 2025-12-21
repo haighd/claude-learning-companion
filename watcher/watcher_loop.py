@@ -126,8 +126,12 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
 
     # TimeoutError is raised by acquire_lock when lock cannot be obtained (file_locking.py:68)
     except (json.JSONDecodeError, OSError, LockingNotSupportedError, TimeoutError) as exc:
+        # Include specific guidance for TimeoutError which indicates lock contention
+        timeout_hint = ""
+        if isinstance(exc, TimeoutError):
+            timeout_hint = " (another process may be holding the lock - consider increasing timeout)"
         print(
-            f"Failed to write checkpoint trigger due to {type(exc).__name__}: {exc}\n"
+            f"Failed to write checkpoint trigger due to {type(exc).__name__}: {exc}{timeout_hint}\n"
             f"{traceback.format_exc()}",
             file=sys.stderr,
         )

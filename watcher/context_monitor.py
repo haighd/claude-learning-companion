@@ -90,6 +90,8 @@ CHECKPOINT_INDEX_PATH = Path.home() / ".claude" / "clc" / "checkpoints" / "index
 # conservative heuristic; override via env var CONTEXT_WINDOW_SIZE for
 # different models or context sizes. The ASSUMED_CONTEXT_WINDOW name
 # emphasizes this is a heuristic estimate, not the actual model context window.
+# Note: The env var uses a generic name (CONTEXT_WINDOW_SIZE) for user-facing
+# simplicity, while the Python variable name clarifies its heuristic nature.
 ASSUMED_CONTEXT_WINDOW = _safe_env_int('CONTEXT_WINDOW_SIZE', '200000')
 
 # Heuristic weights for estimating context consumption.
@@ -195,6 +197,9 @@ def get_last_checkpoint_time() -> Optional[str]:
 def check_cooldown(last_checkpoint_time: Optional[str]) -> bool:
     """Check if we're still in cooldown period."""
     if not last_checkpoint_time:
+        # None means never checkpointed; empty string is likely data corruption
+        if last_checkpoint_time == "":
+            sys.stderr.write("[context_monitor] Warning: empty timestamp string (possible data corruption)\n")
         return False  # No cooldown if never checkpointed or empty timestamp
 
     try:
