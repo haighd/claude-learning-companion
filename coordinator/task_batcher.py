@@ -97,7 +97,8 @@ class TaskBatcher:
             except (OSError, AttributeError) as e:
                 # OSError covers IOError (its alias in Python 3)
                 # Non-fatal - continue without dependency analysis
-                sys.stderr.write(f"Warning: Dependency graph scan failed: {e}\n")
+                import traceback
+                sys.stderr.write(f"Warning: Dependency graph scan failed:\n{traceback.format_exc()}\n")
 
     def estimate_task_tokens(self, task: Dict) -> int:
         """
