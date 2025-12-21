@@ -82,8 +82,12 @@ def _safe_env_parser(name: str, default: str, converter: Callable[[str], T], err
 
 
 def _safe_env_float(name: str, default: str) -> float:
-    """Safely parse float from environment variable with helpful error."""
-    return _safe_env_parser(name, default, float, 0.0)
+    """Safely parse float from environment variable with helpful error.
+
+    Uses 1.1 as error value to disable checkpointing on config errors
+    (prevents checkpoint spam that would occur with 0.0).
+    """
+    return _safe_env_parser(name, default, float, 1.1)
 
 
 def _safe_env_int(name: str, default: str) -> int:

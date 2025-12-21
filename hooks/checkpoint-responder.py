@@ -65,11 +65,13 @@ def check_checkpoint_trigger() -> Optional[dict]:
         return None
 
     lock_fd = None
+    lock_acquired = False
     try:
         # Acquire exclusive lock to prevent race with concurrent writes
         LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
         lock_fd = open(LOCK_FILE, "w")
         acquire_lock(lock_fd)
+        lock_acquired = True
 
         bb = json.loads(BLACKBOARD_FILE.read_text())
         messages = bb.get("messages", [])
@@ -93,8 +95,9 @@ def check_checkpoint_trigger() -> Optional[dict]:
         import traceback
         sys.stderr.write(f"[checkpoint-responder] Error reading blackboard:\n{traceback.format_exc()}\n")
     finally:
-        if lock_fd:
+        if lock_acquired:
             release_lock(lock_fd)
+        if lock_fd:
             lock_fd.close()
 
     return None
@@ -112,11 +115,13 @@ def mark_message_read(msg_id: str):
         return
 
     lock_fd = None
+    lock_acquired = False
     try:
         # Acquire exclusive lock to prevent race conditions
         LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
         lock_fd = open(LOCK_FILE, "w")
         acquire_lock(lock_fd)
+        lock_acquired = True
 
         # Re-read blackboard under lock (may have changed)
         bb = json.loads(BLACKBOARD_FILE.read_text())
@@ -135,8 +140,9 @@ def mark_message_read(msg_id: str):
         import traceback
         sys.stderr.write(f"[checkpoint-responder] Error marking message read:\n{traceback.format_exc()}\n")
     finally:
-        if lock_fd:
+        if lock_acquired:
             release_lock(lock_fd)
+        if lock_fd:
             lock_fd.close()
 
 
