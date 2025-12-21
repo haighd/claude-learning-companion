@@ -129,13 +129,13 @@ def main():
         mark_message_read(msg_id)
 
         content = trigger.get("content") or {}
-        # Handle JSON string content for robustness
-        if isinstance(content, str):
-            try:
-                content = json.loads(content)
-            except json.JSONDecodeError as e:
-                sys.stderr.write(f"[checkpoint-responder] Invalid JSON in content: {e}\n")
-                content = {}  # Fallback to empty dict
+        # Enforce standardized dict content format
+        if not isinstance(content, dict):
+            sys.stderr.write(
+                "[checkpoint-responder] Unexpected non-dict content in checkpoint trigger; "
+                "expected a dict. Ignoring content.\n"
+            )
+            content = {}
         reason = content.get("reason", "watcher request")
         usage = content.get("estimated_usage", 0)
         usage_pct = usage * 100
