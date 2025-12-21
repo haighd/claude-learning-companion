@@ -1052,14 +1052,10 @@ class Conductor:
 
             current_nodes = list(set(next_nodes))
 
-            # Phase 3: Batch boundary context check
-            # Only check at batch boundaries when there are more nodes to process.
-            # If current_nodes is empty, the workflow is complete and no checkpoint
-            # is needed (the final state will be saved by update_run_context).
+            # Check batch boundaries only if more nodes remain; final state is saved by update_run_context.
             if current_nodes and (auto_checkpoint or on_batch_boundary):
                 context_status = self._check_batch_boundary(run_id, context)
                 should_checkpoint = context_status is not None
-
                 if on_batch_boundary:
                     on_batch_boundary(run_id, context, should_checkpoint)
 
