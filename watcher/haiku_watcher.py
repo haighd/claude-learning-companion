@@ -49,7 +49,7 @@ def gather_state() -> Dict[str, Any]:
     if BLACKBOARD_FILE.exists():
         try:
             state["blackboard"] = json.loads(BLACKBOARD_FILE.read_text())
-        except (json.JSONDecodeError, IOError, OSError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             state["blackboard"] = {"error": f"Could not parse blackboard.json: {e}"}
 
     # List agent files
@@ -77,15 +77,16 @@ def gather_state() -> Dict[str, Any]:
     if CONTEXT_MONITOR_AVAILABLE and get_context_status:
         try:
             state["context_status"] = get_context_status()
-        except (AttributeError, TypeError, KeyError, IOError, ValueError):
+        except (AttributeError, TypeError, KeyError, OSError, ValueError):
             # All exceptions are handled uniformly here because context status
             # is non-critical for the watcher - we log the full traceback and
             # continue monitoring. The exception types cover:
             # - AttributeError/TypeError/KeyError: context monitor module issues
-            # - IOError: file system issues reading session state
+            # - OSError: file system issues reading session state
             # - ValueError: datetime parsing errors in check_cooldown
             import traceback
-            state["context_status"] = {"error": f"Failed to get context status: {traceback.format_exc()}"}
+            sys.stderr.write(f"[haiku_watcher] Failed to get context status:\n{traceback.format_exc()}\n")
+            state["context_status"] = {"error": "Failed to get context status (see stderr for details)"}
 
     return state
 

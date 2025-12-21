@@ -29,7 +29,7 @@ def get_hook_input() -> dict:
     """Read hook input from stdin."""
     try:
         return json.load(sys.stdin)
-    except (json.JSONDecodeError, IOError):
+    except (json.JSONDecodeError, OSError):
         return {}
 
 
@@ -70,9 +70,10 @@ def check_checkpoint_trigger() -> Optional[dict]:
                 and not msg.get("read", False)
             ):
                 return msg
-    except (json.JSONDecodeError, IOError, RuntimeError) as e:
+    except (json.JSONDecodeError, OSError, RuntimeError):
         # RuntimeError: File locking not supported on this platform
-        sys.stderr.write(f"[checkpoint-responder] Error reading blackboard: {e}\n")
+        import traceback
+        sys.stderr.write(f"[checkpoint-responder] Error reading blackboard:\n{traceback.format_exc()}\n")
     finally:
         if lock_fd:
             release_lock(lock_fd)
@@ -112,9 +113,10 @@ def mark_message_read(msg_id: str):
         temp_file.write_text(json.dumps(bb, indent=2))
         temp_file.rename(BLACKBOARD_FILE)
 
-    except (json.JSONDecodeError, OSError, RuntimeError) as e:
+    except (json.JSONDecodeError, OSError, RuntimeError):
         # RuntimeError: File locking not supported on this platform
-        sys.stderr.write(f"[checkpoint-responder] Error marking message read: {e}\n")
+        import traceback
+        sys.stderr.write(f"[checkpoint-responder] Error marking message read:\n{traceback.format_exc()}\n")
     finally:
         if lock_fd:
             release_lock(lock_fd)

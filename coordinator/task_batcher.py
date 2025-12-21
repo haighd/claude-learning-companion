@@ -14,6 +14,7 @@ Usage:
     batches = batcher.batch_tasks_by_context(tasks)
 """
 
+import traceback
 from pathlib import Path
 from typing import Dict, List, Any, Set, Optional
 import sys
@@ -94,10 +95,9 @@ class TaskBatcher:
             try:
                 self.dep_graph.scan()
                 self._graph_scanned = True
-            except (OSError, AttributeError) as e:
+            except (OSError, AttributeError):
                 # OSError covers IOError (its alias in Python 3)
                 # Non-fatal - continue without dependency analysis
-                import traceback
                 sys.stderr.write(f"Warning: Dependency graph scan failed:\n{traceback.format_exc()}\n")
 
     def estimate_task_tokens(self, task: Dict) -> int:
@@ -186,12 +186,11 @@ class TaskBatcher:
                     processed_files.update(related)
                 if len(processed_files) > 1:
                     return self._split_by_file_groups(task, list(processed_files))
-            except (AttributeError, TypeError, KeyError) as e:
+            except (AttributeError, TypeError, KeyError):
                 # These exceptions can occur when:
                 # - AttributeError: dep_graph methods unavailable or return unexpected types
                 # - TypeError: get_cluster returns non-iterable or incompatible type
                 # - KeyError: internal graph data structure missing expected keys
-                import traceback
                 sys.stderr.write(f"Warning: Failed to get dependency cluster for splitting task:\n{traceback.format_exc()}\n")
                 # Fall through to return task with warning
 
@@ -226,7 +225,6 @@ class TaskBatcher:
                     relevant_cluster = full_cluster.intersection(files_set)
                 except (AttributeError, TypeError, KeyError):
                     # See split_task_for_context for exception rationale
-                    import traceback
                     sys.stderr.write(f"Warning: Failed to get dependency cluster for file group:\n{traceback.format_exc()}\n")
                     relevant_cluster = {f}
             else:
@@ -324,11 +322,9 @@ class TaskBatcher:
                 current_usage = status.get('estimated_usage', 0.0)
                 available = int(CONTEXT_BUDGET * (1.0 - current_usage))
                 return available
-            except (AttributeError, TypeError, KeyError) as e:
-                import traceback
+            except (AttributeError, TypeError, KeyError):
                 sys.stderr.write(
-                    "Warning: Failed to get context status for available tokens:\n"
-                    f"{type(e).__name__}: {e}\n"
+                    f"Warning: Failed to get context status for available tokens:\n"
                     f"{traceback.format_exc()}\n"
                 )
                 # Fall through to return fallback budget

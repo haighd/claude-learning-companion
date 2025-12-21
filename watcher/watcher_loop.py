@@ -43,7 +43,7 @@ STOP_FILE = COORDINATION_DIR / "watcher-stop"
 DECISION_FILE = COORDINATION_DIR / "decision.md"
 
 
-def utc_timestamp() -> str:
+def utc_timestamp_iso() -> str:
     """Return current UTC timestamp in ISO format."""
     return datetime.now(timezone.utc).isoformat()
 
@@ -93,11 +93,10 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
             "to": "claude-main",
             "content": json.dumps({
                 "reason": reason,
-                "estimated_usage": metrics.get("estimated_usage", 0) if metrics else 0,
                 "metrics": metrics or {},
             }),
             "read": False,
-            "timestamp": utc_timestamp()
+            "timestamp": utc_timestamp_iso()
         }
 
         bb["messages"].append(message)
@@ -346,7 +345,7 @@ RESULT: <outcome>
 def stop_watcher_loop():
     """Create stop signal file."""
     COORDINATION_DIR.mkdir(parents=True, exist_ok=True)
-    STOP_FILE.write_text(f"Stop requested at {utc_timestamp()}\n")
+    STOP_FILE.write_text(f"Stop requested at {utc_timestamp_iso()}\n")
     print(f"Stop signal created: {STOP_FILE}")
     print("Monitoring will stop - no more watchers will be spawned.")
 
