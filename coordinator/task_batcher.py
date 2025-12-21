@@ -19,7 +19,7 @@ from typing import Dict, List, Any, Set, Optional
 import sys
 
 # Use shared module loader utility
-from utils.module_loader import get_module_attribute, load_module_from_path
+from utils.module_loader import get_module_attribute
 
 _clc_root = Path(__file__).parent.parent
 
@@ -94,7 +94,8 @@ class TaskBatcher:
             try:
                 self.dep_graph.scan()
                 self._graph_scanned = True
-            except (OSError, IOError, AttributeError) as e:
+            except (OSError, AttributeError) as e:
+                # OSError covers IOError (its alias in Python 3)
                 # Non-fatal - continue without dependency analysis
                 sys.stderr.write(f"Warning: Dependency graph scan failed: {e}\n")
 

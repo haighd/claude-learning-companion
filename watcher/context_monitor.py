@@ -44,7 +44,7 @@ def load_session_state() -> Dict[str, Any]:
         if 'context_metrics' not in state:
             state['context_metrics'] = get_default_context_metrics()['context_metrics']
         return state
-    except (json.JSONDecodeError, IOError):
+    except (json.JSONDecodeError, OSError):
         return get_default_context_metrics()
 
 

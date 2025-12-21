@@ -961,9 +961,10 @@ class Conductor:
                 "run_id": run_id,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
-            # Extract estimated_usage once to avoid duplicate dict lookup
-            estimated_usage = context_status.get("estimated_usage", 0) if context_status else None
+            # Add context metrics if available
+            estimated_usage = None
             if context_status:
+                estimated_usage = context_status.get("estimated_usage", 0)
                 checkpoint_content["estimated_usage"] = estimated_usage
                 checkpoint_content["metrics"] = context_status.get("metrics", {})
 

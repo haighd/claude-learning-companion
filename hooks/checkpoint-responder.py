@@ -136,7 +136,10 @@ def main():
             except json.JSONDecodeError as e:
                 sys.stderr.write(f"[checkpoint-responder] Invalid JSON in content: {e}\n")
                 content = {}  # Fallback to empty dict
-        # content is now guaranteed to be a dict
+        # Ensure content is a dict - fallback if it's an unexpected type
+        if not isinstance(content, dict):
+            sys.stderr.write(f"[checkpoint-responder] Unexpected content type: {type(content).__name__}\n")
+            content = {}
         reason = content.get("reason", "watcher request")
         usage = content.get("estimated_usage", 0)
         usage_pct = usage * 100
