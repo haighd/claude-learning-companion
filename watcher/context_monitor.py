@@ -5,9 +5,11 @@ Context Monitor - Estimates context window utilization.
 This module tracks coarse-grained interaction metrics (message count, file
 reads/edits, tool calls, subagent spawns) and applies fixed heuristic
 weights to estimate how much of the model's context window is likely
-to be in use. Because the underlying token budget API is not exposed,
-the estimation is intentionally conservative so that checkpoints are
-triggered early rather than late.
+to be in use. Rather than depending on any model-specific token budget
+API, the estimation is intentionally conservative so that checkpoints are
+triggered early rather than late. If a reliable token budget API is
+available in your environment, this module can be extended to consult it
+directly and refine these estimates.
 
 The core flow is:
   1. `load_session_state()` reads session metrics from
@@ -175,10 +177,8 @@ def estimate_context_usage(metrics: Dict[str, Any]) -> float:
 
 def get_last_checkpoint_time() -> Optional[str]:
     """Get timestamp of most recent checkpoint for current project."""
-    if not CHECKPOINT_INDEX_PATH.exists():
-        return None
-
     try:
+        # Let OSError (including FileNotFoundError) fall through to session state fallback
         index = json.loads(CHECKPOINT_INDEX_PATH.read_text())
         checkpoints = index.get('checkpoints', [])
         if checkpoints:

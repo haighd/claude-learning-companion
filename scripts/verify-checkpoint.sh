@@ -71,8 +71,8 @@ REQUIRED_FIELDS=(
 )
 
 for field in "${REQUIRED_FIELDS[@]}"; do
-    # Use fixed-string matching (-F) to avoid regex interpretation of field value
-    if ! echo "$FRONTMATTER" | grep -qF "$field"; then
+    # Anchor to line start to avoid matching field name as substring in another value
+    if ! echo "$FRONTMATTER" | grep -qE "^${field}"; then
         echo "WARNING: Missing recommended field: $field"
     fi
 done

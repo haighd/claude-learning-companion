@@ -904,23 +904,14 @@ class Conductor:
 
     # Phase 3: Batch boundary checkpoint methods
 
-    def _check_batch_boundary(self, run_id: int, context: Dict) -> Optional[Dict]:
+    def _check_batch_boundary(self) -> Optional[Dict]:
         """
         Check if checkpoint should be triggered at batch boundary.
-
-        Args:
-            run_id: Current workflow run ID (reserved for future logging)
-            context: Current workflow context (reserved for future context-aware decisions)
 
         Returns:
             Context status dict if checkpoint should be triggered, None otherwise.
             The status dict includes estimated_usage, metrics, and reason.
-
-        Note:
-            run_id and context are accepted for API consistency and future use
-            (e.g., context-aware threshold adjustment, run-specific logging).
         """
-        # run_id and context are reserved for future use (see docstring Note).
 
         if not HAS_CONTEXT_MONITOR or get_context_status is None:
             return None
@@ -1058,7 +1049,7 @@ class Conductor:
             # Check batch boundaries if nodes remain (final state saved by update_run_context).
             # Always check context status when callback is set - it needs accurate should_checkpoint.
             if current_nodes and (auto_checkpoint or on_batch_boundary):
-                context_status = self._check_batch_boundary(run_id, context)
+                context_status = self._check_batch_boundary()
                 should_checkpoint = context_status is not None
                 if on_batch_boundary:
                     on_batch_boundary(run_id, context, should_checkpoint)

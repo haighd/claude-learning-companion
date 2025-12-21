@@ -165,6 +165,10 @@ def main():
                 content = None
 
         if not isinstance(content, dict):
+            sys.stderr.write(
+                f"[checkpoint-responder] Non-dict checkpoint content encountered; "
+                f"using defaults instead. Original type={type(content).__name__}, value={repr(content)}\n"
+            )
             content = {}
         reason = content.get("reason", "watcher request")
         # Get usage from top level (from conductor) or fall back to inside metrics dict (from watcher).
