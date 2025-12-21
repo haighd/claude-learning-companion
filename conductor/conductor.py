@@ -1046,9 +1046,11 @@ class Conductor:
 
             current_nodes = list(set(next_nodes))
 
-            # If there are more nodes to run, check batch boundaries before the final
-            # run-level context is saved by update_run_context at the end of this method.
-            # Always check context status when a callback is set so should_checkpoint is accurate.
+            # Check for batch boundaries: transitions between workflow phases where
+            # context may have grown significantly. This triggers before processing
+            # the next set of nodes, giving us a chance to checkpoint and preserve
+            # context quality. Always evaluate when a callback is registered so
+            # on_batch_boundary receives accurate should_checkpoint values.
             if current_nodes and (auto_checkpoint or on_batch_boundary):
                 context_status = self._check_batch_boundary()
                 should_checkpoint = context_status is not None

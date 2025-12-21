@@ -29,8 +29,10 @@ if ! head -1 "$CHECKPOINT_PATH" | grep -qE "^--- *$"; then
     exit 1
 fi
 
-# Check for closing YAML frontmatter delimiter (should appear after line 1)
-if ! tail -n +2 "$CHECKPOINT_PATH" | grep -qE "^--- *$"; then
+# Check for closing YAML frontmatter delimiter (must appear after line 1)
+# Using awk to only find delimiter in first few lines (true YAML frontmatter),
+# not a horizontal rule later in the document.
+if ! awk 'NR > 1 && /^--- *$/ { found=1; exit } END { exit !found }' "$CHECKPOINT_PATH"; then
     echo "ERROR: Missing closing YAML frontmatter delimiter"
     exit 1
 fi
@@ -80,8 +82,9 @@ REQUIRED_FIELDS=(
 
 for field in "${REQUIRED_FIELDS[@]}"; do
     # Anchor to line start (with optional leading whitespace for YAML indentation)
-    if ! echo "$FRONTMATTER" | grep -qE "^ *${field}"; then
-        echo "ERROR: Missing required field: $field"
+    # and require at least one non-whitespace character after the colon
+    if ! echo "$FRONTMATTER" | grep -qE "^ *${field} *[^[:space:]]"; then
+        echo "ERROR: Missing required field or value: $field"
         exit 1
     fi
 done

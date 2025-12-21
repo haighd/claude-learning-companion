@@ -63,6 +63,10 @@ Agent resumes with full context awareness
 
 ### Architecture
 
+**Note on numbering**: Layers 1-3 represent lines of defense (outermost prevention
+first), while Phases 1-3 represent implementation order (start with reactive foundation).
+Layer 1/Phase 3 are preventive measures; Layer 3/Phase 1 is the reactive fallback.
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    AUTOMATED CONTEXT MANAGEMENT                  │

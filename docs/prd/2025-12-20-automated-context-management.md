@@ -186,6 +186,11 @@ The existing `/checkpoint` command captures **structured semantic context**:
 
 ## Architecture Overview
 
+**Note on numbering**: Layers 1-3 represent lines of defense (outermost prevention
+first), while implementation phases are ordered by dependency (reactive first, then
+proactive, finally preventive). Layer 1 is implemented last (Phase 3) as it builds
+on the foundation of Layers 2-3.
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    CONTEXT MANAGEMENT SYSTEM                    │
