@@ -61,11 +61,15 @@ def check_checkpoint_trigger() -> Optional[dict]:
 
         for msg in messages:
             msg_type = msg.get("type")
+            # Support two message formats:
+            # 1. Current format: type="checkpoint_trigger" with content as dict/JSON
+            # 2. Legacy format: type=None with content="checkpoint_trigger" (string)
+            is_checkpoint_trigger = (
+                msg_type == "checkpoint_trigger"
+                or (msg_type is None and msg.get("content") == "checkpoint_trigger")
+            )
             if (
-                (
-                    msg_type == "checkpoint_trigger"
-                    or (msg_type is None and msg.get("content") == "checkpoint_trigger")
-                )
+                is_checkpoint_trigger
                 and msg.get("to") == "claude-main"
                 and not msg.get("read", False)
             ):
@@ -136,19 +140,15 @@ def main():
         msg_id = trigger.get("id", "")
         mark_message_read(msg_id)
 
+        # Parse content: may be dict, JSON string, or other
         content = trigger.get("content")
         if isinstance(content, str):
             try:
                 content = json.loads(content)
             except json.JSONDecodeError:
-                sys.stderr.write(f"[checkpoint-responder] Failed to decode content JSON: {content}\n")
-                content = {}
-        
+                content = None  # Signal parse failure
+
         if not isinstance(content, dict):
-            sys.stderr.write(
-                f"[checkpoint-responder] Unexpected content type in checkpoint trigger; "
-                f"expected dict or JSON string, got {type(trigger.get('content')).__name__}. Ignoring content.\n"
-            )
             content = {}
         reason = content.get("reason", "watcher request")
         # estimated_usage is in the metrics dict to avoid duplication

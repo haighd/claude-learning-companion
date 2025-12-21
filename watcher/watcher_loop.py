@@ -109,8 +109,11 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
         return msg_id
 
     except (json.JSONDecodeError, OSError, RuntimeError) as exc:
-        # RuntimeError is commonly raised when file locking is not supported on this platform,
-        # but other RuntimeError conditions may also be encountered. Log the specific error type.
+        # RuntimeError is commonly raised when file locking is not supported.
+        # Re-raise unexpected RuntimeErrors to avoid masking unrelated issues.
+        if isinstance(exc, RuntimeError) and "File locking is not supported" not in str(exc):
+            raise
+
         import traceback
         print(
             f"Failed to write checkpoint trigger due to {type(exc).__name__}: {exc}\n"
