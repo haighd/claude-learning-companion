@@ -258,11 +258,11 @@ class TaskBatcher:
         return [task_copy]
 
     def _split_by_file_groups(self, task: Dict, files: List[str]) -> List[Dict]:
-        """Split task by file groups that fit within budget."""
-        # Early return for empty files - nothing to split
-        if not files:
-            return [task]
+        """Split task by file groups that fit within budget.
 
+        Note: This method assumes files is non-empty. The caller
+        (split_task_for_context) ensures len(files) > 1 before calling.
+        """
         self._ensure_graph_scanned()
 
         # Group files by dependency clusters

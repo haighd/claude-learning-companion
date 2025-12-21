@@ -74,20 +74,29 @@ fi
 # then exit. This isolates the frontmatter block between the two "---" delimiters.
 FRONTMATTER=$(awk 'NR==1 && $0 ~ /^--- *$/{in_yaml=1; next} in_yaml && $0 ~ /^--- *$/{exit} in_yaml{print}' "$CHECKPOINT_PATH")
 
-REQUIRED_FIELDS=(
-    "created:"
-    "trigger:"
-    "project:"
-)
+# Use a single awk command to validate all fields at once for efficiency.
+# This avoids spawning multiple grep processes in a loop.
+MISSING_FIELDS=$(awk '
+    BEGIN {
+        required["created:"] = 1
+        required["trigger:"] = 1
+        required["project:"] = 1
+    }
+    /^ *created: *[^[:space:]]/ { delete required["created:"] }
+    /^ *trigger: *[^[:space:]]/ { delete required["trigger:"] }
+    /^ *project: *[^[:space:]]/ { delete required["project:"] }
+    END {
+        for (field in required) { print field }
+    }
+' <<< "$FRONTMATTER")
 
-for field in "${REQUIRED_FIELDS[@]}"; do
-    # Anchor to line start (with optional leading whitespace for YAML indentation)
-    # and require at least one non-whitespace character after the colon
-    if ! echo "$FRONTMATTER" | grep -qE "^ *${field} *[^[:space:]]"; then
-        echo "ERROR: Missing required field or value: $field"
-        exit 1
-    fi
-done
+if [ -n "$MISSING_FIELDS" ]; then
+    echo "ERROR: Missing required frontmatter fields or values:"
+    echo "$MISSING_FIELDS" | while IFS= read -r field; do
+        echo "  - $field"
+    done
+    exit 1
+fi
 
 # All checks passed
 echo "OK: Checkpoint verified: $CHECKPOINT_PATH"
