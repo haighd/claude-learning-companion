@@ -65,6 +65,7 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
         Message ID if successful, None on failure
     """
     lock_fd = None
+    lock_acquired = False
     try:
         # Ensure directory exists before locking
         COORDINATION_DIR.mkdir(parents=True, exist_ok=True)
@@ -72,6 +73,7 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
         # Acquire exclusive lock to prevent race conditions
         lock_fd = open(LOCK_FILE, "w")
         acquire_lock(lock_fd)
+        lock_acquired = True
 
         # Load or create blackboard under lock
         if BLACKBOARD_FILE.exists():
@@ -117,8 +119,9 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
         )
         return None
     finally:
-        if lock_fd:
+        if lock_acquired:
             release_lock(lock_fd)
+        if lock_fd:
             lock_fd.close()
 
 

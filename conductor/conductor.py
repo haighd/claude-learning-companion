@@ -31,6 +31,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, asdict
 from enum import Enum
 import re
+import traceback
 
 
 def safe_eval_condition(condition: str, context: dict) -> bool:
@@ -935,7 +936,6 @@ class Conductor:
             # - OSError: file system issues reading session state
             # - ValueError: datetime parsing errors
             # - json.JSONDecodeError: corrupted session state file
-            import traceback
             sys.stderr.write(f"Warning: Context check failed:\n{traceback.format_exc()}\n")
             return None
 
@@ -989,7 +989,6 @@ class Conductor:
             # OSError: file system issues with blackboard
             # AttributeError: blackboard module may not have trigger function
             # sqlite3.Error: database logging failures
-            import traceback
             sys.stderr.write(f"Warning: Failed to trigger checkpoint:\n{traceback.format_exc()}\n")
 
     def run_workflow(self, workflow_name: str, input_data: Dict = None,

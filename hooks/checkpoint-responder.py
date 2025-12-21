@@ -138,13 +138,16 @@ def main():
         msg_id = trigger.get("id", "")
         mark_message_read(msg_id)
 
-        # Parse content: may be dict, JSON string, or other
+        # Parse content: may be dict, JSON string, or other.
+        # Parse failures and non-dict values are intentionally handled the same way
+        # (defaulting to empty dict) since both cases indicate malformed/legacy data
+        # where we want graceful degradation to default values.
         content = trigger.get("content")
         if isinstance(content, str):
             try:
                 content = json.loads(content)
             except json.JSONDecodeError:
-                content = None  # Signal parse failure
+                content = None
 
         if not isinstance(content, dict):
             content = {}

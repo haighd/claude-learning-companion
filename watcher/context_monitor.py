@@ -67,7 +67,11 @@ def _safe_env_float(name: str, default: str) -> float:
         return float(value)
     except ValueError:
         sys.stderr.write(f"[context_monitor] Invalid value for {name}: '{value}', using default {default}\n")
-        return float(default)
+        try:
+            return float(default)
+        except ValueError:
+            sys.stderr.write(f"[context_monitor] Invalid default for {name}: '{default}', using 0.0\n")
+            return 0.0
 
 
 def _safe_env_int(name: str, default: str) -> int:
@@ -77,7 +81,11 @@ def _safe_env_int(name: str, default: str) -> int:
         return int(value)
     except ValueError:
         sys.stderr.write(f"[context_monitor] Invalid value for {name}: '{value}', using default {default}\n")
-        return int(default)
+        try:
+            return int(default)
+        except ValueError:
+            sys.stderr.write(f"[context_monitor] Invalid default for {name}: '{default}', using 0\n")
+            return 0
 
 
 # Paths
@@ -264,7 +272,7 @@ def reset_context_metrics():
     try:
         SESSION_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         SESSION_STATE_PATH.write_text(json.dumps(state, indent=2))
-    except IOError as e:
+    except OSError as e:
         sys.stderr.write(f"[context_monitor] Error saving session state: {e}\n")
 
 

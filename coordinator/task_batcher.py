@@ -102,7 +102,6 @@ class TaskBatcher:
                 self.dep_graph.scan()
                 self._graph_scanned = True
             except (OSError, AttributeError):
-                # OSError covers IOError (its alias in Python 3)
                 # Non-fatal - continue without dependency analysis
                 sys.stderr.write(f"Warning: Dependency graph scan failed:\n{traceback.format_exc()}\n")
 
@@ -234,12 +233,9 @@ class TaskBatcher:
             else:
                 relevant_cluster = {f}
 
-            if relevant_cluster:
-                clusters.append(list(relevant_cluster))
-                assigned.update(relevant_cluster)
-            else:
-                clusters.append([f])
-                assigned.add(f)
+            # relevant_cluster always contains at least f, so no need for else branch
+            clusters.append(list(relevant_cluster))
+            assigned.update(relevant_cluster)
 
         # Create subtasks for each cluster
         subtasks = []
