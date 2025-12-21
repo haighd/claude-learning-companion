@@ -19,8 +19,9 @@ from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
 
-# Use shared file locking utility
+# Use shared utilities
 from utils.file_locking import acquire_lock, release_lock, LockingNotSupportedError
+from utils.formatting import format_usage_percentage
 
 BLACKBOARD_FILE = Path.home() / ".claude" / "clc" / ".coordination" / "blackboard.json"
 LOCK_FILE = BLACKBOARD_FILE.with_suffix(".lock")
@@ -179,14 +180,7 @@ def main():
         reason = content.get("reason", "watcher request")
         # Both conductor.py and watcher_loop.py now put estimated_usage at top level.
         usage = content.get("estimated_usage", 0)
-
-        usage_str: str
-        try:
-            usage_pct = float(usage) * 100
-            usage_str = f"{usage_pct:.0f}%"
-        except (ValueError, TypeError):
-            sys.stderr.write(f"[checkpoint-responder] Invalid value for estimated_usage: {repr(usage)}, showing raw value.\n")
-            usage_str = f"(invalid value: {repr(usage)})"
+        usage_str, _ = format_usage_percentage(usage, "checkpoint-responder")
 
         sys.stderr.write(f"[checkpoint-responder] Checkpoint trigger detected: {reason}\n")
 

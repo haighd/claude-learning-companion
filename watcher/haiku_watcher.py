@@ -30,6 +30,14 @@ except ImportError:
     get_context_status = None
     CONTEXT_MONITOR_AVAILABLE = False
 
+# Import shared formatting utility
+try:
+    from utils.formatting import format_usage_percentage
+    HAS_FORMATTING = True
+except ImportError:
+    format_usage_percentage = None
+    HAS_FORMATTING = False
+
 # Paths
 COORDINATION_DIR = Path.home() / ".claude" / "clc" / ".coordination"
 BLACKBOARD_FILE = COORDINATION_DIR / "blackboard.json"
@@ -97,14 +105,15 @@ def get_haiku_prompt(state: Dict[str, Any]) -> str:
     context_section = ""
     context_status = state.get("context_status")
     if context_status and isinstance(context_status, dict) and "estimated_usage" in context_status:
-        usage_str: str
-        try:
-            usage_pct = float(context_status.get("estimated_usage", 0)) * 100
-            usage_str = f"{usage_pct:.0f}%"
-        except (ValueError, TypeError):
-            usage_raw = context_status.get('estimated_usage')
-            sys.stderr.write(f"[haiku_watcher] Invalid value for estimated_usage: {repr(usage_raw)}, showing raw value.\n")
-            usage_str = f"invalid ({repr(usage_raw)})"
+        usage = context_status.get("estimated_usage", 0)
+        if HAS_FORMATTING and format_usage_percentage:
+            usage_str, _ = format_usage_percentage(usage, "haiku_watcher")
+        else:
+            # Fallback if formatting utility not available
+            try:
+                usage_str = f"{float(usage) * 100:.0f}%"
+            except (ValueError, TypeError):
+                usage_str = f"invalid ({repr(usage)})"
         should_checkpoint = context_status.get("should_checkpoint", False)
         reason = context_status.get("reason", "N/A")
         in_cooldown = context_status.get("in_cooldown", False)

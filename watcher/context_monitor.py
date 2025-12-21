@@ -60,40 +60,23 @@ import sys
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, TypeVar
+from typing import Any, Dict, Optional
 
-T = TypeVar('T', int, float)
+# Use shared environment parsing utilities
+from utils.env_parsing import safe_env_int, safe_env_float
 
-
-def _safe_env_parser(name: str, default: str, converter: Callable[[str], T], error_value: T) -> T:
-    """Safely parse environment variable with helpful error message."""
-    value_str = os.environ.get(name)
-    if value_str is not None:
-        try:
-            return converter(value_str)
-        except ValueError:
-            sys.stderr.write(f"[context_monitor] Invalid value for {name}: '{value_str}', using default {default}\n")
-
-    # Fallback to default
-    try:
-        return converter(default)
-    except ValueError:
-        sys.stderr.write(f"[context_monitor] Invalid default for {name}: '{default}', using {error_value}\n")
-        return error_value
+# Module name for error messages
+_MODULE = "context_monitor"
 
 
 def _safe_env_float(name: str, default: str) -> float:
-    """Safely parse float from environment variable with helpful error.
-
-    Uses 1.1 as error value to disable checkpointing on config errors
-    (prevents checkpoint spam that would occur with 0.0).
-    """
-    return _safe_env_parser(name, default, float, 1.1)
+    """Wrapper for shared safe_env_float with module name."""
+    return safe_env_float(name, default, _MODULE)
 
 
 def _safe_env_int(name: str, default: str) -> int:
-    """Safely parse int from environment variable with helpful error."""
-    return _safe_env_parser(name, default, int, 0)
+    """Wrapper for shared safe_env_int with module name."""
+    return safe_env_int(name, default, _MODULE)
 
 
 # Paths

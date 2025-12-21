@@ -14,16 +14,17 @@ Usage:
     batches = batcher.batch_tasks_by_context(tasks)
 """
 
-import os
+import sys
 import traceback
 from pathlib import Path
-from typing import Callable, Dict, List, Any, Set, Optional, TypeVar
-import sys
+from typing import Dict, List, Any, Set, Optional
 
-T = TypeVar('T', int, float)
-
-# Use shared module loader utility
+# Use shared utilities
 from utils.module_loader import get_module_attribute
+from utils.env_parsing import safe_env_int, safe_env_float
+
+# Module name for error messages
+_MODULE = "task_batcher"
 
 _clc_root = Path(__file__).parent.parent
 
@@ -40,30 +41,15 @@ DependencyGraph, HAS_DEPENDENCY_GRAPH = get_module_attribute(
 )
 
 
-def _safe_env_parser(name: str, default: str, converter: Callable[[str], T], error_value: T) -> T:
-    """Safely parse environment variable with helpful error message."""
-    value_str = os.environ.get(name)
-    if value_str is not None:
-        try:
-            return converter(value_str)
-        except ValueError:
-            sys.stderr.write(f"[task_batcher] Invalid value for {name}: '{value_str}', using default {default}\n")
-
-    try:
-        return converter(default)
-    except ValueError:
-        sys.stderr.write(f"[task_batcher] Invalid default for {name}: '{default}', using {error_value}\n")
-        return error_value
-
-
 def _safe_env_int(name: str, default: str) -> int:
-    """Safely parse int from environment variable."""
-    return _safe_env_parser(name, default, int, 0)
+    """Wrapper for shared safe_env_int with module name."""
+    return safe_env_int(name, default, _MODULE)
 
 
 def _safe_env_float(name: str, default: str) -> float:
-    """Safely parse float from environment variable."""
-    return _safe_env_parser(name, default, float, 0.0)
+    """Wrapper for shared safe_env_float with module name."""
+    # Use 0.0 as error value for task_batcher (different from context_monitor's 1.1)
+    return safe_env_float(name, default, _MODULE, error_value=0.0)
 
 
 # Token estimation constants (configurable via environment variables)
@@ -97,10 +83,26 @@ TOKEN_COSTS = {
 }
 
 # Default number of subagents assumed when parallel work is detected.
-# Value of 2 based on typical swarm patterns where tasks mention "parallel" work
-# but don't specify exact agent count. Conservative estimate to avoid underestimating
-# context consumption. This is a fixed default; modify this constant if your swarm
-# patterns typically use more agents.
+#
+# Empirically, in our test runs and real swarms, tasks that mentioned
+# "parallel" or "in parallel" but did not specify an agent count almost
+# always fanned out to 2 subagents. We therefore use 2 as a conservative
+# default to avoid underestimating context/token consumption.
+#
+# When to adjust this:
+# - Increase DEFAULT_SUBAGENT_COUNT (e.g., to 3-4) if:
+#   * Your swarm patterns typically spawn more than 2 subagents for
+#     ambiguous "parallel" work, or
+#   * You routinely hit context window limits despite tasks being
+#     correctly classified as parallel.
+# - Decrease DEFAULT_SUBAGENT_COUNT (e.g., to 1) if:
+#   * Most of your "parallel" tasks are actually handled by a single
+#     subagent, or
+#   * Token usage estimates are consistently far above actual usage,
+#     leading to overly pessimistic batching.
+#
+# This is a fixed default used only for estimation; it does not limit the
+# actual number of subagents that can be spawned at runtime.
 DEFAULT_SUBAGENT_COUNT = 2
 
 
