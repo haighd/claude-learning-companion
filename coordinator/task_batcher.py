@@ -17,8 +17,10 @@ Usage:
 import os
 import traceback
 from pathlib import Path
-from typing import Dict, List, Any, Set, Optional
+from typing import Callable, Dict, List, Any, Set, Optional, TypeVar
 import sys
+
+T = TypeVar('T', int, float)
 
 # Use shared module loader utility
 from utils.module_loader import get_module_attribute
@@ -38,11 +40,37 @@ DependencyGraph, HAS_DEPENDENCY_GRAPH = get_module_attribute(
 )
 
 
+def _safe_env_parser(name: str, default: str, converter: Callable[[str], T], error_val: T) -> T:
+    """Safely parse environment variable with helpful error message."""
+    value_str = os.environ.get(name)
+    if value_str is not None:
+        try:
+            return converter(value_str)
+        except ValueError:
+            sys.stderr.write(f"[task_batcher] Invalid value for {name}: '{value_str}', using default {default}\n")
+
+    try:
+        return converter(default)
+    except ValueError:
+        sys.stderr.write(f"[task_batcher] Invalid default for {name}: '{default}', using {error_val}\n")
+        return error_val
+
+
+def _safe_env_int(name: str, default: str) -> int:
+    """Safely parse int from environment variable."""
+    return _safe_env_parser(name, default, int, 0)
+
+
+def _safe_env_float(name: str, default: str) -> float:
+    """Safely parse float from environment variable."""
+    return _safe_env_parser(name, default, float, 0.0)
+
+
 # Token estimation constants (configurable via environment variables)
 # Uses same env vars as context_monitor.py for consistency
-CONTEXT_BUDGET = int(os.environ.get('CONTEXT_WINDOW_SIZE', '200000'))
+CONTEXT_BUDGET = _safe_env_int('CONTEXT_WINDOW_SIZE', '200000')
 # SAFETY_MARGIN derived from checkpoint threshold (60% threshold = 40% margin)
-SAFETY_MARGIN = 1.0 - float(os.environ.get('CONTEXT_CHECKPOINT_THRESHOLD', '0.6'))
+SAFETY_MARGIN = 1.0 - _safe_env_float('CONTEXT_CHECKPOINT_THRESHOLD', '0.6')
 EFFECTIVE_BUDGET = int(CONTEXT_BUDGET * (1 - SAFETY_MARGIN))
 
 # Task complexity multipliers
