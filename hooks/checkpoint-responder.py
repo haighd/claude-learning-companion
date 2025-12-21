@@ -152,9 +152,10 @@ def main():
         if not isinstance(content, dict):
             content = {}
         reason = content.get("reason", "watcher request")
-        # estimated_usage is in the metrics dict to avoid duplication
-        metrics = content.get("metrics", {})
-        usage = metrics.get("estimated_usage", 0)
+        # Get usage from top level (from conductor) or fall back to inside metrics dict (from watcher).
+        usage = content.get("estimated_usage")
+        if usage is None:
+            usage = content.get("metrics", {}).get("estimated_usage", 0)
         usage_pct = usage * 100
 
         sys.stderr.write(f"[checkpoint-responder] Checkpoint trigger detected: {reason}\n")
