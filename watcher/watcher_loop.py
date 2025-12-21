@@ -91,11 +91,11 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
             "id": msg_id,
             "from": "watcher",
             "to": "claude-main",
-            "type": "checkpoint_trigger",
-            "content": {
+            "content": json.dumps({
                 "reason": reason,
+                "estimated_usage": metrics.get("estimated_usage", 0) if metrics else 0,
                 "metrics": metrics or {},
-            },
+            }),
             "read": False,
             "timestamp": utc_timestamp()
         }
