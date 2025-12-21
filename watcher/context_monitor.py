@@ -57,6 +57,7 @@ Part of Phase 2: Proactive Watcher Monitoring for Context Management.
 import json
 import os
 import sys
+import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, TypeVar
@@ -147,7 +148,6 @@ def load_session_state() -> Dict[str, Any]:
             state['context_metrics'] = get_default_context_metrics()
         return state
     except (json.JSONDecodeError, OSError):
-        import traceback
         sys.stderr.write(f"[context_monitor] Error loading session state:\n{traceback.format_exc()}\n")
         # On error, also return wrapped default metrics
         return {'context_metrics': get_default_context_metrics()}
@@ -191,7 +191,6 @@ def get_last_checkpoint_time() -> Optional[str]:
             if valid_timestamps:
                 return max(valid_timestamps)
     except (json.JSONDecodeError, OSError):
-        import traceback
         sys.stderr.write(f"[context_monitor] Error reading checkpoint index:\n{traceback.format_exc()}\n")
         # Fall through to check session state below
 
@@ -221,7 +220,6 @@ def check_cooldown(last_checkpoint_time: Optional[str]) -> bool:
         # ValueError: invalid datetime format
         # TypeError: unexpected type in datetime operations
         # AttributeError: last_checkpoint_time is not a string (e.g., missing .replace method)
-        import traceback
         sys.stderr.write(f"[context_monitor] Error parsing checkpoint time:\n{traceback.format_exc()}\n")
         return False
 

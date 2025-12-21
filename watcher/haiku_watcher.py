@@ -17,13 +17,14 @@ Design:
 
 import json
 import sys
+import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional
 
 # Import context monitor for Phase 2 proactive checkpoint management
 try:
-    from context_monitor import get_context_status
+    from watcher.context_monitor import get_context_status
     CONTEXT_MONITOR_AVAILABLE = True
 except ImportError:
     get_context_status = None
@@ -83,7 +84,6 @@ def gather_state() -> Dict[str, Any]:
             # continue monitoring. The exception types cover common issues from
             # the context monitor (module/attribute problems, data/format errors,
             # file system issues) without depending on its internal implementation.
-            import traceback
             sys.stderr.write(f"[haiku_watcher] Failed to get context status:\n{traceback.format_exc()}\n")
             state["context_status"] = {"error": "Failed to get context status (see stderr for details)"}
 

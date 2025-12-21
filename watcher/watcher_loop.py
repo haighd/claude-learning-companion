@@ -26,6 +26,7 @@ Usage:
 
 import json
 import sys
+import traceback
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -111,7 +112,6 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
         return msg_id
 
     except (json.JSONDecodeError, OSError, LockingNotSupportedError, TimeoutError) as exc:
-        import traceback
         print(
             f"Failed to write checkpoint trigger due to {type(exc).__name__}: {exc}\n"
             f"{traceback.format_exc()}",

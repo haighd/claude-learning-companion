@@ -14,6 +14,7 @@ Part of Phase 2: Proactive Context Management.
 
 import json
 import sys
+import traceback
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
@@ -92,7 +93,6 @@ def check_checkpoint_trigger() -> Optional[dict]:
             ):
                 return msg
     except (json.JSONDecodeError, OSError, LockingNotSupportedError, TimeoutError):
-        import traceback
         sys.stderr.write(f"[checkpoint-responder] Error reading blackboard:\n{traceback.format_exc()}\n")
     finally:
         if lock_acquired:
@@ -137,7 +137,6 @@ def mark_message_read(msg_id: str):
         temp_file.rename(BLACKBOARD_FILE)
 
     except (json.JSONDecodeError, OSError, LockingNotSupportedError, TimeoutError):
-        import traceback
         sys.stderr.write(f"[checkpoint-responder] Error marking message read:\n{traceback.format_exc()}\n")
     finally:
         if lock_acquired:

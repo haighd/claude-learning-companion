@@ -186,6 +186,7 @@ class TaskBatcher:
                 # are transitive - B's cluster overlaps with A's cluster.
                 clustered_files: Set[str] = set()
                 for f in files:
+                    # Skip if already part of another file's cluster
                     if f in clustered_files:
                         continue
                     related = self.dep_graph.get_cluster(f, depth=1)
