@@ -180,7 +180,7 @@ def main():
         reason = content.get("reason", "watcher request")
         # Both conductor.py and watcher_loop.py now put estimated_usage at top level.
         usage = content.get("estimated_usage", 0)
-        usage_str, _ = format_usage_percentage(usage, "checkpoint-responder")
+        usage_str, is_valid = format_usage_percentage(usage, "checkpoint-responder")
 
         sys.stderr.write(f"[checkpoint-responder] Checkpoint trigger detected: {reason}\n")
 

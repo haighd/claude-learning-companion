@@ -196,16 +196,23 @@ def get_last_checkpoint_time() -> Optional[str]:
 
 def check_cooldown(last_checkpoint_time: Optional[str]) -> bool:
     """Check if we're still in cooldown period."""
+    # Handle empty string explicitly as possible data corruption
+    if last_checkpoint_time == "":
+        sys.stderr.write("[context_monitor] Warning: empty timestamp string (possible data corruption)\n")
+        return False  # No cooldown if empty timestamp
+
     if not last_checkpoint_time:
-        # None means never checkpointed; empty string is likely data corruption
-        if last_checkpoint_time == "":
-            sys.stderr.write("[context_monitor] Warning: empty timestamp string (possible data corruption)\n")
-        return False  # No cooldown if never checkpointed or empty timestamp
+        return False  # No cooldown if never checkpointed (None)
+
+    # Ensure we only attempt normalization/parsing on string timestamps
+    if not isinstance(last_checkpoint_time, str):
+        sys.stderr.write("[context_monitor] Warning: non-string last_checkpoint_time encountered; skipping cooldown check\n")
+        return False
 
     try:
         # Normalize ISO timestamp: replace trailing 'Z' suffix with '+00:00' for fromisoformat.
         # If timestamp already has '+00:00' or other offset, leave it unchanged.
-        if isinstance(last_checkpoint_time, str) and last_checkpoint_time.endswith('Z'):
+        if last_checkpoint_time.endswith('Z'):
             normalized_time = last_checkpoint_time[:-1] + '+00:00'
         else:
             normalized_time = last_checkpoint_time

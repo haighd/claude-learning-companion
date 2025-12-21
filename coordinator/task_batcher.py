@@ -293,7 +293,9 @@ class TaskBatcher:
                 try:
                     full_cluster = self.dep_graph.get_cluster(f, depth=1)
                     candidate = full_cluster.intersection(files_set)
-                    # Only use dep_graph result if non-empty and contains f
+                    # Only use dep_graph result if non-empty and still contains f.
+                    # The explicit `f in candidate` check preserves the invariant that
+                    # every cluster includes its seed file, even if dep_graph misbehaves.
                     if candidate and f in candidate:
                         relevant_cluster = candidate
                 except (AttributeError, TypeError, KeyError):

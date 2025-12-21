@@ -1051,8 +1051,11 @@ class Conductor:
             # more nodes to process (current_nodes non-empty), giving us a chance to
             # checkpoint and preserve context quality between phases. No checkpoint
             # is triggered at workflow completion (handled separately by run finalization).
-            # Always evaluate when a callback is registered so on_batch_boundary
-            # receives accurate should_checkpoint values.
+            #
+            # Note: We call _check_batch_boundary() even when only on_batch_boundary is
+            # set (without auto_checkpoint) because the callback needs accurate context
+            # status to make informed decisions. The overhead is acceptable since
+            # on_batch_boundary is typically used with auto_checkpoint anyway.
             if current_nodes and (auto_checkpoint or on_batch_boundary):
                 context_status = self._check_batch_boundary()
                 should_checkpoint = context_status is not None

@@ -109,7 +109,7 @@ def get_haiku_prompt(state: Dict[str, Any]) -> str:
     if context_status and isinstance(context_status, dict) and "estimated_usage" in context_status:
         usage = context_status.get("estimated_usage", 0)
         if HAS_FORMATTING and format_usage_percentage:
-            usage_str, _ = format_usage_percentage(usage, "haiku_watcher")
+            usage_str, is_valid = format_usage_percentage(usage, "haiku_watcher")
         else:
             # Fallback if formatting utility not available
             try:
