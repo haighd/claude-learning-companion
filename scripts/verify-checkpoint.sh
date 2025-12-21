@@ -23,14 +23,14 @@ if [ ! -s "$CHECKPOINT_PATH" ]; then
     exit 1
 fi
 
-# Check for opening YAML frontmatter delimiter
-if ! head -1 "$CHECKPOINT_PATH" | grep -q "^---$"; then
+# Check for opening YAML frontmatter delimiter (allow trailing whitespace)
+if ! head -1 "$CHECKPOINT_PATH" | grep -qE "^--- *$"; then
     echo "ERROR: Missing opening YAML frontmatter delimiter"
     exit 1
 fi
 
 # Check for closing YAML frontmatter delimiter (should appear after line 1)
-if ! tail -n +2 "$CHECKPOINT_PATH" | grep -q "^---$"; then
+if ! tail -n +2 "$CHECKPOINT_PATH" | grep -qE "^--- *$"; then
     echo "ERROR: Missing closing YAML frontmatter delimiter"
     exit 1
 fi
@@ -58,11 +58,11 @@ if [ "$CONTENT_LENGTH" -lt "$MIN_CONTENT_BYTES" ]; then
 fi
 
 # Verify frontmatter has required fields
-# Extract YAML frontmatter: awk reads line-by-line; if line 1 is exactly "---",
-# enter in_yaml mode and skip that line; while in_yaml, print lines until we
-# hit another "---" (the closing delimiter), then exit. This isolates the
-# frontmatter block between the two "---" delimiters.
-FRONTMATTER=$(awk 'NR==1 && $0=="---"{in_yaml=1; next} in_yaml && $0=="---"{exit} in_yaml{print}' "$CHECKPOINT_PATH")
+# Extract YAML frontmatter: awk reads line-by-line; if line 1 matches "---"
+# (with optional trailing whitespace), enter in_yaml mode and skip that line;
+# while in_yaml, print lines until we hit another "---" (the closing delimiter),
+# then exit. This isolates the frontmatter block between the two "---" delimiters.
+FRONTMATTER=$(awk 'NR==1 && $0 ~ /^--- *$/{in_yaml=1; next} in_yaml && $0 ~ /^--- *$/{exit} in_yaml{print}' "$CHECKPOINT_PATH")
 
 REQUIRED_FIELDS=(
     "created:"

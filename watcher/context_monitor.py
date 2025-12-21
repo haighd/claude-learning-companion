@@ -65,7 +65,7 @@ from typing import Any, Callable, Dict, Optional, TypeVar
 T = TypeVar('T', int, float)
 
 
-def _safe_env_parser(name: str, default: str, converter: Callable[[str], T], error_val: T) -> T:
+def _safe_env_parser(name: str, default: str, converter: Callable[[str], T], error_value: T) -> T:
     """Safely parse environment variable with helpful error message."""
     value_str = os.environ.get(name)
     if value_str is not None:
@@ -78,8 +78,8 @@ def _safe_env_parser(name: str, default: str, converter: Callable[[str], T], err
     try:
         return converter(default)
     except ValueError:
-        sys.stderr.write(f"[context_monitor] Invalid default for {name}: '{default}', using {error_val}\n")
-        return error_val
+        sys.stderr.write(f"[context_monitor] Invalid default for {name}: '{default}', using {error_value}\n")
+        return error_value
 
 
 def _safe_env_float(name: str, default: str) -> float:

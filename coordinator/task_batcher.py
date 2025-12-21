@@ -40,7 +40,7 @@ DependencyGraph, HAS_DEPENDENCY_GRAPH = get_module_attribute(
 )
 
 
-def _safe_env_parser(name: str, default: str, converter: Callable[[str], T], error_val: T) -> T:
+def _safe_env_parser(name: str, default: str, converter: Callable[[str], T], error_value: T) -> T:
     """Safely parse environment variable with helpful error message."""
     value_str = os.environ.get(name)
     if value_str is not None:
@@ -52,8 +52,8 @@ def _safe_env_parser(name: str, default: str, converter: Callable[[str], T], err
     try:
         return converter(default)
     except ValueError:
-        sys.stderr.write(f"[task_batcher] Invalid default for {name}: '{default}', using {error_val}\n")
-        return error_val
+        sys.stderr.write(f"[task_batcher] Invalid default for {name}: '{default}', using {error_value}\n")
+        return error_value
 
 
 def _safe_env_int(name: str, default: str) -> int:
@@ -134,6 +134,44 @@ class TaskBatcher:
                 # Non-fatal - continue without dependency analysis
                 sys.stderr.write(f"Warning: Dependency graph scan failed:\n{traceback.format_exc()}\n")
 
+    def _compute_file_clusters(self, files: List[str]) -> Optional[Set[str]]:
+        """Compute transitive dependency clusters for a list of files.
+
+        Groups files by their dependency relationships using the dependency graph.
+        Files that share dependencies are clustered together.
+
+        The algorithm tracks all files belonging to any computed cluster. When
+        processing file A yields cluster {A, B, C}, all three are marked as
+        clustered. When B is encountered later, it's skipped since it already
+        belongs to A's cluster. This works because dependency clusters are
+        transitive - B's cluster overlaps with A's cluster.
+
+        Args:
+            files: List of file paths to cluster.
+
+        Returns:
+            Set of all files in computed clusters, or None if clustering failed.
+        """
+        if self.dep_graph is None:
+            return None
+
+        try:
+            clustered_files: Set[str] = set()
+            for f in files:
+                # Skip if already part of another file's cluster
+                if f in clustered_files:
+                    continue
+                related = self.dep_graph.get_cluster(f, depth=1)
+                clustered_files.update(related)
+            return clustered_files
+        except (AttributeError, TypeError, KeyError):
+            # These exceptions can occur when:
+            # - AttributeError: dep_graph methods unavailable or return unexpected types
+            # - TypeError: get_cluster returns non-iterable or incompatible type
+            # - KeyError: internal graph data structure missing expected keys
+            sys.stderr.write(f"Warning: Failed to compute file clusters:\n{traceback.format_exc()}\n")
+            return None
+
     def estimate_task_tokens(self, task: Dict) -> int:
         """
         Estimate tokens a task will consume.
@@ -205,29 +243,9 @@ class TaskBatcher:
         # Try using dependency graph to find related files
         self._ensure_graph_scanned()
         if files and self.dep_graph is not None:
-            try:
-                # Track all files that belong to any cluster we've already computed.
-                # When we compute A's cluster and it contains {A, B, C}, we add all three
-                # to clustered_files. Then when we encounter B in the loop, the check
-                # `if f in clustered_files` is True (since B was added when we processed A),
-                # so we skip computing B's cluster. This works because dependency clusters
-                # are transitive - B's cluster overlaps with A's cluster.
-                clustered_files: Set[str] = set()
-                for f in files:
-                    # Skip if already part of another file's cluster
-                    if f in clustered_files:
-                        continue
-                    related = self.dep_graph.get_cluster(f, depth=1)
-                    clustered_files.update(related)
-                if len(clustered_files) > 1:
-                    return self._split_by_file_groups(task, list(clustered_files))
-            except (AttributeError, TypeError, KeyError):
-                # These exceptions can occur when:
-                # - AttributeError: dep_graph methods unavailable or return unexpected types
-                # - TypeError: get_cluster returns non-iterable or incompatible type
-                # - KeyError: internal graph data structure missing expected keys
-                sys.stderr.write(f"Warning: Failed to get dependency cluster for splitting task:\n{traceback.format_exc()}\n")
-                # Fall through to return task with warning
+            clustered_files = self._compute_file_clusters(files)
+            if clustered_files is not None and len(clustered_files) > 1:
+                return self._split_by_file_groups(task, list(clustered_files))
 
         # Cannot split meaningfully - return with warning
         task_copy = dict(task)

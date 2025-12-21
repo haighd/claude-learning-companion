@@ -142,7 +142,7 @@ def gather_state() -> Dict[str, Any]:
             state["blackboard"] = {"error": f"Could not parse blackboard.json: {e}"}
 
     for f in COORDINATION_DIR.glob("agent_*.md"):
-        mtime = datetime.fromtimestamp(f.stat().st_mtime).astimezone(timezone.utc)
+        mtime = datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc)
         age_seconds = (now - mtime).total_seconds()
         state["agent_files"].append({
             "name": f.name,
