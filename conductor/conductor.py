@@ -929,10 +929,10 @@ class Conductor:
             if status.get('should_checkpoint', False):
                 return status
             return None
-        except (AttributeError, TypeError, IOError, ValueError, json.JSONDecodeError):
+        except (AttributeError, TypeError, OSError, ValueError, json.JSONDecodeError):
             # Can fail due to:
             # - AttributeError/TypeError: context monitor module issues
-            # - IOError: file system issues reading session state
+            # - OSError: file system issues reading session state
             # - ValueError: datetime parsing errors
             # - json.JSONDecodeError: corrupted session state file
             import traceback
