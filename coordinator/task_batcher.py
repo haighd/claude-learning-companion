@@ -172,17 +172,15 @@ class TaskBatcher:
         self._ensure_graph_scanned()
         if files and self.dep_graph is not None:
             try:
-                # Track seen files to avoid redundant get_cluster calls.
+                # Track files we have already expanded to avoid redundant get_cluster calls.
                 # Once a file is in a cluster, we don't need to compute its cluster
                 # again since dependency clusters are transitive.
-                seen_files: Set[str] = set()
                 expanded_files: Set[str] = set()
                 for f in files:
-                    if f in seen_files:
+                    if f in expanded_files:
                         continue
                     related = self.dep_graph.get_cluster(f, depth=1)
                     expanded_files.update(related)
-                    seen_files.update(related)
                 if len(expanded_files) > 1:
                     return self._split_by_file_groups(task, list(expanded_files))
             except (AttributeError, TypeError, KeyError) as e:
