@@ -62,30 +62,36 @@ from typing import Any, Dict, Optional
 
 def _safe_env_float(name: str, default: str) -> float:
     """Safely parse float from environment variable with helpful error."""
-    value = os.environ.get(name, default)
-    try:
-        return float(value)
-    except ValueError:
-        sys.stderr.write(f"[context_monitor] Invalid value for {name}: '{value}', using default {default}\n")
+    value_str = os.environ.get(name)
+    if value_str is not None:
         try:
-            return float(default)
+            return float(value_str)
         except ValueError:
-            sys.stderr.write(f"[context_monitor] Invalid default for {name}: '{default}', using 0.0\n")
-            return 0.0
+            sys.stderr.write(f"[context_monitor] Invalid value for {name}: '{value_str}', using default {default}\n")
+
+    # Fallback to default
+    try:
+        return float(default)
+    except ValueError:
+        sys.stderr.write(f"[context_monitor] Invalid default for {name}: '{default}', using 0.0\n")
+        return 0.0
 
 
 def _safe_env_int(name: str, default: str) -> int:
     """Safely parse int from environment variable with helpful error."""
-    value = os.environ.get(name, default)
-    try:
-        return int(value)
-    except ValueError:
-        sys.stderr.write(f"[context_monitor] Invalid value for {name}: '{value}', using default {default}\n")
+    value_str = os.environ.get(name)
+    if value_str is not None:
         try:
-            return int(default)
+            return int(value_str)
         except ValueError:
-            sys.stderr.write(f"[context_monitor] Invalid default for {name}: '{default}', using 0\n")
-            return 0
+            sys.stderr.write(f"[context_monitor] Invalid value for {name}: '{value_str}', using default {default}\n")
+
+    # Fallback to default
+    try:
+        return int(default)
+    except ValueError:
+        sys.stderr.write(f"[context_monitor] Invalid default for {name}: '{default}', using 0\n")
+        return 0
 
 
 # Paths
@@ -94,8 +100,8 @@ CHECKPOINT_INDEX_PATH = Path.home() / ".claude" / "clc" / "checkpoints" / "index
 
 # Assumed context window size in tokens. Defaults to 200k tokens as a
 # conservative heuristic; override via env var CONTEXT_WINDOW_SIZE for
-# different models or context sizes. Named ASSUMED_CONTEXT_WINDOW to emphasize
-# this is a heuristic estimate, not the actual model context window.
+# different models or context sizes. The ASSUMED_CONTEXT_WINDOW name
+# emphasizes this is a heuristic estimate, not the actual model context window.
 ASSUMED_CONTEXT_WINDOW = _safe_env_int('CONTEXT_WINDOW_SIZE', '200000')
 
 # Heuristic weights for estimating context consumption.

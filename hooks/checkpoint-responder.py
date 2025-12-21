@@ -24,6 +24,21 @@ from utils.file_locking import acquire_lock, release_lock, LockingNotSupportedEr
 BLACKBOARD_FILE = Path.home() / ".claude" / "clc" / ".coordination" / "blackboard.json"
 LOCK_FILE = BLACKBOARD_FILE.with_suffix(".lock")
 
+# Template for checkpoint reminder message shown to the agent
+CHECKPOINT_REMINDER_TEMPLATE = """
+---
+## Checkpoint Reminder from Watcher
+
+The context monitor has detected high context usage ({usage_pct:.0f}%).
+
+**Reason**: {reason}
+
+Please run `/checkpoint` to save your progress before continuing.
+
+This is a proactive checkpoint to preserve context quality.
+---
+"""
+
 
 def get_hook_input() -> dict:
     """Read hook input from stdin."""
@@ -162,19 +177,10 @@ def main():
 
         # Return context to remind agent to checkpoint
         output_result({
-            "additionalContext": f"""
----
-## Checkpoint Reminder from Watcher
-
-The context monitor has detected high context usage ({usage_pct:.0f}%).
-
-**Reason**: {reason}
-
-Please run `/checkpoint` to save your progress before continuing.
-
-This is a proactive checkpoint to preserve context quality.
----
-"""
+            "additionalContext": CHECKPOINT_REMINDER_TEMPLATE.format(
+                usage_pct=usage_pct,
+                reason=reason
+            )
         })
     else:
         output_result({})

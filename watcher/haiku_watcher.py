@@ -79,11 +79,10 @@ def gather_state() -> Dict[str, Any]:
             state["context_status"] = get_context_status()
         except (AttributeError, TypeError, KeyError, OSError, ValueError):
             # All exceptions are handled uniformly here because context status
-            # is non-critical for the watcher - we log the full traceback and
-            # continue monitoring. The exception types cover:
-            # - AttributeError/TypeError/KeyError: context monitor module issues
-            # - OSError: file system issues reading session state
-            # - ValueError: datetime parsing errors in check_cooldown
+            # is non-critical for the watcher: we log the full traceback and
+            # continue monitoring. The exception types cover common issues from
+            # the context monitor (module/attribute problems, data/format errors,
+            # file system issues) without depending on its internal implementation.
             import traceback
             sys.stderr.write(f"[haiku_watcher] Failed to get context status:\n{traceback.format_exc()}\n")
             state["context_status"] = {"error": "Failed to get context status (see stderr for details)"}

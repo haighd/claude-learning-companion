@@ -69,9 +69,8 @@ TOKEN_COSTS = {
 # Default number of subagents assumed when parallel work is detected.
 # Value of 2 based on typical swarm patterns where tasks mention "parallel" work
 # but don't specify exact agent count. Conservative estimate to avoid underestimating
-# context consumption.
-#
-# Override via task metadata: {"subagent_count": 4} when spawning more agents.
+# context consumption. This is a fixed default; modify this constant if your swarm
+# patterns typically use more agents.
 DEFAULT_SUBAGENT_COUNT = 2
 
 
