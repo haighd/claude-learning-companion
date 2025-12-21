@@ -82,7 +82,8 @@ def gather_state() -> Dict[str, Any]:
             # - AttributeError/TypeError/KeyError: context monitor module issues
             # - IOError: file system issues reading session state
             # - ValueError: datetime parsing errors in check_cooldown
-            state["context_status"] = {"error": f"Failed to get context status: {e}"}
+            import traceback
+            state["context_status"] = {"error": f"Failed to get context status: {traceback.format_exc()}"}
 
     return state
 
