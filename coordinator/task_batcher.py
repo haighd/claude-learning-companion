@@ -239,7 +239,8 @@ class TaskBatcher:
         # Create subtasks for each cluster
         subtasks = []
         base_desc = task.get('task', '') or task.get('description', '')
-        available = self.get_available_tokens()
+        # Use EFFECTIVE_BUDGET since subtasks will execute in fresh context after checkpoint
+        available = EFFECTIVE_BUDGET
 
         for i, cluster_files in enumerate(clusters):
             subtask = {
@@ -278,8 +279,8 @@ class TaskBatcher:
         if not tasks:
             return []
 
-        # Get available tokens
-        available = self.get_available_tokens()
+        # Use EFFECTIVE_BUDGET since each batch will run after checkpoint in fresh context
+        available = EFFECTIVE_BUDGET
 
         self._ensure_graph_scanned()
         batches: List[List[Dict]] = []

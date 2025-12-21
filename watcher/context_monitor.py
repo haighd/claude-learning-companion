@@ -57,41 +57,36 @@ import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional, TypeVar
+
+T = TypeVar('T', int, float)
+
+
+def _safe_env_parser(name: str, default: str, converter: Callable[[str], T], error_val: T) -> T:
+    """Safely parse environment variable with helpful error message."""
+    value_str = os.environ.get(name)
+    if value_str is not None:
+        try:
+            return converter(value_str)
+        except ValueError:
+            sys.stderr.write(f"[context_monitor] Invalid value for {name}: '{value_str}', using default {default}\n")
+
+    # Fallback to default
+    try:
+        return converter(default)
+    except ValueError:
+        sys.stderr.write(f"[context_monitor] Invalid default for {name}: '{default}', using {error_val}\n")
+        return error_val
 
 
 def _safe_env_float(name: str, default: str) -> float:
     """Safely parse float from environment variable with helpful error."""
-    value_str = os.environ.get(name)
-    if value_str is not None:
-        try:
-            return float(value_str)
-        except ValueError:
-            sys.stderr.write(f"[context_monitor] Invalid value for {name}: '{value_str}', using default {default}\n")
-
-    # Fallback to default
-    try:
-        return float(default)
-    except ValueError:
-        sys.stderr.write(f"[context_monitor] Invalid default for {name}: '{default}', using 0.0\n")
-        return 0.0
+    return _safe_env_parser(name, default, float, 0.0)
 
 
 def _safe_env_int(name: str, default: str) -> int:
     """Safely parse int from environment variable with helpful error."""
-    value_str = os.environ.get(name)
-    if value_str is not None:
-        try:
-            return int(value_str)
-        except ValueError:
-            sys.stderr.write(f"[context_monitor] Invalid value for {name}: '{value_str}', using default {default}\n")
-
-    # Fallback to default
-    try:
-        return int(default)
-    except ValueError:
-        sys.stderr.write(f"[context_monitor] Invalid default for {name}: '{default}', using 0\n")
-        return 0
+    return _safe_env_parser(name, default, int, 0)
 
 
 # Paths
