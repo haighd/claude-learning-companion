@@ -221,7 +221,8 @@ class TaskBatcher:
                     cluster = cluster.intersection(files_set)
                 except (AttributeError, TypeError, KeyError) as e:
                     # See split_task_for_context for exception rationale
-                    sys.stderr.write(f"Warning: Failed to get dependency cluster for file group: {e}\n")
+                    import traceback
+                    sys.stderr.write(f"Warning: Failed to get dependency cluster for file group:\n{traceback.format_exc()}\n")
                     cluster = {f}
             else:
                 cluster = {f}
