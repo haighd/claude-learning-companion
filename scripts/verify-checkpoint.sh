@@ -56,7 +56,7 @@ fi
 
 # Verify frontmatter has required fields
 # Extract frontmatter (content between first --- and second ---) to avoid matching body content
-FRONTMATTER=$(sed -n '2,/^---$/p' "$CHECKPOINT_PATH" | head -n -1)
+FRONTMATTER=$(awk 'NR==1 && $0=="---"{in_yaml=1; next} in_yaml && $0=="---"{exit} in_yaml{print}' "$CHECKPOINT_PATH")
 
 REQUIRED_FIELDS=(
     "created:"
