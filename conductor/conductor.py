@@ -972,7 +972,7 @@ class Conductor:
             self.blackboard.send_message(
                 from_agent="conductor",
                 to_agent="claude-main",
-                content=json.dumps(checkpoint_content),
+                content=checkpoint_content,
                 msg_type="checkpoint_trigger"
             )
 
