@@ -322,7 +322,12 @@ class TaskBatcher:
                 available = int(CONTEXT_BUDGET * (1.0 - current_usage))
                 return available
             except (AttributeError, TypeError, KeyError) as e:
-                sys.stderr.write(f"Warning: Failed to get context status for available tokens: {e}\n")
+                import traceback
+                sys.stderr.write(
+                    "Warning: Failed to get context status for available tokens:\n"
+                    f"{type(e).__name__}: {e}\n"
+                    f"{traceback.format_exc()}\n"
+                )
                 # Fall through to return fallback budget
 
         # Fallback to effective budget
