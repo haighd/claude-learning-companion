@@ -42,9 +42,16 @@ REQUIRED_SECTIONS=(
 )
 
 for section in "${REQUIRED_SECTIONS[@]}"; do
-    # Anchor to line start (with optional leading whitespace) to prevent false positives
-    if ! grep -qE "^ *${section}" "$CHECKPOINT_PATH"; then
-        echo "ERROR: Missing required section: $section"
+    # Check for section presence and content using awk. This verifies that:
+    # 1. The section header exists (matching with optional leading whitespace)
+    # 2. There is at least one non-empty, non-header line under the section
+    if ! awk -v s="$section" '
+        $0 ~ "^ *" s {in_section=1; next}
+        in_section && $0 ~ /^ *## / {exit}
+        in_section && NF > 0 {found_content=1; exit}
+        END {exit !found_content}
+    ' "$CHECKPOINT_PATH"; then
+        echo "ERROR: Missing required section or content for: $section"
         exit 1
     fi
 done
