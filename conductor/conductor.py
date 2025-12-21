@@ -1055,7 +1055,8 @@ class Conductor:
 
             current_nodes = list(set(next_nodes))
 
-            # Check batch boundaries only if more nodes remain; final state is saved by update_run_context.
+            # Check batch boundaries only if more nodes remain; final state is saved separately
+            # by update_run_context after all nodes complete.
             # Note: We check context status even when only on_batch_boundary is set (without auto_checkpoint)
             # because the callback receives should_checkpoint as a parameter and may need accurate status.
             if current_nodes and (auto_checkpoint or on_batch_boundary):

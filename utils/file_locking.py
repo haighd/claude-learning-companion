@@ -22,7 +22,7 @@ except ImportError:
 
 
 class LockingNotSupportedError(RuntimeError):
-    """Raised when file locking is not available on the platform."""
+    """Raised when file locking is not supported on the platform."""
     pass
 
 

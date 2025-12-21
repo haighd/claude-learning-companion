@@ -93,8 +93,9 @@ SESSION_STATE_PATH = Path.home() / ".claude" / "hooks" / "learning-loop" / "sess
 CHECKPOINT_INDEX_PATH = Path.home() / ".claude" / "clc" / "checkpoints" / "index.json"
 
 # Assumed context window size in tokens. Defaults to 200k tokens as a
-# conservative heuristic; override via CONTEXT_WINDOW_SIZE for different models
-# or context sizes.
+# conservative heuristic; override via env var CONTEXT_WINDOW_SIZE for
+# different models or context sizes. Named ASSUMED_CONTEXT_WINDOW to emphasize
+# this is a heuristic estimate, not the actual model context window.
 ASSUMED_CONTEXT_WINDOW = _safe_env_int('CONTEXT_WINDOW_SIZE', '200000')
 
 # Heuristic weights for estimating context consumption.

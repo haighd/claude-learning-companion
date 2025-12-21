@@ -177,18 +177,18 @@ class TaskBatcher:
         self._ensure_graph_scanned()
         if files and self.dep_graph is not None:
             try:
-                # Track files whose dependency clusters we've already processed to avoid
-                # redundant get_cluster calls. Once a file is in a processed cluster,
+                # Track files whose dependency clusters we've already retrieved to avoid
+                # redundant get_cluster calls. Once a file belongs to a retrieved cluster,
                 # we don't need to compute its cluster again since dependency clusters
                 # are transitive.
-                processed_files: Set[str] = set()
+                clustered_files: Set[str] = set()
                 for f in files:
-                    if f in processed_files:
+                    if f in clustered_files:
                         continue
                     related = self.dep_graph.get_cluster(f, depth=1)
-                    processed_files.update(related)
-                if len(processed_files) > 1:
-                    return self._split_by_file_groups(task, list(processed_files))
+                    clustered_files.update(related)
+                if len(clustered_files) > 1:
+                    return self._split_by_file_groups(task, list(clustered_files))
             except (AttributeError, TypeError, KeyError):
                 # These exceptions can occur when:
                 # - AttributeError: dep_graph methods unavailable or return unexpected types

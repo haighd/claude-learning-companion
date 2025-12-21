@@ -139,9 +139,9 @@ def main():
         mark_message_read(msg_id)
 
         # Parse content: may be dict, JSON string, or other.
-        # Parse failures and non-dict values are intentionally handled the same way
-        # (defaulting to empty dict) since both cases indicate malformed/legacy data
-        # where we want graceful degradation to default values.
+        # Parse failures (set to None), None values, and non-dict types are all
+        # handled the same way (defaulting to empty dict) since these cases indicate
+        # malformed/legacy data where we want graceful degradation to default values.
         content = trigger.get("content")
         if isinstance(content, str):
             try:
