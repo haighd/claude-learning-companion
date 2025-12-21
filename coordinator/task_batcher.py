@@ -65,7 +65,10 @@ TOKEN_COSTS = {
     'tool_call': 1000,          # Tool invocation
 }
 
-# Default number of subagents assumed when parallel work is detected
+# Default number of subagents assumed when parallel work is detected.
+# Value of 2 based on typical swarm patterns where tasks mention "parallel" work
+# but don't specify exact agent count. Conservative estimate to avoid underestimating
+# context consumption. Override via task metadata if known.
 DEFAULT_SUBAGENT_COUNT = 2
 
 

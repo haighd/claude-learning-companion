@@ -89,6 +89,7 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
         # we don't duplicate it at the top level to keep message structure clean.
         message = {
             "id": msg_id,
+            "type": "checkpoint_trigger",
             "from": "watcher",
             "to": "claude-main",
             "content": json.dumps({

@@ -182,7 +182,10 @@ def check_cooldown(last_checkpoint_time: Optional[str]) -> bool:
         now = datetime.now(timezone.utc)
         elapsed = (now - last_cp).total_seconds()
         return elapsed < COOLDOWN_SECONDS
-    except (ValueError, TypeError) as e:
+    except (ValueError, TypeError, AttributeError):
+        # ValueError: invalid datetime format
+        # TypeError: unexpected type in datetime operations
+        # AttributeError: last_checkpoint_time is not a string (e.g., missing .replace method)
         import traceback
         sys.stderr.write(f"[context_monitor] Error parsing checkpoint time:\n{traceback.format_exc()}\n")
         return False

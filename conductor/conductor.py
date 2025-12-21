@@ -1002,9 +1002,13 @@ class Conductor:
         Args:
             workflow_name: Name of workflow to run
             input_data: Initial input parameters
-            on_node_complete: Callback after each node (for progress reporting)
-            on_batch_boundary: Callback between batches (for custom checkpointing)
-            auto_checkpoint: If True, auto-check context at batch boundaries (Phase 3)
+            on_node_complete: Optional callback after each node completes.
+                Signature: (node_id: str, context: Dict) -> None
+            on_batch_boundary: Optional callback between batches for custom handling.
+                Signature: (run_id: int, context: Dict, should_checkpoint: bool) -> None
+                Called when batch boundary is reached; receives checkpoint recommendation.
+            auto_checkpoint: If True, automatically trigger checkpoint when context
+                utilization exceeds threshold at batch boundaries (Phase 3). Default: True.
 
         Returns:
             Run ID
