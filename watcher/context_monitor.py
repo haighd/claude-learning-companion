@@ -45,6 +45,8 @@ def load_session_state() -> Dict[str, Any]:
             state['context_metrics'] = get_default_context_metrics()['context_metrics']
         return state
     except (json.JSONDecodeError, OSError):
+        import traceback
+        sys.stderr.write(f"[context_monitor] Error loading session state:\n{traceback.format_exc()}\n")
         return get_default_context_metrics()
 
 
