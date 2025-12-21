@@ -48,10 +48,13 @@ for section in "${REQUIRED_SECTIONS[@]}"; do
     fi
 done
 
-# Check minimum content length (at least 200 chars of actual content)
+# Check minimum content length.
+# This is a heuristic to flag accidentally trivial checkpoints; the default
+# threshold is 200 bytes but can be overridden via CHECKPOINT_MIN_BYTES.
+MIN_CONTENT_BYTES="${CHECKPOINT_MIN_BYTES:-200}"
 CONTENT_LENGTH=$(wc -c < "$CHECKPOINT_PATH")
-if [ "$CONTENT_LENGTH" -lt 200 ]; then
-    echo "WARNING: Checkpoint content suspiciously short ($CONTENT_LENGTH bytes)"
+if [ "$CONTENT_LENGTH" -lt "$MIN_CONTENT_BYTES" ]; then
+    echo "WARNING: Checkpoint content suspiciously short ($CONTENT_LENGTH bytes; minimum $MIN_CONTENT_BYTES)"
 fi
 
 # Verify frontmatter has required fields
