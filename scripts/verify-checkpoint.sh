@@ -72,8 +72,8 @@ REQUIRED_FIELDS=(
 )
 
 for field in "${REQUIRED_FIELDS[@]}"; do
-    # Anchor to line start to avoid matching field name as substring in another value
-    if ! echo "$FRONTMATTER" | grep -qE "^${field}"; then
+    # Anchor to line start (with optional leading whitespace for YAML indentation)
+    if ! echo "$FRONTMATTER" | grep -qE "^ *${field}"; then
         echo "ERROR: Missing required field: $field"
         exit 1
     fi

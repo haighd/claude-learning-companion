@@ -89,7 +89,8 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
         # Create checkpoint trigger message
         msg_id = f"msg-{uuid.uuid4().hex[:8]}"
         # Standardize message format: estimated_usage at top level for consistency
-        # with conductor.py checkpoint triggers.
+        # with conductor.py checkpoint triggers. Extract metrics sub-dict (raw counters)
+        # rather than including the full context_status object.
         metrics_dict = metrics or {}
         message = {
             "id": msg_id,
@@ -99,7 +100,7 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
             "content": json.dumps({
                 "reason": reason,
                 "estimated_usage": metrics_dict.get("estimated_usage"),
-                "metrics": metrics_dict,
+                "metrics": metrics_dict.get("metrics", {}),
             }),
             "read": False,
             "timestamp": utc_timestamp_iso()
