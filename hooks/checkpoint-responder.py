@@ -128,12 +128,18 @@ def main():
         msg_id = trigger.get("id", "")
         mark_message_read(msg_id)
 
-        content = trigger.get("content") or {}
-        # Enforce standardized dict content format
+        content = trigger.get("content")
+        if isinstance(content, str):
+            try:
+                content = json.loads(content)
+            except json.JSONDecodeError:
+                sys.stderr.write(f"[checkpoint-responder] Failed to decode content JSON: {content}\n")
+                content = {}
+        
         if not isinstance(content, dict):
             sys.stderr.write(
                 f"[checkpoint-responder] Unexpected content type in checkpoint trigger; "
-                f"expected dict, got {type(content).__name__}. Ignoring content.\n"
+                f"expected dict or JSON string, got {type(trigger.get('content')).__name__}. Ignoring content.\n"
             )
             content = {}
         reason = content.get("reason", "watcher request")
