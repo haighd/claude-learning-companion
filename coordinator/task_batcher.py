@@ -55,9 +55,9 @@ def _safe_env_float(name: str, default: str) -> float:
 # Token estimation constants (configurable via environment variables)
 # Uses same env vars as context_monitor.py for consistency
 CONTEXT_BUDGET = _safe_env_int('CONTEXT_WINDOW_SIZE', '200000')
-# SAFETY_MARGIN derived from checkpoint threshold (60% threshold = 40% margin)
-SAFETY_MARGIN = 1.0 - _safe_env_float('CONTEXT_CHECKPOINT_THRESHOLD', '0.6')
-EFFECTIVE_BUDGET = int(CONTEXT_BUDGET * (1 - SAFETY_MARGIN))
+# CHECKPOINT_THRESHOLD: fraction of context to use before checkpointing (e.g., 0.6 = 60%)
+CHECKPOINT_THRESHOLD = _safe_env_float('CONTEXT_CHECKPOINT_THRESHOLD', '0.6')
+EFFECTIVE_BUDGET = int(CONTEXT_BUDGET * CHECKPOINT_THRESHOLD)
 
 # Task complexity multipliers
 COMPLEXITY_KEYWORDS = {

@@ -80,13 +80,13 @@ def check_checkpoint_trigger() -> Optional[dict]:
 
         for msg in messages:
             msg_type = msg.get("type")
-            # Support two message formats:
-            # 1. Current format: type="checkpoint_trigger" with content as dict/JSON
-            # 2. Legacy format: type=None with content="checkpoint_trigger" (string)
-            is_checkpoint_trigger = (
-                msg_type == "checkpoint_trigger"
-                or (msg_type is None and msg.get("content") == "checkpoint_trigger")
-            )
+            # Supported message format:
+            # - Current format: type="checkpoint_trigger" with content as dict/JSON
+            #
+            # Legacy format (type=None with content="checkpoint_trigger" as a string)
+            # is deprecated and no longer handled here because downstream code expects
+            # JSON/dict content and would fail on a plain string payload.
+            is_checkpoint_trigger = msg_type == "checkpoint_trigger"
             if (
                 is_checkpoint_trigger
                 and msg.get("to") == "claude-main"
