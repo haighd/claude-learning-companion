@@ -21,6 +21,11 @@ except ImportError:
     HAS_MSVCRT = False
 
 
+class LockingNotSupportedError(RuntimeError):
+    """Raised when file locking is not available on the platform."""
+    pass
+
+
 def acquire_lock(fd) -> None:
     """
     Acquire an exclusive lock on a file descriptor.
@@ -29,7 +34,7 @@ def acquire_lock(fd) -> None:
         fd: File object (must have fileno() method)
 
     Raises:
-        RuntimeError: If file locking is not supported on this platform
+        LockingNotSupportedError: If file locking is not supported on this platform
 
     Example:
         with open("myfile.lock", "w") as lock_fd:
@@ -48,7 +53,7 @@ def acquire_lock(fd) -> None:
         # Lock 1 byte as a semaphore - the lock file content doesn't matter.
         msvcrt.locking(fd.fileno(), msvcrt.LK_LOCK, 1)
     else:
-        raise RuntimeError("File locking is not supported on this platform.")
+        raise LockingNotSupportedError("File locking is not supported on this platform.")
 
 
 def release_lock(fd) -> None:
@@ -59,7 +64,7 @@ def release_lock(fd) -> None:
         fd: File object (must have fileno() method)
 
     Raises:
-        RuntimeError: If file locking is not supported on this platform
+        LockingNotSupportedError: If file locking is not supported on this platform
 
     Example:
         with open("myfile.lock", "w") as lock_fd:
@@ -75,7 +80,7 @@ def release_lock(fd) -> None:
         # Unlock the 1 byte locked by acquire_lock.
         msvcrt.locking(fd.fileno(), msvcrt.LK_UNLCK, 1)
     else:
-        raise RuntimeError("File locking is not supported on this platform.")
+        raise LockingNotSupportedError("File locking is not supported on this platform.")
 
 
 def is_locking_supported() -> bool:

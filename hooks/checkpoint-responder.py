@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 # Use shared file locking utility
-from utils.file_locking import acquire_lock, release_lock
+from utils.file_locking import acquire_lock, release_lock, LockingNotSupportedError
 
 BLACKBOARD_FILE = Path.home() / ".claude" / "clc" / ".coordination" / "blackboard.json"
 LOCK_FILE = BLACKBOARD_FILE.with_suffix(".lock")
@@ -74,8 +74,7 @@ def check_checkpoint_trigger() -> Optional[dict]:
                 and not msg.get("read", False)
             ):
                 return msg
-    except (json.JSONDecodeError, OSError, RuntimeError):
-        # RuntimeError: File locking not supported on this platform
+    except (json.JSONDecodeError, OSError, LockingNotSupportedError):
         import traceback
         sys.stderr.write(f"[checkpoint-responder] Error reading blackboard:\n{traceback.format_exc()}\n")
     finally:
@@ -117,8 +116,7 @@ def mark_message_read(msg_id: str):
         temp_file.write_text(json.dumps(bb, indent=2))
         temp_file.rename(BLACKBOARD_FILE)
 
-    except (json.JSONDecodeError, OSError, RuntimeError):
-        # RuntimeError: File locking not supported on this platform
+    except (json.JSONDecodeError, OSError, LockingNotSupportedError):
         import traceback
         sys.stderr.write(f"[checkpoint-responder] Error marking message read:\n{traceback.format_exc()}\n")
     finally:

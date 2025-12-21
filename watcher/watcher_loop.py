@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional
 
 # Use shared file locking utility
-from utils.file_locking import acquire_lock, release_lock
+from utils.file_locking import acquire_lock, release_lock, LockingNotSupportedError
 
 # Paths
 COORDINATION_DIR = Path.home() / ".claude" / "clc" / ".coordination"
@@ -108,12 +108,7 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
 
         return msg_id
 
-    except (json.JSONDecodeError, OSError, RuntimeError) as exc:
-        # RuntimeError is commonly raised when file locking is not supported.
-        # Re-raise unexpected RuntimeErrors to avoid masking unrelated issues.
-        if isinstance(exc, RuntimeError) and "File locking is not supported" not in str(exc):
-            raise
-
+    except (json.JSONDecodeError, OSError, LockingNotSupportedError) as exc:
         import traceback
         print(
             f"Failed to write checkpoint trigger due to {type(exc).__name__}: {exc}\n"
