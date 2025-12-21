@@ -110,7 +110,8 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
 
     except (json.JSONDecodeError, OSError, RuntimeError) as e:
         # RuntimeError: File locking not supported on this platform
-        print(f"Failed to write checkpoint trigger: {e}", file=sys.stderr)
+        import traceback
+        print(f"Failed to write checkpoint trigger:\n{traceback.format_exc()}", file=sys.stderr)
         return None
     finally:
         if lock_fd:
