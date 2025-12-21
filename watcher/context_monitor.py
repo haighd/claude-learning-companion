@@ -163,7 +163,6 @@ def get_last_checkpoint_time() -> Optional[str]:
     # Also check session state for last_checkpoint_time
     state = load_session_state()
     return state.get('context_metrics', {}).get('last_checkpoint_time')
-    if not last_checkpoint_time:
 
 def check_cooldown(last_checkpoint_time: Optional[str]) -> bool:
     """Check if we're still in cooldown period."""
