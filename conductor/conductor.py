@@ -936,7 +936,8 @@ class Conductor:
             # - IOError: file system issues reading session state
             # - ValueError: datetime parsing errors
             # - json.JSONDecodeError: corrupted session state file
-            sys.stderr.write(f"Warning: Context check failed: {e}\n")
+            import traceback
+            sys.stderr.write(f"Warning: Context check failed:\n{traceback.format_exc()}\n")
             return None
 
     def _trigger_checkpoint(self, run_id: int, context: Dict, reason: str,
