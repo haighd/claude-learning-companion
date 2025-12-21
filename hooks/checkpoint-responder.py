@@ -60,9 +60,15 @@ def check_checkpoint_trigger() -> Optional[dict]:
         messages = bb.get("messages", [])
 
         for msg in messages:
-            if (msg.get("type") == "checkpoint_trigger"
+            msg_type = msg.get("type")
+            if (
+                (
+                    msg_type == "checkpoint_trigger"
+                    or (msg_type is None and msg.get("content") == "checkpoint_trigger")
+                )
                 and msg.get("to") == "claude-main"
-                and not msg.get("read", False)):
+                and not msg.get("read", False)
+            ):
                 return msg
     except (json.JSONDecodeError, IOError, RuntimeError) as e:
         # RuntimeError: File locking not supported on this platform
