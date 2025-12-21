@@ -92,7 +92,8 @@ def get_last_checkpoint_time() -> Optional[str]:
             if valid_timestamps:
                 return max(valid_timestamps)
     except (json.JSONDecodeError, IOError) as e:
-        sys.stderr.write(f"[context_monitor] Error reading checkpoint index: {e}\n")
+        import traceback
+        sys.stderr.write(f"[context_monitor] Error reading checkpoint index:\n{traceback.format_exc()}\n")
         # Fall through to check session state below
 
     # Also check session state for last_checkpoint_time
