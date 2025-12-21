@@ -176,10 +176,12 @@ class TaskBatcher:
         self._ensure_graph_scanned()
         if files and self.dep_graph is not None:
             try:
-                # Track files whose dependency clusters we've already retrieved to avoid
-                # redundant get_cluster calls. Once a file belongs to a retrieved cluster,
-                # we don't need to compute its cluster again since dependency clusters
-                # are transitive.
+                # Track all files that belong to any cluster we've already computed.
+                # When we compute A's cluster and it contains {A, B, C}, we add all three
+                # to clustered_files. Then when we encounter B in the loop, the check
+                # `if f in clustered_files` is True (since B was added when we processed A),
+                # so we skip computing B's cluster. This works because dependency clusters
+                # are transitive - B's cluster overlaps with A's cluster.
                 clustered_files: Set[str] = set()
                 for f in files:
                     if f in clustered_files:

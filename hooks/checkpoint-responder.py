@@ -173,7 +173,8 @@ def main():
         if not isinstance(content, dict):
             sys.stderr.write(
                 f"[checkpoint-responder] Non-dict checkpoint content encountered; "
-                f"using defaults instead. Original type={type(content).__name__}, value={repr(content)}\n"
+                f"using defaults instead (content={{}}, reason='watcher request', usage_pct=0%). "
+                f"Original type={type(content).__name__}, value={repr(content)}\n"
             )
             content = {}
         reason = content.get("reason", "watcher request")
@@ -181,7 +182,11 @@ def main():
         usage = content.get("estimated_usage")
         if usage is None:
             usage = content.get("metrics", {}).get("estimated_usage", 0)
-        usage_pct = usage * 100
+        try:
+            usage_pct = float(usage) * 100
+        except (ValueError, TypeError):
+            sys.stderr.write(f"[checkpoint-responder] Invalid value for estimated_usage: {repr(usage)}, using 0.\n")
+            usage_pct = 0.0
 
         sys.stderr.write(f"[checkpoint-responder] Checkpoint trigger detected: {reason}\n")
 
