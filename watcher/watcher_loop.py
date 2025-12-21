@@ -110,7 +110,7 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
 
         return msg_id
 
-    except (json.JSONDecodeError, OSError, LockingNotSupportedError) as exc:
+    except (json.JSONDecodeError, OSError, LockingNotSupportedError, TimeoutError) as exc:
         import traceback
         print(
             f"Failed to write checkpoint trigger due to {type(exc).__name__}: {exc}\n"

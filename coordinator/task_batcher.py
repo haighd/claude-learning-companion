@@ -14,6 +14,7 @@ Usage:
     batches = batcher.batch_tasks_by_context(tasks)
 """
 
+import os
 import traceback
 from pathlib import Path
 from typing import Dict, List, Any, Set, Optional
@@ -37,11 +38,12 @@ DependencyGraph, HAS_DEPENDENCY_GRAPH = get_module_attribute(
 )
 
 
-# Token estimation constants (conservative)
-# CONTEXT_BUDGET aligned with context_monitor.ASSUMED_CONTEXT_WINDOW (200k tokens)
-CONTEXT_BUDGET = 200_000  # Total context window estimate
-SAFETY_MARGIN = 0.4  # Reserve 40% for safety (use only 60%)
-EFFECTIVE_BUDGET = int(CONTEXT_BUDGET * (1 - SAFETY_MARGIN))  # 120,000 tokens
+# Token estimation constants (configurable via environment variables)
+# Uses same env vars as context_monitor.py for consistency
+CONTEXT_BUDGET = int(os.environ.get('CONTEXT_WINDOW_SIZE', '200000'))
+# SAFETY_MARGIN derived from checkpoint threshold (60% threshold = 40% margin)
+SAFETY_MARGIN = 1.0 - float(os.environ.get('CONTEXT_CHECKPOINT_THRESHOLD', '0.6'))
+EFFECTIVE_BUDGET = int(CONTEXT_BUDGET * (1 - SAFETY_MARGIN))
 
 # Task complexity multipliers
 COMPLEXITY_KEYWORDS = {

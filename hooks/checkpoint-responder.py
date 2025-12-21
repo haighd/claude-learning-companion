@@ -29,7 +29,7 @@ CHECKPOINT_REMINDER_TEMPLATE = """
 ---
 ## Checkpoint Reminder from Watcher
 
-The context monitor has detected high context usage ({usage_pct:.0f}%).
+The context monitor has detected high context usage ({usage_str}).
 
 **Reason**: {reason}
 
@@ -91,7 +91,7 @@ def check_checkpoint_trigger() -> Optional[dict]:
                 and not msg.get("read", False)
             ):
                 return msg
-    except (json.JSONDecodeError, OSError, LockingNotSupportedError):
+    except (json.JSONDecodeError, OSError, LockingNotSupportedError, TimeoutError):
         import traceback
         sys.stderr.write(f"[checkpoint-responder] Error reading blackboard:\n{traceback.format_exc()}\n")
     finally:
@@ -136,7 +136,7 @@ def mark_message_read(msg_id: str):
         temp_file.write_text(json.dumps(bb, indent=2))
         temp_file.rename(BLACKBOARD_FILE)
 
-    except (json.JSONDecodeError, OSError, LockingNotSupportedError):
+    except (json.JSONDecodeError, OSError, LockingNotSupportedError, TimeoutError):
         import traceback
         sys.stderr.write(f"[checkpoint-responder] Error marking message read:\n{traceback.format_exc()}\n")
     finally:
@@ -182,18 +182,21 @@ def main():
         usage = content.get("estimated_usage")
         if usage is None:
             usage = content.get("metrics", {}).get("estimated_usage", 0)
+
+        usage_str: str
         try:
             usage_pct = float(usage) * 100
+            usage_str = f"{usage_pct:.0f}%"
         except (ValueError, TypeError):
-            sys.stderr.write(f"[checkpoint-responder] Invalid value for estimated_usage: {repr(usage)}, using 0.\n")
-            usage_pct = 0.0
+            sys.stderr.write(f"[checkpoint-responder] Invalid value for estimated_usage: {repr(usage)}, showing raw value.\n")
+            usage_str = f"(invalid value: {repr(usage)})"
 
         sys.stderr.write(f"[checkpoint-responder] Checkpoint trigger detected: {reason}\n")
 
         # Return context to remind agent to checkpoint
         output_result({
             "additionalContext": CHECKPOINT_REMINDER_TEMPLATE.format(
-                usage_pct=usage_pct,
+                usage_str=usage_str,
                 reason=reason
             )
         })

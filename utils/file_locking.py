@@ -7,6 +7,9 @@ Raises RuntimeError on platforms without locking support to prevent
 silent data corruption.
 """
 
+import random
+import time
+
 # Cross-platform file locking imports
 try:
     import fcntl
@@ -26,15 +29,17 @@ class LockingNotSupportedError(RuntimeError):
     pass
 
 
-def acquire_lock(fd) -> None:
+def acquire_lock(fd, timeout: float = 30.0) -> None:
     """
-    Acquire an exclusive lock on a file descriptor.
+    Acquire an exclusive lock on a file descriptor with a timeout.
 
     Args:
         fd: File object (must have fileno() method)
+        timeout: Seconds to wait for the lock (default 30.0)
 
     Raises:
         LockingNotSupportedError: If file locking is not supported on this platform
+        TimeoutError: If the lock cannot be acquired within the timeout
 
     Example:
         with open("myfile.lock", "w") as lock_fd:
@@ -42,18 +47,25 @@ def acquire_lock(fd) -> None:
             # ... do work ...
             release_lock(lock_fd)
     """
-    if HAS_FCNTL:
-        # LOCK_EX blocks until the lock is acquired (no timeout).
-        fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
-    elif HAS_MSVCRT:
-        # msvcrt.locking locks bytes starting at the current file position.
-        # Seek to offset 0 to ensure consistent lock location across calls.
-        fd.seek(0)
-        # LK_LOCK blocks until the lock is acquired (retries every second).
-        # Lock 1 byte as a semaphore - the lock file content doesn't matter.
-        msvcrt.locking(fd.fileno(), msvcrt.LK_LOCK, 1)
-    else:
+    if not is_locking_supported():
         raise LockingNotSupportedError("File locking is not supported on this platform.")
+
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            if HAS_FCNTL:
+                fcntl.flock(fd.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                return
+            elif HAS_MSVCRT:
+                fd.seek(0)
+                # Lock 1 byte as a semaphore using non-blocking mode.
+                msvcrt.locking(fd.fileno(), msvcrt.LK_NBLCK, 1)
+                return
+        except (IOError, OSError):
+            # Lock is held by another process, wait and retry
+            time.sleep(0.1 + random.uniform(0, 0.1))
+
+    raise TimeoutError(f"Could not acquire lock on {fd.name} within {timeout} seconds.")
 
 
 def release_lock(fd) -> None:

@@ -97,18 +97,21 @@ def get_haiku_prompt(state: Dict[str, Any]) -> str:
     context_section = ""
     context_status = state.get("context_status")
     if context_status and isinstance(context_status, dict) and "estimated_usage" in context_status:
+        usage_str: str
         try:
             usage_pct = float(context_status.get("estimated_usage", 0)) * 100
+            usage_str = f"{usage_pct:.0f}%"
         except (ValueError, TypeError):
-            sys.stderr.write(f"[haiku_watcher] Invalid value for estimated_usage: {repr(context_status.get('estimated_usage'))}, using 0.\n")
-            usage_pct = 0.0
+            usage_raw = context_status.get('estimated_usage')
+            sys.stderr.write(f"[haiku_watcher] Invalid value for estimated_usage: {repr(usage_raw)}, showing raw value.\n")
+            usage_str = f"invalid ({repr(usage_raw)})"
         should_checkpoint = context_status.get("should_checkpoint", False)
         reason = context_status.get("reason", "N/A")
         in_cooldown = context_status.get("in_cooldown", False)
         context_section = f"""
 ## Context Utilization (Phase 2)
 
-- **Estimated Usage**: {usage_pct:.0f}%
+- **Estimated Usage**: {usage_str}
 - **Should Checkpoint**: {should_checkpoint}
 - **Reason**: {reason}
 - **In Cooldown**: {in_cooldown}
