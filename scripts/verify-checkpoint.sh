@@ -42,7 +42,8 @@ REQUIRED_SECTIONS=(
 )
 
 for section in "${REQUIRED_SECTIONS[@]}"; do
-    if ! grep -q "$section" "$CHECKPOINT_PATH"; then
+    # Anchor to line start (with optional leading whitespace) to prevent false positives
+    if ! grep -qE "^ *${section}" "$CHECKPOINT_PATH"; then
         echo "ERROR: Missing required section: $section"
         exit 1
     fi

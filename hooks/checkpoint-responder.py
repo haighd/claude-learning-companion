@@ -177,10 +177,8 @@ def main():
             )
             content = {}
         reason = content.get("reason", "watcher request")
-        # Get usage from top level (from conductor) or fall back to inside metrics dict (from watcher).
-        usage = content.get("estimated_usage")
-        if usage is None:
-            usage = content.get("metrics", {}).get("estimated_usage", 0)
+        # Both conductor.py and watcher_loop.py now put estimated_usage at top level.
+        usage = content.get("estimated_usage", 0)
 
         usage_str: str
         try:

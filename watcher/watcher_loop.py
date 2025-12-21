@@ -88,7 +88,9 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
 
         # Create checkpoint trigger message
         msg_id = f"msg-{uuid.uuid4().hex[:8]}"
-        # The metrics dict contains estimated_usage if available.
+        # Standardize message format: estimated_usage at top level for consistency
+        # with conductor.py checkpoint triggers.
+        metrics_dict = metrics or {}
         message = {
             "id": msg_id,
             "type": "checkpoint_trigger",
@@ -96,7 +98,8 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
             "to": "claude-main",
             "content": json.dumps({
                 "reason": reason,
-                "metrics": metrics or {},
+                "estimated_usage": metrics_dict.get("estimated_usage"),
+                "metrics": metrics_dict,
             }),
             "read": False,
             "timestamp": utc_timestamp_iso()
