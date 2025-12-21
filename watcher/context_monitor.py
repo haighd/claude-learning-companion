@@ -63,8 +63,9 @@ from typing import Any, Dict, Optional
 SESSION_STATE_PATH = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
 CHECKPOINT_INDEX_PATH = Path.home() / ".claude" / "clc" / "checkpoints" / "index.json"
 
-# Assumed context window size in tokens. Current Claude models typically have
-# 200k token context windows, but this can be adjusted if using different models.
+# Assumed context window size in tokens. Defaults to 200k tokens as a
+# conservative heuristic; override via CONTEXT_WINDOW_SIZE for different models
+# or context sizes.
 ASSUMED_CONTEXT_WINDOW = int(os.environ.get('CONTEXT_WINDOW_SIZE', '200000'))
 
 # Heuristic weights for estimating context consumption.
