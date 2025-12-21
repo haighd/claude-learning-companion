@@ -63,11 +63,15 @@ from typing import Any, Dict, Optional
 SESSION_STATE_PATH = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
 CHECKPOINT_INDEX_PATH = Path.home() / ".claude" / "clc" / "checkpoints" / "index.json"
 
+# Assumed context window size in tokens. Current Claude models typically have
+# 200k token context windows, but this can be adjusted if using different models.
+ASSUMED_CONTEXT_WINDOW = int(os.environ.get('CONTEXT_WINDOW_SIZE', '200000'))
+
 # Heuristic weights for estimating context consumption.
 #
-# Each weight represents the fraction of a ~200k token context window consumed
-# per operation. These values are intentionally conservative to trigger
-# checkpoints early rather than risk context exhaustion.
+# Each weight represents the fraction of ASSUMED_CONTEXT_WINDOW consumed per
+# operation. These values are intentionally conservative to trigger checkpoints
+# early rather than risk context exhaustion.
 #
 # Empirical basis: These defaults were derived from observing typical Claude
 # Code sessions where messages average ~2000 tokens, file reads ~4000 tokens,
@@ -166,7 +170,8 @@ def check_cooldown(last_checkpoint_time: Optional[str]) -> bool:
         return False  # No cooldown if never checkpointed or empty timestamp
 
     try:
-        # Handle both Z suffix and +00:00 format in a single, safe operation
+        # Normalize ISO timestamp: replace 'Z' suffix with '+00:00' for fromisoformat.
+        # If timestamp already has '+00:00' or other offset, replace is a no-op.
         normalized_time = last_checkpoint_time.replace('Z', '+00:00')
         last_cp = datetime.fromisoformat(normalized_time)
 

@@ -38,11 +38,13 @@ def acquire_lock(fd) -> None:
             release_lock(lock_fd)
     """
     if HAS_FCNTL:
+        # LOCK_EX blocks until the lock is acquired (no timeout).
         fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
     elif HAS_MSVCRT:
         # msvcrt.locking locks bytes starting at the current file position.
         # Seek to offset 0 to ensure consistent lock location across calls.
         fd.seek(0)
+        # LK_LOCK blocks until the lock is acquired (retries every second).
         # Lock 1 byte as a semaphore - the lock file content doesn't matter.
         msvcrt.locking(fd.fileno(), msvcrt.LK_LOCK, 1)
     else:

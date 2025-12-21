@@ -219,19 +219,19 @@ class TaskBatcher:
 
             if self.dep_graph is not None:
                 try:
-                    cluster = self.dep_graph.get_cluster(f, depth=1)
-                    cluster = cluster.intersection(files_set)
+                    full_cluster = self.dep_graph.get_cluster(f, depth=1)
+                    relevant_cluster = full_cluster.intersection(files_set)
                 except (AttributeError, TypeError, KeyError):
                     # See split_task_for_context for exception rationale
                     import traceback
                     sys.stderr.write(f"Warning: Failed to get dependency cluster for file group:\n{traceback.format_exc()}\n")
-                    cluster = {f}
+                    relevant_cluster = {f}
             else:
-                cluster = {f}
+                relevant_cluster = {f}
 
-            if cluster:
-                clusters.append(list(cluster))
-                assigned.update(cluster)
+            if relevant_cluster:
+                clusters.append(list(relevant_cluster))
+                assigned.update(relevant_cluster)
             else:
                 clusters.append([f])
                 assigned.add(f)

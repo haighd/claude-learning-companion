@@ -85,6 +85,8 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
 
         # Create checkpoint trigger message
         msg_id = f"msg-{uuid.uuid4().hex[:8]}"
+        # Note: estimated_usage is available via metrics dict if present;
+        # we don't duplicate it at the top level to keep message structure clean.
         message = {
             "id": msg_id,
             "from": "watcher",
@@ -92,7 +94,6 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
             "type": "checkpoint_trigger",
             "content": {
                 "reason": reason,
-                "estimated_usage": metrics.get("estimated_usage", 0) if metrics else 0,
                 "metrics": metrics or {},
             },
             "read": False,

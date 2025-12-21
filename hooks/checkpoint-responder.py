@@ -137,7 +137,9 @@ def main():
             )
             content = {}
         reason = content.get("reason", "watcher request")
-        usage = content.get("estimated_usage", 0)
+        # estimated_usage is in the metrics dict to avoid duplication
+        metrics = content.get("metrics", {})
+        usage = metrics.get("estimated_usage", 0)
         usage_pct = usage * 100
 
         sys.stderr.write(f"[checkpoint-responder] Checkpoint trigger detected: {reason}\n")
