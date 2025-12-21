@@ -990,7 +990,8 @@ class Conductor:
             # AttributeError: blackboard module may not have trigger function
             # IOError/OSError: file system issues with blackboard
             # sqlite3.Error: database logging failures
-            sys.stderr.write(f"Warning: Failed to trigger checkpoint: {e}\n")
+            import traceback
+            sys.stderr.write(f"Warning: Failed to trigger checkpoint:\n{traceback.format_exc()}\n")
 
     def run_workflow(self, workflow_name: str, input_data: Dict = None,
                      on_node_complete: Callable = None,
