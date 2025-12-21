@@ -2,9 +2,53 @@
 """
 Context Monitor - Estimates context window utilization.
 
-Uses observable heuristics since token budget API is not exposed.
-Conservative estimates to trigger checkpoints early rather than late.
+This module tracks coarse-grained interaction metrics (message count, file
+reads/edits, tool calls, subagent spawns) and applies fixed heuristic
+weights to estimate how much of the model's context window is likely
+to be in use. Because the underlying token budget API is not exposed,
+the estimation is intentionally conservative so that checkpoints are
+triggered early rather than late.
 
+The core flow is:
+  1. `load_session_state()` reads session metrics from
+     `~/.claude/hooks/learning-loop/session-state.json`, falling back to
+     `get_default_context_metrics()` if missing or invalid.
+  2. `estimate_context_usage(metrics)` multiplies each metric by the
+     corresponding entry in `WEIGHTS` and sums the results to produce an
+     estimated usage fraction in the range 0.0–1.0.
+  3. `get_context_status()` combines the estimated usage with checkpoint
+     metadata (last checkpoint time, cooldown) and returns a status dict
+     that higher-level tooling can use to decide whether to create a
+     checkpoint.
+  4. `reset_context_metrics()` is called by checkpoint hooks to zero out
+     the counters and record the time of the last checkpoint.
+
+Heuristic approach
+-------------------
+The `WEIGHTS` dictionary encodes an approximate fraction of the total
+context window consumed by each operation. For example, with an assumed
+~200k-token window, a `message_count` weight of 0.01 implies that each
+message is treated as if it consumes roughly 1% of the window. This
+approach favors early checkpointing at the cost of underutilizing the
+theoretical maximum context capacity, which is safer for long sessions.
+
+Usage examples
+--------------
+CLI:
+    # Show current estimated usage and checkpoint status
+    python context_monitor.py --status
+
+    # Reset metrics after creating a manual checkpoint
+    python context_monitor.py --reset
+
+Programmatic:
+    from watcher import context_monitor
+
+    status = context_monitor.get_context_status()
+    if status["should_checkpoint"]:
+        # Trigger your checkpoint logic here
+        ...
+        context_monitor.reset_context_metrics()
 Part of Phase 2: Proactive Watcher Monitoring for Context Management.
 """
 
