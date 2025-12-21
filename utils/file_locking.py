@@ -40,8 +40,10 @@ def acquire_lock(fd) -> None:
     if HAS_FCNTL:
         fcntl.flock(fd.fileno(), fcntl.LOCK_EX)
     elif HAS_MSVCRT:
-        # msvcrt.locking: 3rd arg is number of bytes to lock.
-        # We lock 1 byte as a semaphore - the lock file content doesn't matter.
+        # msvcrt.locking locks bytes starting at the current file position.
+        # Seek to offset 0 to ensure consistent lock location across calls.
+        fd.seek(0)
+        # Lock 1 byte as a semaphore - the lock file content doesn't matter.
         msvcrt.locking(fd.fileno(), msvcrt.LK_LOCK, 1)
     else:
         raise RuntimeError("File locking is not supported on this platform.")
@@ -66,7 +68,9 @@ def release_lock(fd) -> None:
     if HAS_FCNTL:
         fcntl.flock(fd.fileno(), fcntl.LOCK_UN)
     elif HAS_MSVCRT:
-        # msvcrt.locking: 3rd arg is bytes to unlock (must match acquire_lock).
+        # Seek to same offset used in acquire_lock for unlock to work.
+        fd.seek(0)
+        # Unlock the 1 byte locked by acquire_lock.
         msvcrt.locking(fd.fileno(), msvcrt.LK_UNLCK, 1)
     else:
         raise RuntimeError("File locking is not supported on this platform.")

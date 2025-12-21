@@ -77,8 +77,10 @@ def gather_state() -> Dict[str, Any]:
     if CONTEXT_MONITOR_AVAILABLE and get_context_status:
         try:
             state["context_status"] = get_context_status()
-        except (AttributeError, TypeError, KeyError, IOError, ValueError) as e:
-            # Can fail due to:
+        except (AttributeError, TypeError, KeyError, IOError, ValueError):
+            # All exceptions are handled uniformly here because context status
+            # is non-critical for the watcher - we log the full traceback and
+            # continue monitoring. The exception types cover:
             # - AttributeError/TypeError/KeyError: context monitor module issues
             # - IOError: file system issues reading session state
             # - ValueError: datetime parsing errors in check_cooldown

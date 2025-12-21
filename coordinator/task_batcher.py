@@ -202,6 +202,10 @@ class TaskBatcher:
 
     def _split_by_file_groups(self, task: Dict, files: List[str]) -> List[Dict]:
         """Split task by file groups that fit within budget."""
+        # Early return for empty files - nothing to split
+        if not files:
+            return [task]
+
         self._ensure_graph_scanned()
 
         # Group files by dependency clusters
@@ -217,7 +221,7 @@ class TaskBatcher:
                 try:
                     cluster = self.dep_graph.get_cluster(f, depth=1)
                     cluster = cluster.intersection(files_set)
-                except (AttributeError, TypeError, KeyError) as e:
+                except (AttributeError, TypeError, KeyError):
                     # See split_task_for_context for exception rationale
                     import traceback
                     sys.stderr.write(f"Warning: Failed to get dependency cluster for file group:\n{traceback.format_exc()}\n")

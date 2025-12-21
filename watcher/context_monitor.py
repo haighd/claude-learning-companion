@@ -53,6 +53,7 @@ Part of Phase 2: Proactive Watcher Monitoring for Context Management.
 """
 
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -62,20 +63,33 @@ from typing import Any, Dict, Optional
 SESSION_STATE_PATH = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
 CHECKPOINT_INDEX_PATH = Path.home() / ".claude" / "clc" / "checkpoints" / "index.json"
 
-# Heuristic weights (conservative estimates)
-# Assume a total context window of ~200k tokens; values below are
-# fractions of total context consumed per operation (e.g., 0.01 = 1%).
+# Heuristic weights for estimating context consumption.
+#
+# Each weight represents the fraction of a ~200k token context window consumed
+# per operation. These values are intentionally conservative to trigger
+# checkpoints early rather than risk context exhaustion.
+#
+# Empirical basis: These defaults were derived from observing typical Claude
+# Code sessions where messages average ~2000 tokens, file reads ~4000 tokens,
+# etc. Adjust via environment variables if your usage patterns differ.
+#
+# Environment variable overrides (set as decimal fractions, e.g., "0.015"):
+#   CONTEXT_WEIGHT_MESSAGE_COUNT, CONTEXT_WEIGHT_FILE_READS,
+#   CONTEXT_WEIGHT_FILE_EDITS, CONTEXT_WEIGHT_TOOL_CALLS,
+#   CONTEXT_WEIGHT_SUBAGENT_SPAWNS
 WEIGHTS = {
-    'message_count': 0.01,       # ~1% of 200k context per message (~2000 tokens implied)
-    'file_reads': 0.02,          # ~2% of 200k context per file read (~4000 tokens implied)
-    'file_edits': 0.015,         # ~1.5% of 200k context per edit (~3000 tokens implied)
-    'tool_calls': 0.005,         # ~0.5% of 200k context per tool call (~1000 tokens implied)
-    'subagent_spawns': 0.05,     # ~5% of 200k context per subagent (~10000 tokens implied)
+    'message_count': float(os.environ.get('CONTEXT_WEIGHT_MESSAGE_COUNT', '0.01')),
+    'file_reads': float(os.environ.get('CONTEXT_WEIGHT_FILE_READS', '0.02')),
+    'file_edits': float(os.environ.get('CONTEXT_WEIGHT_FILE_EDITS', '0.015')),
+    'tool_calls': float(os.environ.get('CONTEXT_WEIGHT_TOOL_CALLS', '0.005')),
+    'subagent_spawns': float(os.environ.get('CONTEXT_WEIGHT_SUBAGENT_SPAWNS', '0.05')),
 }
 
-# Thresholds
-CHECKPOINT_THRESHOLD = 0.60  # Trigger at 60%
-COOLDOWN_SECONDS = 600       # 10 minute cooldown
+# Thresholds (configurable via environment variables)
+# CHECKPOINT_THRESHOLD: fraction (0.0-1.0) at which to trigger checkpoint
+# COOLDOWN_SECONDS: minimum seconds between checkpoints
+CHECKPOINT_THRESHOLD = float(os.environ.get('CONTEXT_CHECKPOINT_THRESHOLD', '0.60'))
+COOLDOWN_SECONDS = int(os.environ.get('CONTEXT_COOLDOWN_SECONDS', '600'))
 
 
 def load_session_state() -> Dict[str, Any]:

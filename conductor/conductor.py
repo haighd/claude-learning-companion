@@ -919,10 +919,7 @@ class Conductor:
             run_id and context are accepted for API consistency and future use
             (e.g., context-aware threshold adjustment, run-specific logging).
         """
-        # Note: run_id and context are not used yet but kept for API stability;
-        # assign to underscore-prefixed locals to indicate intentional non-use.
-        _run_id = run_id
-        _context = context
+        # run_id and context are reserved for future use (see docstring Note).
 
         if not HAS_CONTEXT_MONITOR or get_context_status is None:
             return None
@@ -932,7 +929,7 @@ class Conductor:
             if status.get('should_checkpoint', False):
                 return status
             return None
-        except (AttributeError, TypeError, IOError, ValueError, json.JSONDecodeError) as e:
+        except (AttributeError, TypeError, IOError, ValueError, json.JSONDecodeError):
             # Can fail due to:
             # - AttributeError/TypeError: context monitor module issues
             # - IOError: file system issues reading session state

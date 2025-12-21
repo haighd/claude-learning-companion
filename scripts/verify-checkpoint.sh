@@ -58,7 +58,10 @@ if [ "$CONTENT_LENGTH" -lt "$MIN_CONTENT_BYTES" ]; then
 fi
 
 # Verify frontmatter has required fields
-# Extract frontmatter (content between first --- and second ---) to avoid matching body content
+# Extract YAML frontmatter: awk reads line-by-line; if line 1 is exactly "---",
+# enter in_yaml mode and skip that line; while in_yaml, print lines until we
+# hit another "---" (the closing delimiter), then exit. This isolates the
+# frontmatter block between the two "---" delimiters.
 FRONTMATTER=$(awk 'NR==1 && $0=="---"{in_yaml=1; next} in_yaml && $0=="---"{exit} in_yaml{print}' "$CHECKPOINT_PATH")
 
 REQUIRED_FIELDS=(
@@ -68,8 +71,8 @@ REQUIRED_FIELDS=(
 )
 
 for field in "${REQUIRED_FIELDS[@]}"; do
-    # Search only within frontmatter to avoid false positives from body content
-    if ! echo "$FRONTMATTER" | grep -qE "(^|[[:space:]])$field"; then
+    # Use fixed-string matching (-F) to avoid regex interpretation of field value
+    if ! echo "$FRONTMATTER" | grep -qF "$field"; then
         echo "WARNING: Missing recommended field: $field"
     fi
 done

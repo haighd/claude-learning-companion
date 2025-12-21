@@ -132,8 +132,8 @@ def main():
         # Enforce standardized dict content format
         if not isinstance(content, dict):
             sys.stderr.write(
-                "[checkpoint-responder] Unexpected non-dict content in checkpoint trigger; "
-                "expected a dict. Ignoring content.\n"
+                f"[checkpoint-responder] Unexpected content type in checkpoint trigger; "
+                f"expected dict, got {type(content).__name__}. Ignoring content.\n"
             )
             content = {}
         reason = content.get("reason", "watcher request")
