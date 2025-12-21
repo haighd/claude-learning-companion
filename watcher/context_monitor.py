@@ -19,13 +19,14 @@ SESSION_STATE_PATH = Path.home() / ".claude" / "hooks" / "learning-loop" / "sess
 CHECKPOINT_INDEX_PATH = Path.home() / ".claude" / "clc" / "checkpoints" / "index.json"
 
 # Heuristic weights (conservative estimates)
-# Total context ~200k tokens, these estimate % consumed
+# Assume a total context window of ~200k tokens; values below are
+# fractions of total context consumed per operation (e.g., 0.01 = 1%).
 WEIGHTS = {
-    'message_count': 0.01,       # 1% per message (~2000 tokens)
-    'file_reads': 0.02,          # 2% per file read (~4000 tokens avg)
-    'file_edits': 0.015,         # 1.5% per edit (~3000 tokens)
-    'tool_calls': 0.005,         # 0.5% per tool call (~1000 tokens)
-    'subagent_spawns': 0.05,     # 5% per subagent (~10000 tokens)
+    'message_count': 0.01,       # ~1% of 200k context per message (~2000 tokens implied)
+    'file_reads': 0.02,          # ~2% of 200k context per file read (~4000 tokens implied)
+    'file_edits': 0.015,         # ~1.5% of 200k context per edit (~3000 tokens implied)
+    'tool_calls': 0.005,         # ~0.5% of 200k context per tool call (~1000 tokens implied)
+    'subagent_spawns': 0.05,     # ~5% of 200k context per subagent (~10000 tokens implied)
 }
 
 # Thresholds
