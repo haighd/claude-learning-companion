@@ -48,8 +48,9 @@ def _safe_env_int(name: str, default: str) -> int:
 
 def _safe_env_float(name: str, default: str) -> float:
     """Wrapper for shared safe_env_float with module name."""
-    # Use 0.0 as error value for task_batcher (different from context_monitor's 1.1)
-    return safe_env_float(name, default, _MODULE, error_value=0.0)
+    # Use 1.1 as error value to disable batching on config error (safer than 0.0
+    # which would set budget to 0 and cause excessive task splitting)
+    return safe_env_float(name, default, _MODULE, error_value=1.1)
 
 
 # Token estimation constants (configurable via environment variables)
@@ -274,18 +275,22 @@ class TaskBatcher:
             if f in assigned:
                 continue
 
+            # Start with safe default; refine using dep_graph if available
+            relevant_cluster: Set[str] = {f}
+
             if self.dep_graph is not None:
                 try:
                     full_cluster = self.dep_graph.get_cluster(f, depth=1)
-                    relevant_cluster = full_cluster.intersection(files_set)
+                    candidate = full_cluster.intersection(files_set)
+                    # Only use dep_graph result if non-empty and contains f
+                    if candidate and f in candidate:
+                        relevant_cluster = candidate
                 except (AttributeError, TypeError, KeyError):
                     # See split_task_for_context for exception rationale
                     sys.stderr.write(f"Warning: Failed to get dependency cluster for file group:\n{traceback.format_exc()}\n")
-                    relevant_cluster = {f}
-            else:
-                relevant_cluster = {f}
+                    # Keep default {f}
 
-            # relevant_cluster always contains at least f, so no need for else branch
+            # Invariant: relevant_cluster always contains at least f
             clusters.append(list(relevant_cluster))
             assigned.update(relevant_cluster)
 

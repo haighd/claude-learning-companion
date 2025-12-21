@@ -195,9 +195,12 @@ def check_cooldown(last_checkpoint_time: Optional[str]) -> bool:
         return False  # No cooldown if never checkpointed or empty timestamp
 
     try:
-        # Normalize ISO timestamp: replace 'Z' suffix with '+00:00' for fromisoformat.
-        # If timestamp already has '+00:00' or other offset, replace is a no-op.
-        normalized_time = last_checkpoint_time.replace('Z', '+00:00')
+        # Normalize ISO timestamp: replace trailing 'Z' suffix with '+00:00' for fromisoformat.
+        # If timestamp already has '+00:00' or other offset, leave it unchanged.
+        if isinstance(last_checkpoint_time, str) and last_checkpoint_time.endswith('Z'):
+            normalized_time = last_checkpoint_time[:-1] + '+00:00'
+        else:
+            normalized_time = last_checkpoint_time
         last_cp = datetime.fromisoformat(normalized_time)
 
         # Ensure timezone aware

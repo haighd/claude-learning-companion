@@ -46,6 +46,11 @@ def acquire_lock(fd, timeout: float = 30.0) -> None:
             acquire_lock(lock_fd)
             # ... do work ...
             release_lock(lock_fd)
+
+    Note:
+        On Windows with msvcrt, locking works on text mode files but uses byte
+        offsets. For maximum compatibility, consider opening in binary mode ("wb")
+        when the lock file content is not meaningful.
     """
     if not is_locking_supported():
         raise LockingNotSupportedError("File locking is not supported on this platform.")

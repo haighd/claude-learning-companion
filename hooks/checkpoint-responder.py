@@ -173,7 +173,7 @@ def main():
         if not isinstance(content, dict):
             sys.stderr.write(
                 f"[checkpoint-responder] Non-dict checkpoint content encountered; "
-                f"using defaults instead (content={{}}, reason='watcher request', usage_pct=0%). "
+                f"using defaults instead (content={{}}, reason='watcher request', estimated_usage=0). "
                 f"Original type={type(content).__name__}, value={repr(content)}\n"
             )
             content = {}

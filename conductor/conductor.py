@@ -1047,10 +1047,12 @@ class Conductor:
             current_nodes = list(set(next_nodes))
 
             # Check for batch boundaries: transitions between workflow phases where
-            # context may have grown significantly. This triggers before processing
-            # the next set of nodes, giving us a chance to checkpoint and preserve
-            # context quality. Always evaluate when a callback is registered so
-            # on_batch_boundary receives accurate should_checkpoint values.
+            # context may have grown significantly. This triggers only when there are
+            # more nodes to process (current_nodes non-empty), giving us a chance to
+            # checkpoint and preserve context quality between phases. No checkpoint
+            # is triggered at workflow completion (handled separately by run finalization).
+            # Always evaluate when a callback is registered so on_batch_boundary
+            # receives accurate should_checkpoint values.
             if current_nodes and (auto_checkpoint or on_batch_boundary):
                 context_status = self._check_batch_boundary()
                 should_checkpoint = context_status is not None
