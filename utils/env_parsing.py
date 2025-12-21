@@ -59,18 +59,24 @@ def safe_env_parser(
         return error_value
 
 
-def safe_env_int(name: str, default: str, module_name: str = "env_parsing") -> int:
+def safe_env_int(
+    name: str,
+    default: str,
+    module_name: str = "env_parsing",
+    error_value: int = 0
+) -> int:
     """Safely parse int from environment variable.
 
     Args:
         name: Environment variable name
         default: Default value as string
         module_name: Name of calling module for error messages
+        error_value: Value to return on error. Defaults to 0.
 
     Returns:
-        Parsed integer, or 0 if parsing fails
+        Parsed integer, or error_value if parsing fails
     """
-    return safe_env_parser(name, default, int, 0, module_name)
+    return safe_env_parser(name, default, int, error_value, module_name)
 
 
 def safe_env_float(

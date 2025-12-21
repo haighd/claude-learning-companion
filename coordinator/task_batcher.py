@@ -41,15 +41,20 @@ DependencyGraph, HAS_DEPENDENCY_GRAPH = get_module_attribute(
 )
 
 
+# Module-level wrappers set consistent module name for error messages and
+# customize error_value for this module's specific failure modes.
+
 def _safe_env_int(name: str, default: str) -> int:
-    """Wrapper for shared safe_env_int with module name."""
+    """Wrapper setting module name for error messages."""
     return safe_env_int(name, default, _MODULE)
 
 
 def _safe_env_float(name: str, default: str) -> float:
-    """Wrapper for shared safe_env_float with module name."""
-    # Use 1.1 as error value to disable batching on config error (safer than 0.0
-    # which would set budget to 0 and cause excessive task splitting)
+    """Wrapper setting module name and custom error_value.
+
+    Uses 1.1 as error value to disable batching on config error (safer than 0.0
+    which would set budget to 0 and cause excessive task splitting).
+    """
     return safe_env_float(name, default, _MODULE, error_value=1.1)
 
 

@@ -69,13 +69,16 @@ from utils.env_parsing import safe_env_int, safe_env_float
 _MODULE = "context_monitor"
 
 
+# Module-level wrappers set consistent module name for error messages.
+# Keeps call sites clean and ensures consistent error reporting.
+
 def _safe_env_float(name: str, default: str) -> float:
-    """Wrapper for shared safe_env_float with module name."""
+    """Wrapper setting module name for error messages."""
     return safe_env_float(name, default, _MODULE)
 
 
 def _safe_env_int(name: str, default: str) -> int:
-    """Wrapper for shared safe_env_int with module name."""
+    """Wrapper setting module name for error messages."""
     return safe_env_int(name, default, _MODULE)
 
 

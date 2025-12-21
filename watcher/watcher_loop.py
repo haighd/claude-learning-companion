@@ -58,6 +58,15 @@ def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = Non
 
     Uses file locking to prevent race conditions with concurrent readers/writers.
 
+    Note: This function implements its own blackboard manipulation rather than using
+    the coordinator.blackboard.Blackboard class because:
+    1. The watcher operates at CLC level (~/.claude/clc/) not project level
+    2. Requires UTC timestamps (Blackboard uses naive datetime)
+    3. Needs timeout-based locking via file_locking module (Blackboard blocks indefinitely)
+    4. Uses checkpoint_trigger message type specific to the watcher protocol
+    TODO: Consider consolidating with Blackboard class in a future refactor by
+    adding UTC timestamp support and configurable paths to the Blackboard class.
+
     Args:
         reason: Why checkpoint is being triggered (e.g., "context_60_percent")
         metrics: Optional dict of context metrics (usage, counts, etc.)
