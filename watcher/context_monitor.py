@@ -36,31 +36,31 @@ COOLDOWN_SECONDS = 600       # 10 minute cooldown
 def load_session_state() -> Dict[str, Any]:
     """Load current session context metrics."""
     if not SESSION_STATE_PATH.exists():
-        return get_default_context_metrics()
+        # Wrap default metrics in the expected session state structure
+        return {'context_metrics': get_default_context_metrics()}
 
     try:
         state = json.loads(SESSION_STATE_PATH.read_text())
         # Ensure context metrics exist
         if 'context_metrics' not in state:
-            state['context_metrics'] = get_default_context_metrics()['context_metrics']
+            state['context_metrics'] = get_default_context_metrics()
         return state
     except (json.JSONDecodeError, OSError):
         import traceback
         sys.stderr.write(f"[context_monitor] Error loading session state:\n{traceback.format_exc()}\n")
-        return get_default_context_metrics()
+        # On error, also return wrapped default metrics
+        return {'context_metrics': get_default_context_metrics()}
 
 
 def get_default_context_metrics() -> Dict[str, Any]:
-    """Return default context metrics structure."""
+    """Return default context metrics."""
     return {
-        'context_metrics': {
-            'message_count': 0,
-            'file_reads': 0,
-            'file_edits': 0,
-            'tool_calls': 0,
-            'subagent_spawns': 0,
-            'last_checkpoint_time': None,
-        }
+        'message_count': 0,
+        'file_reads': 0,
+        'file_edits': 0,
+        'tool_calls': 0,
+        'subagent_spawns': 0,
+        'last_checkpoint_time': None,
     }
 
 
