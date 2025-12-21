@@ -985,9 +985,9 @@ class Conductor:
                     "estimated_usage": estimated_usage
                 }, f"Checkpoint triggered at batch boundary: {reason}")
 
-        except (IOError, OSError, AttributeError, sqlite3.Error) as e:
+        except (OSError, AttributeError, sqlite3.Error):
+            # OSError: file system issues with blackboard
             # AttributeError: blackboard module may not have trigger function
-            # IOError/OSError: file system issues with blackboard
             # sqlite3.Error: database logging failures
             import traceback
             sys.stderr.write(f"Warning: Failed to trigger checkpoint:\n{traceback.format_exc()}\n")

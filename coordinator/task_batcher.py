@@ -181,8 +181,6 @@ class TaskBatcher:
                 # are transitive.
                 processed_files: Set[str] = set()
                 for f in files:
-                    # Skip files that are already part of previously computed clusters
-                    # to avoid redundant cluster expansion work.
                     if f in processed_files:
                         continue
                     related = self.dep_graph.get_cluster(f, depth=1)
