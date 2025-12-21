@@ -152,10 +152,9 @@ def check_cooldown(last_checkpoint_time: Optional[str]) -> bool:
         return False  # No cooldown if never checkpointed or empty timestamp
 
     try:
-        # Handle both Z suffix and +00:00 format
-        if last_checkpoint_time.endswith('Z'):
-            last_checkpoint_time = last_checkpoint_time[:-1] + '+00:00'
-        last_cp = datetime.fromisoformat(last_checkpoint_time)
+        # Handle both Z suffix and +00:00 format in a single, safe operation
+        normalized_time = last_checkpoint_time.replace('Z', '+00:00')
+        last_cp = datetime.fromisoformat(normalized_time)
 
         # Ensure timezone aware
         if last_cp.tzinfo is None:
