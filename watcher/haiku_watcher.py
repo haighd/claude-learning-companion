@@ -77,7 +77,11 @@ def gather_state() -> Dict[str, Any]:
     if CONTEXT_MONITOR_AVAILABLE and get_context_status:
         try:
             state["context_status"] = get_context_status()
-        except (AttributeError, TypeError, KeyError) as e:
+        except (AttributeError, TypeError, KeyError, IOError, ValueError) as e:
+            # Can fail due to:
+            # - AttributeError/TypeError/KeyError: context monitor module issues
+            # - IOError: file system issues reading session state
+            # - ValueError: datetime parsing errors in check_cooldown
             state["context_status"] = {"error": f"Failed to get context status: {e}"}
 
     return state

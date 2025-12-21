@@ -930,7 +930,12 @@ class Conductor:
             if status.get('should_checkpoint', False):
                 return status
             return None
-        except (AttributeError, TypeError) as e:
+        except (AttributeError, TypeError, IOError, ValueError, json.JSONDecodeError) as e:
+            # Can fail due to:
+            # - AttributeError/TypeError: context monitor module issues
+            # - IOError: file system issues reading session state
+            # - ValueError: datetime parsing errors
+            # - json.JSONDecodeError: corrupted session state file
             sys.stderr.write(f"Warning: Context check failed: {e}\n")
             return None
 
@@ -956,8 +961,10 @@ class Conductor:
                 "run_id": run_id,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
+            # Extract estimated_usage once to avoid duplicate dict lookup
+            estimated_usage = context_status.get("estimated_usage", 0) if context_status else None
             if context_status:
-                checkpoint_content["estimated_usage"] = context_status.get("estimated_usage", 0)
+                checkpoint_content["estimated_usage"] = estimated_usage
                 checkpoint_content["metrics"] = context_status.get("metrics", {})
 
             # Write checkpoint trigger to blackboard
@@ -974,7 +981,7 @@ class Conductor:
                 self._log_decision(cursor, run_id, "checkpoint_triggered", {
                     "reason": reason,
                     "context_keys": list(context.keys())[:10],  # First 10 keys
-                    "estimated_usage": context_status.get("estimated_usage") if context_status else None
+                    "estimated_usage": estimated_usage
                 }, f"Checkpoint triggered at batch boundary: {reason}")
 
         except (IOError, OSError, AttributeError, sqlite3.Error) as e:
