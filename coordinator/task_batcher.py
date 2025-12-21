@@ -44,9 +44,13 @@ DependencyGraph, HAS_DEPENDENCY_GRAPH = get_module_attribute(
 # Module-level wrappers set consistent module name for error messages and
 # customize error_value for this module's specific failure modes.
 
-def _safe_env_int(name: str, default: str) -> int:
-    """Wrapper setting module name for error messages."""
-    return safe_env_int(name, default, _MODULE)
+def _safe_env_int(name: str, default: str, error_value: int = 200000) -> int:
+    """Wrapper setting module name and custom error_value.
+
+    Uses 200000 as default error value (typical context window size) to avoid
+    setting budget to 0 on config error, which would cause excessive task splitting.
+    """
+    return safe_env_int(name, default, _MODULE, error_value=error_value)
 
 
 def _safe_env_float(name: str, default: str) -> float:
