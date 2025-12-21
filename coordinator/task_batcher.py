@@ -190,7 +190,8 @@ class TaskBatcher:
                 # - AttributeError: dep_graph methods unavailable or return unexpected types
                 # - TypeError: get_cluster returns non-iterable or incompatible type
                 # - KeyError: internal graph data structure missing expected keys
-                sys.stderr.write(f"Warning: Failed to get dependency cluster for splitting task: {e}\n")
+                import traceback
+                sys.stderr.write(f"Warning: Failed to get dependency cluster for splitting task:\n{traceback.format_exc()}\n")
                 # Fall through to return task with warning
 
         # Cannot split meaningfully - return with warning
