@@ -120,7 +120,8 @@ def check_cooldown(last_checkpoint_time: Optional[str]) -> bool:
         elapsed = (now - last_cp).total_seconds()
         return elapsed < COOLDOWN_SECONDS
     except (ValueError, TypeError) as e:
-        sys.stderr.write(f"[context_monitor] Error parsing checkpoint time: {e}\n")
+        import traceback
+        sys.stderr.write(f"[context_monitor] Error parsing checkpoint time:\n{traceback.format_exc()}\n")
         return False
 
 
