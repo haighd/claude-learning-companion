@@ -1,5 +1,7 @@
 # CI/CD Workflow Portability Guide
 
+> **Version**: 2.1 (Dec 2025) - Added explicit commit status reporting for branch protection
+
 This guide explains how to adopt the dual AI reviewer workflow with severity-based gating in your own repositories.
 
 ## Overview
