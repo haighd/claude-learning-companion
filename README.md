@@ -58,6 +58,41 @@ Claude: [Queries CLC, starts dashboard, returns golden rules + heuristics]
 | **Experiment Isolation** | Git worktree-based experiments with separate databases - safely test changes without affecting main |
 | **Kanban Board** | Visual task management in dashboard with drag-drop, priorities, and links to learnings |
 | **Graph Memory** | FalkorDB graph database for semantic relationships between heuristics (SQLite fallback when unavailable) |
+| **CI/CD Workflow** | Dual AI reviewers (Gemini + Copilot), severity-based gating, auto-approval |
+
+### CI/CD Workflow
+
+A sophisticated PR workflow with dual AI reviewers and intelligent gating:
+
+```
+┌─────────────────────────────────────────┐
+│  PHASE 1: REVIEW                        │
+│  Push → /gemini review → Address feedback
+│  (critical/high must be fixed)          │
+└─────────────────────────────────────────┘
+              │
+              ▼ All critical/high resolved
+        Comment /run-ci
+              │
+┌─────────────────────────────────────────┐
+│  PHASE 2: CI TESTING                    │
+│  Lint → Build → Tests                   │
+│  Auto-approval on success               │
+└─────────────────────────────────────────┘
+```
+
+**Key Features:**
+- **Dual AI reviewers**: Gemini Code Assist + GitHub Copilot
+- **Severity-based gating**: Only critical/high findings block CI (medium/low don't)
+- **Auto-resolve outdated**: Threads on modified code resolved automatically
+- **Bot auto-approval**: Automatic approval + `ready-to-merge` label when CI passes
+
+**Migrate to your repos:**
+```bash
+./scripts/migrate-cicd-workflow.sh ~/Projects/my-app
+```
+
+See [CI/CD Wiki](https://github.com/haighd/claude-learning-companion/wiki/CI-CD) for full documentation.
 
 ### Hotspots
 ![Hotspots](assets/Hotspots.png)
@@ -254,6 +289,7 @@ Full documentation in the [Wiki](https://github.com/haighd/claude-learning-compa
 - [Installation](https://github.com/haighd/claude-learning-companion/wiki/Installation) - Prerequisites, options, troubleshooting
 - [Configuration](https://github.com/haighd/claude-learning-companion/wiki/Configuration) - CLAUDE.md, settings.json, hooks
 - [Dashboard](https://github.com/haighd/claude-learning-companion/wiki/Dashboard) - Tabs, stats, themes
+- [CI/CD](https://github.com/haighd/claude-learning-companion/wiki/CI-CD) - Dual AI reviewers, severity gating, auto-approval
 - [Swarm](https://github.com/haighd/claude-learning-companion/wiki/Swarm) - Multi-agent coordination, blackboard pattern
 - [CLI Reference](https://github.com/haighd/claude-learning-companion/wiki/CLI-Reference) - All query commands
 - [Golden Rules](https://github.com/haighd/claude-learning-companion/wiki/Golden-Rules) - How to customize principles
