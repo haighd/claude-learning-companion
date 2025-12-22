@@ -1,0 +1,178 @@
+name: Auto Approve PR
+
+on:
+  workflow_run:
+    workflows: ["Run CI"]
+    types: [completed]
+
+jobs:
+  auto-approve:
+    name: Auto Approve if Conditions Met
+    runs-on: ubuntu-latest
+    # Only run if CI workflow succeeded
+    if: github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Get PR number from workflow run
+        id: get-pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Get the workflow run to find associated PR
+            const run = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id
+            });
+
+            // The run-ci workflow is triggered by issue_comment, so we need to
+            // extract the PR number from the workflow run's triggering event
+            const headBranch = run.data.head_branch;
+            const headSha = run.data.head_sha;
+
+            // Find open PRs with this head SHA
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${context.repo.owner}:${headBranch}`
+            });
+
+            if (prs.length === 0) {
+              core.info('No open PR found for this workflow run');
+              core.setOutput('found', 'false');
+              return;
+            }
+
+            const pr = prs.find(p => p.head.sha === headSha) || prs[0];
+            core.info(`Found PR #${pr.number}: ${pr.title}`);
+            core.setOutput('found', 'true');
+            core.setOutput('pr_number', pr.number);
+
+      - name: Check approval conditions
+        id: conditions
+        if: steps.get-pr.outputs.found == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = ${{ steps.get-pr.outputs.pr_number || 0 }};
+            if (!prNumber) {
+              core.setOutput('should_approve', 'false');
+              core.setOutput('reason', 'No PR number');
+              return;
+            }
+
+            // Check for unresolved review threads
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            // Check for blocking labels
+            const blockingLabels = ['do-not-merge', 'needs-discussion', 'blocked', 'wip'];
+            const hasBlockingLabel = pr.labels.some(l =>
+              blockingLabels.includes(l.name.toLowerCase())
+            );
+
+            if (hasBlockingLabel) {
+              core.info('PR has blocking label');
+              core.setOutput('should_approve', 'false');
+              core.setOutput('reason', 'Blocking label present');
+              return;
+            }
+
+            // Check for existing approvals (don't double-approve)
+            const { data: reviews } = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+
+            const hasApproval = reviews.some(r => r.state === 'APPROVED');
+            if (hasApproval) {
+              core.info('PR already has an approval');
+              core.setOutput('should_approve', 'false');
+              core.setOutput('reason', 'Already approved');
+              return;
+            }
+
+            // Check for unresolved threads using GraphQL
+            const query = `
+              query($owner: String!, $repo: String!, $pr: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $pr) {
+                    reviewThreads(first: 100) {
+                      nodes {
+                        isResolved
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+            const result = await github.graphql(query, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pr: prNumber
+            });
+
+            const threads = result.repository.pullRequest.reviewThreads.nodes;
+            const unresolvedCount = threads.filter(t => !t.isResolved).length;
+
+            if (unresolvedCount > 0) {
+              core.info(`PR has ${unresolvedCount} unresolved thread(s)`);
+              core.setOutput('should_approve', 'false');
+              core.setOutput('reason', `${unresolvedCount} unresolved thread(s)`);
+              return;
+            }
+
+            core.info('All conditions met for auto-approval');
+            core.setOutput('should_approve', 'true');
+            core.setOutput('reason', 'All conditions met');
+
+      - name: Approve PR
+        if: steps.conditions.outputs.should_approve == 'true'
+        uses: hmarr/auto-approve-action@v4
+        with:
+          github-token: ${{ secrets.BOT_PAT }}
+          pull-request-number: ${{ steps.get-pr.outputs.pr_number }}
+
+      - name: Add ready-to-merge label
+        if: steps.conditions.outputs.should_approve == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.get-pr.outputs.pr_number }},
+              labels: ['ready-to-merge']
+            });
+
+      - name: Notify PR
+        if: steps.conditions.outputs.should_approve == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.get-pr.outputs.pr_number }},
+              body: [
+                '✅ **Auto-approved by haighd-bot**',
+                '',
+                'All conditions met:',
+                '- CI passed',
+                '- All review threads resolved',
+                '- No blocking labels',
+                '',
+                'This PR is ready for @haighd to merge.'
+              ].join('\n')
+            });
+
+      - name: Log skip reason
+        if: steps.conditions.outputs.should_approve == 'false'
+        run: |
+          echo "Auto-approval skipped: ${{ steps.conditions.outputs.reason }}"
