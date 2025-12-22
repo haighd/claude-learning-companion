@@ -781,7 +781,7 @@ def extract_task_description(tool_input: dict, tool_name: str) -> str:
         or with tool-specific formatting for priorities 3-5, or "{tool_name} operation"
         as fallback.
     """
-    # Priority 1: Explicit description (walrus operator for conciseness)
+    # Priority 1: Explicit description
     if desc := tool_input.get("description", "").strip():
         return desc[:100]
 
