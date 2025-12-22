@@ -8,7 +8,7 @@ on:
 permissions:
   contents: read
   issues: write
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   ensure-reviews:
@@ -55,7 +55,6 @@ jobs:
             });
 
             // Check Copilot status (auto-triggered via ruleset)
-            // Copilot's reviewer bot uses 'copilot-pull-request-reviewer[bot]' login
             const copilotReviewed = allComments.some((comment) => {
               return comment.user && comment.user.login.includes('copilot');
             }) || reviews.some((review) => {
@@ -67,8 +66,20 @@ jobs:
             core.info(`Gemini reviewed: ${geminiReviewed}`);
             core.info(`Copilot reviewed: ${copilotReviewed}`);
 
-            // Post Gemini trigger if not present
-            if (!geminiTriggered) {
+            // If both reviewers have already reviewed, we're done
+            if (geminiReviewed && copilotReviewed) {
+              core.info('Both AI reviewers have reviewed. Check passed.');
+              return;
+            }
+
+            // If Gemini already reviewed (even without explicit trigger), skip posting
+            if (geminiReviewed) {
+              core.info('Gemini already reviewed; waiting for Copilot.');
+              return;
+            }
+
+            // Post Gemini trigger only if Gemini hasn't reviewed yet
+            if (!geminiTriggered && !geminiReviewed) {
               const reminder = [
                 '🤖 **AI Review Status**',
                 '',
