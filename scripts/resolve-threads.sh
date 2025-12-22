@@ -61,10 +61,12 @@ if [ "$DRY_RUN" = true ]; then
 fi
 
 # Resolve each thread
+# Note: Using process substitution to avoid subshell issue where counters wouldn't persist
 RESOLVED=0
 FAILED=0
 
-echo "$THREAD_IDS" | while IFS= read -r THREAD_ID; do
+while IFS= read -r THREAD_ID; do
+    [ -z "$THREAD_ID" ] && continue
     echo "Resolving thread: $THREAD_ID"
     RESULT=$(gh api graphql -f query='
       mutation($threadId: ID!) {
@@ -79,8 +81,14 @@ echo "$THREAD_IDS" | while IFS= read -r THREAD_ID; do
         echo "  Failed to resolve: $RESULT"
         FAILED=$((FAILED + 1))
     fi
-done
+done < <(echo "$THREAD_IDS")
 
 echo ""
 echo "Summary: $RESOLVED resolved, $FAILED failed"
-exit "$FAILED"
+
+# Exit with 1 if any failures, 0 otherwise (exit codes are 0-255)
+if [ "$FAILED" -gt 0 ]; then
+    exit 1
+else
+    exit 0
+fi
