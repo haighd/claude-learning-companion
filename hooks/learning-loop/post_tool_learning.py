@@ -752,6 +752,15 @@ def check_golden_rule_promotion(conn):
         sys.stderr.write(f"Warning: Failed to check golden rule promotion: {e}\n")
 
 
+def _get_prompt_as_string(prompt_val) -> str:
+    """Converts a prompt value (str, list, or other) to a single string."""
+    if prompt_val is None:
+        return ""
+    if isinstance(prompt_val, list):
+        return "\n".join(map(str, prompt_val))
+    return str(prompt_val)
+
+
 def extract_task_description(tool_input: dict, tool_name: str) -> str:
     """Extract a meaningful task description from tool inputs.
 
@@ -790,19 +799,19 @@ def extract_task_description(tool_input: dict, tool_name: str) -> str:
     if tool_name in ("Edit", "Write", "Read"):
         file_path = tool_input.get("file_path")
         if file_path is not None:
-            # file_path may be a Path-like object, bytes, or another non-str type from tool integrations.
-            # Normalize to str so os.path.basename doesn't raise TypeError and the raw value is visible.
-            path_str = str(file_path)
+            # Normalize to text so os.path.basename doesn't raise TypeError and the value is human-readable.
+            if isinstance(file_path, bytes):
+                encoding = sys.getfilesystemencoding() or "utf-8"
+                path_str = file_path.decode(encoding, errors="replace")
+            else:
+                path_str = str(file_path)
             basename = os.path.basename(path_str)
             if basename:
                 return f"{tool_name}: {basename}"
 
     # Priority 5: First line of prompt
     if prompt_val := tool_input.get("prompt"):
-        if isinstance(prompt_val, list):
-            prompt_str = "\n".join(map(str, prompt_val))
-        else:
-            prompt_str = str(prompt_val)
+        prompt_str = _get_prompt_as_string(prompt_val)
 
         # Iterate to find first non-empty line (handles leading newlines correctly)
         for line in prompt_str.splitlines():
@@ -846,9 +855,21 @@ def extract_output_snippet(tool_output: dict, max_length: int = 200) -> str:
         if isinstance(content, str):
             return content[:max_length]
         elif isinstance(content, list):
-            # Handle list of content items (e.g., [{"type": "text", "text": "..."}])
-            text_parts = (item.get("text", "") if isinstance(item, dict) else str(item) for item in content)
-            return "\n".join(text_parts)[:max_length]
+            # Handle list of content items with early truncation to avoid large intermediate strings
+            snippet_parts = []
+            current_len = 0
+            for item in content:
+                part = item.get("text", "") if isinstance(item, dict) else str(item)
+                if not part:
+                    continue
+                remaining = max_length - current_len
+                if remaining <= 0:
+                    break
+                snippet_parts.append(part[:remaining])
+                current_len += min(len(part), remaining)
+                if current_len >= max_length:
+                    break
+            return "\n".join(snippet_parts)
 
     # Try to get error or stderr
     error = tool_output.get("error") or tool_output.get("stderr")
@@ -898,11 +919,7 @@ def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str
 
         # Add prompt context if available
         if prompt_val := tool_input.get("prompt"):
-            if isinstance(prompt_val, list):
-                prompt_str = "\n".join(map(str, prompt_val))
-            else:
-                prompt_str = str(prompt_val)
-
+            prompt_str = _get_prompt_as_string(prompt_val)
             prompt_preview = prompt_str.strip()[:100]
             if prompt_preview:
                 summary_parts.append(f"Prompt: {prompt_preview}...")
