@@ -108,13 +108,17 @@ def get_review_threads(owner: str, repo: str, pr_number: int) -> list[dict[str, 
 
 
 def categorize_comment(body: str) -> str:
-    """Determine severity of a comment based on content patterns."""
+    """Determine severity of a comment based on content patterns.
+
+    Returns 'low' for unmatched comments to avoid incorrectly blocking CI
+    on comments without severity badges.
+    """
     body_lower = body.lower()
     for severity, patterns in SEVERITY_PATTERNS.items():
         for pattern in patterns:
             if re.search(pattern, body_lower):
                 return severity
-    return 'medium'  # Default to medium if no pattern matched
+    return 'low'  # Default to low if no pattern matched (conservative approach)
 
 
 def main(pr_number: int) -> int:
@@ -131,8 +135,8 @@ def main(pr_number: int) -> int:
         print(f'Error: {e}', file=sys.stderr)
         return 1
 
-    # Only process unresolved threads
-    unresolved = [t for t in threads if not t.get('isResolved', True)]
+    # Only process unresolved threads (default to False if field missing)
+    unresolved = [t for t in threads if not t.get('isResolved', False)]
 
     categorized: dict[str, list[dict[str, Any]]] = {
         'critical': [],

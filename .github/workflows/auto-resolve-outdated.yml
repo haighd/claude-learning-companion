@@ -63,7 +63,7 @@ jobs:
 
             for (const thread of outdatedUnresolved) {
               try {
-                // Resolve the thread (skip adding comment to avoid noise)
+                // Resolve thread without per-thread comment (summary comment posted at end)
                 await github.graphql(`
                   mutation($threadId: ID!) {
                     resolveReviewThread(input: {threadId: $threadId}) {

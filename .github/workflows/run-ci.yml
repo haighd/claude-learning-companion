@@ -87,11 +87,10 @@ jobs:
           echo "total_unresolved=$TOTAL" >> $GITHUB_OUTPUT
 
           if [ "$BLOCKING" -gt 0 ]; then
-            echo "::error::Found $BLOCKING critical/high severity finding(s) that must be addressed"
             CRITICAL=$(echo "$FINDINGS" | jq '.summary.critical')
             HIGH=$(echo "$FINDINGS" | jq '.summary.high')
-            echo "  - Critical: $CRITICAL"
-            echo "  - High: $HIGH"
+            echo "::error::Found $BLOCKING critical/high severity finding(s) that must be addressed"
+            echo "::error::Critical: $CRITICAL, High: $HIGH"
             exit 1
           fi
 
