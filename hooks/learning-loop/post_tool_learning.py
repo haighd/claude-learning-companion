@@ -799,7 +799,7 @@ def extract_task_description(tool_input: dict, tool_name: str) -> str:
     if tool_name in ("Edit", "Write", "Read", "Grep", "Glob"):
         file_path = tool_input.get("file_path") or tool_input.get("path")
         if file_path is not None:
-            # Normalize to text so os.path.basename doesn't raise TypeError and the value is human-readable.
+            # Normalize to a text string for consistent, human-readable output regardless of input type (str/bytes).
             if isinstance(file_path, (bytes, bytearray, os.PathLike)):
                 path_str = os.fsdecode(file_path)
             elif isinstance(file_path, str):
