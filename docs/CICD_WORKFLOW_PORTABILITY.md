@@ -13,9 +13,10 @@ The workflow provides:
 ## Prerequisites
 
 1. **GitHub repository** with Actions enabled
-2. **Bot account** (optional but recommended for auto-approval)
-3. **Gemini Code Assist** installed from GitHub Marketplace
-4. **GitHub Copilot** enabled for the repository
+2. **Python 3.11+** available in CI environment
+3. **Bot account** (optional but recommended for auto-approval)
+4. **Gemini Code Assist** installed from GitHub Marketplace
+5. **GitHub Copilot** enabled for the repository
 
 ## Quick Start
 
