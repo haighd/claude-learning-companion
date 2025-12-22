@@ -37,6 +37,9 @@ DB_PATH = CLC_PATH / "memory" / "index.db"
 STATE_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
 PENDING_TASKS_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "pending-tasks.json"
 
+# File operation tools - centralized set to avoid inconsistencies
+FILE_OPERATION_TOOLS = {'Read', 'Edit', 'Write', 'Glob', 'Grep'}
+
 # Import security patterns
 try:
     from security_patterns import RISKY_PATTERNS
@@ -796,7 +799,7 @@ def extract_task_description(tool_input: dict, tool_name: str) -> str:
             return f"{tool_name}: {str(url_or_query)[:80]}"
 
     # Priority 4: File path basename (for file operation tools)
-    if tool_name in ("Edit", "Write", "Read", "Grep", "Glob"):
+    if tool_name in FILE_OPERATION_TOOLS:
         file_path = tool_input.get("file_path") or tool_input.get("path")
         if file_path is not None:
             # Normalize to a text string for consistent, human-readable output regardless of input type (str/bytes).
@@ -876,6 +879,8 @@ def extract_output_snippet(tool_output: dict, max_length: int = 200) -> str:
                 part_to_append = part[:remaining]
                 snippet_parts.append(part_to_append)
                 current_len += len(part_to_append)
+            # Return the accumulated snippet parts
+            return "\n".join(snippet_parts) if snippet_parts else ""
     # Try to get error or stderr
     error = tool_output.get("error") or tool_output.get("stderr")
     if error:
@@ -1110,9 +1115,8 @@ def main():
         })
         return
 
-    # Track file operations (Read/Edit/Write/Glob/Grep) for hotspot trails
-    file_operation_tools = {'Read', 'Edit', 'Write', 'Glob', 'Grep'}
-    if tool_name in file_operation_tools:
+    # Track file operations for hotspot trails
+    if tool_name in FILE_OPERATION_TOOLS:
         try:
             file_path = tool_input.get('file_path') or tool_input.get('path', '')
             if file_path:

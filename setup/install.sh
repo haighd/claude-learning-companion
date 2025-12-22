@@ -121,6 +121,7 @@ sync_hooks() {
     # Verify and synchronize learning loop hooks
     # Note: settings.json already points to source hooks in clc directory
     # This function verifies the hook files exist and are valid
+    # Returns 0 on success, 1 on failure (callers use || true to continue on failure)
     local source_hooks_dir="$CLC_DIR/hooks/learning-loop"
     local critical_hooks=("pre_tool_learning.py" "post_tool_learning.py")
 
@@ -159,7 +160,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
-        sync_hooks
+        sync_hooks || true  # Hook verification failure is non-fatal during install
         echo "[CLC] Fresh install complete"
         ;;
 
@@ -169,7 +170,7 @@ case "$MODE" in
         install_commands true
         install_settings
         install_git_hooks
-        sync_hooks
+        sync_hooks || true  # Hook verification failure is non-fatal during install
         echo "[CLC] Update complete"
         ;;
 
@@ -193,7 +194,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
-        sync_hooks
+        sync_hooks || true  # Hook verification failure is non-fatal during install
         ;;
 
     replace)
@@ -205,7 +206,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
-        sync_hooks
+        sync_hooks || true  # Hook verification failure is non-fatal during install
         echo "[CLC] Replaced config (backup: CLAUDE.md.backup)"
         ;;
 
@@ -216,7 +217,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
-        sync_hooks
+        sync_hooks || true  # Hook verification failure is non-fatal during install
         ;;
 
     interactive|*)
@@ -254,7 +255,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
-        sync_hooks
+        sync_hooks || true  # Hook verification failure is non-fatal during install
         echo ""
         echo "Setup complete!"
         ;;
