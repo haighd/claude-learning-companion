@@ -22,7 +22,7 @@ import sys
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Optional, Tuple
+from typing import Any, List, Dict, Optional, Tuple
 
 # Import trail helper
 try:
@@ -36,6 +36,9 @@ CLC_PATH = Path.home() / ".claude" / "clc"
 DB_PATH = CLC_PATH / "memory" / "index.db"
 STATE_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "session-state.json"
 PENDING_TASKS_FILE = Path.home() / ".claude" / "hooks" / "learning-loop" / "pending-tasks.json"
+
+# File operation tools - centralized set to avoid inconsistencies
+FILE_OPERATION_TOOLS = {'Read', 'Edit', 'Write', 'Glob', 'Grep'}
 
 # Import security patterns
 try:
@@ -752,7 +755,148 @@ def check_golden_rule_promotion(conn):
         sys.stderr.write(f"Warning: Failed to check golden rule promotion: {e}\n")
 
 
-def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str, domains: List[str]):
+def _get_prompt_as_string(prompt_val: Any) -> str:
+    """Converts a prompt value (str, list, or other) to a single string."""
+    if prompt_val is None:
+        return ""
+    if isinstance(prompt_val, list):
+        return "\n".join(map(str, prompt_val))
+    return str(prompt_val)
+
+
+def extract_task_description(tool_input: dict, tool_name: str) -> str:
+    """Extract a meaningful task description from tool inputs.
+
+    Priority order:
+    1. Explicit description field
+    2. Command (for Bash tool)
+    3. URL or query (for WebFetch/WebSearch)
+    4. File path basename (for Edit/Write/Read)
+    5. First line of prompt
+    6. Fallback to tool name operation
+
+    Args:
+        tool_input: Dictionary containing tool input parameters.
+        tool_name: Name of the tool being executed.
+
+    Returns:
+        A string description truncated to 100 characters maximum for priorities 1-2 and 5,
+        or with tool-specific formatting for priorities 3-4, or "{tool_name} operation"
+        as fallback.
+    """
+    # Priority 1: Explicit description
+    if desc := tool_input.get("description", "").strip():
+        return desc[:100]
+
+    # Priority 2: Command (for Bash)
+    if tool_name == "Bash" and (cmd := tool_input.get("command", "").strip()):
+        return cmd[:100]
+
+    # Priority 3: URL or query (for WebFetch/WebSearch)
+    if tool_name in ("WebFetch", "WebSearch"):
+        url_or_query = tool_input.get("url") or tool_input.get("query")
+        if url_or_query:
+            return f"{tool_name}: {str(url_or_query)[:80]}"
+
+    # Priority 4: File path basename (for file operation tools)
+    if tool_name in FILE_OPERATION_TOOLS:
+        file_path = tool_input.get("file_path") or tool_input.get("path")
+        if file_path is not None:
+            # Normalize to a text string for consistent, human-readable output regardless
+            # of input type (str/bytes/PathLike). Fall back to best-effort stringification
+            # for unexpected types.
+            try:
+                path_str = os.fsdecode(file_path)
+            except (TypeError, ValueError):
+                path_str = str(file_path)
+            basename = os.path.basename(path_str)
+            if basename:
+                return f"{tool_name}: {basename}"
+
+    # Priority 5: First line of prompt
+    if prompt_val := tool_input.get("prompt"):
+        prompt_str = _get_prompt_as_string(prompt_val)
+
+        # Iterate to find first non-empty line (handles leading newlines correctly)
+        for line in prompt_str.splitlines():
+            stripped_line = line.strip()
+            if stripped_line:
+                return stripped_line[:100]
+
+    # Priority 6: Fallback
+    return f"{tool_name} operation"
+
+
+def extract_output_snippet(tool_output: Any, max_length: int = 200) -> str:
+    """Extract a meaningful snippet from tool output.
+
+    Args:
+        tool_output: Tool output data (dict, str, or other types).
+        max_length: Maximum length of the returned snippet (default 200).
+
+    Returns:
+        A string snippet from the output, truncated to max_length characters.
+        Returns empty string if tool_output is falsy.
+
+    Handles various output structures:
+    - tool_output['content'] (string or list)
+    - tool_output['error'] or tool_output['stderr']
+    - tool_output['task']['output'] (for TaskOutput)
+    - Raw string representation as fallback
+    """
+    if not tool_output:
+        return ""
+
+    if isinstance(tool_output, str):
+        return tool_output[:max_length]
+
+    if not isinstance(tool_output, dict):
+        return str(tool_output)[:max_length]
+
+    # Try to get content field
+    content = tool_output.get("content")
+    if content:
+        if isinstance(content, str):
+            return content[:max_length]
+        elif isinstance(content, list):
+            # Handle list of content items with early truncation to avoid large intermediate strings
+            snippet_parts = []
+            current_len = 0
+            for item in content:
+                part = item.get("text", "") if isinstance(item, dict) else str(item)
+                if not part:
+                    continue
+
+                # Account for newline character for all but the first part
+                if snippet_parts:
+                    current_len += 1  # for the '\n'
+
+                remaining = max_length - current_len
+                if remaining <= 0:
+                    break
+
+                part_to_append = part[:remaining]
+                snippet_parts.append(part_to_append)
+                current_len += len(part_to_append)
+            # Return the accumulated snippet parts
+            return "\n".join(snippet_parts) if snippet_parts else ""
+    # Try to get error or stderr
+    error = tool_output.get("error") or tool_output.get("stderr")
+    if error:
+        return str(error)[:max_length]
+
+    # Try TaskOutput structure: task.output
+    if "task" in tool_output and isinstance(tool_output["task"], dict):
+        task_data = tool_output["task"]
+        task_output_val = task_data.get("output") or task_data.get("result", "")
+        if task_output_val:
+            return str(task_output_val)[:max_length]
+
+    # Fallback: convert to string and truncate
+    return str(tool_output)[:max_length]
+
+
+def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str, domains: List[str], tool_name: str = "Task"):
     """Auto-record a failure to the learnings table."""
     conn = get_db_connection()
     if not conn:
@@ -761,22 +905,37 @@ def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str
     try:
         cursor = conn.cursor()
 
-        # Extract details
-        prompt = tool_input.get("prompt", "")[:500]
-        description = tool_input.get("description", "unknown task")
+        # Extract task description using helper
+        description = extract_task_description(tool_input, tool_name)
 
-        # Get output content
-        output_content = ""
-        if isinstance(tool_output, dict):
-            output_content = str(tool_output.get("content", ""))[:1000]
-        elif isinstance(tool_output, str):
-            output_content = tool_output[:1000]
+        # Extract output snippet using helper
+        output_snippet = extract_output_snippet(tool_output, max_length=200)
 
         # Create failure record
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filepath = f"auto-failures/failure_{timestamp}.md"
         title = f"Auto-captured: {description[:50]}"
-        summary = f"Reason: {outcome_reason}\n\nTask: {description}\n\nOutput snippet: {output_content[:200]}"
+
+        # Build enhanced summary with contextual metadata
+        summary_parts = [
+            f"Reason: {outcome_reason}",
+            f"Tool: {tool_name}",
+            f"Task: {description}",
+        ]
+
+        if output_snippet:
+            summary_parts.append(f"Output snippet: {output_snippet}")
+
+        # Add prompt context if available
+        if prompt_val := tool_input.get("prompt"):
+            stripped_prompt = _get_prompt_as_string(prompt_val).strip()
+            if stripped_prompt:
+                prompt_preview = stripped_prompt[:100]
+                summary_parts.append(
+                    f"Prompt: {prompt_preview}{'...' if len(stripped_prompt) > 100 else ''}"
+                )
+
+        summary = "\n\n".join(summary_parts)
         domain = domains[0] if domains else "general"
 
         cursor.execute("""
@@ -955,9 +1114,8 @@ def main():
         })
         return
 
-    # Track file operations (Read/Edit/Write/Glob/Grep) for hotspot trails
-    file_operation_tools = {'Read', 'Edit', 'Write', 'Glob', 'Grep'}
-    if tool_name in file_operation_tools:
+    # Track file operations for hotspot trails
+    if tool_name in FILE_OPERATION_TOOLS:
         try:
             file_path = tool_input.get('file_path') or tool_input.get('path', '')
             if file_path:
@@ -1512,7 +1670,7 @@ def main():
 
     # Auto-record failure if task failed
     if outcome == "failure":
-        auto_record_failure(tool_input, tool_output, reason, domains_queried)
+        auto_record_failure(tool_input, tool_output, reason, domains_queried, tool_name)
 
         # SELF-HEALING: Attempt automatic recovery for tool failures
         if SELF_HEALING_AVAILABLE and process_self_healing_failure and tool_name not in ["Task", "TaskOutput"]:

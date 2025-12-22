@@ -2,7 +2,7 @@
 
 ## Overview
 
-The notification system provides toast-style alerts for important events in the Emergent Learning Dashboard. Notifications appear in the bottom-right corner of the screen and automatically dismiss after 5 seconds (configurable).
+The notification system provides toast-style alerts for important events in the Claude Learning Companion Dashboard. Notifications appear in the bottom-right corner of the screen and automatically dismiss after 5 seconds (configurable).
 
 ## Components
 

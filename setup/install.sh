@@ -117,6 +117,42 @@ install_git_hooks() {
     fi
 }
 
+sync_hooks() {
+    # Verify and synchronize learning loop hooks
+    # Note: settings.json already points to source hooks in clc directory
+    # This function verifies the hook files exist and are valid
+    # Returns 0 on success, 1 on failure (callers use || true to continue on failure)
+    local source_hooks_dir="$CLC_DIR/hooks/learning-loop"
+    local critical_hooks=("pre_tool_learning.py" "post_tool_learning.py")
+
+    echo "[CLC] Verifying hook setup..."
+
+    # Check source hooks directory exists
+    if [ ! -d "$source_hooks_dir" ]; then
+        echo "[CLC] WARNING: Source hooks directory not found: $source_hooks_dir" >&2
+        return 1
+    fi
+
+    # Verify each critical hook file (count missing for better diagnostics)
+    local missing_count=0
+    for hook in "${critical_hooks[@]}"; do
+        if [ -f "$source_hooks_dir/$hook" ]; then
+            echo "[CLC]   ✓ $hook verified"
+        else
+            echo "[CLC]   ✗ $hook MISSING" >&2
+            missing_count=$((missing_count + 1))
+        fi
+    done
+
+    if [ "$missing_count" -eq 0 ]; then
+        echo "[CLC] Hook verification: PASS"
+        return 0
+    else
+        echo "[CLC] Hook verification: FAIL - $missing_count hook(s) missing" >&2
+        return 1
+    fi
+}
+
 case "$MODE" in
     fresh)
         # New user - install everything
@@ -124,6 +160,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
+        sync_hooks || true  # Hook verification failure is non-fatal during install
         echo "[CLC] Fresh install complete"
         ;;
 
@@ -133,6 +170,7 @@ case "$MODE" in
         install_commands true
         install_settings
         install_git_hooks
+        sync_hooks || true  # Hook verification failure is non-fatal during install
         echo "[CLC] Update complete"
         ;;
 
@@ -156,6 +194,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
+        sync_hooks || true  # Hook verification failure is non-fatal during install
         ;;
 
     replace)
@@ -167,6 +206,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
+        sync_hooks || true  # Hook verification failure is non-fatal during install
         echo "[CLC] Replaced config (backup: CLAUDE.md.backup)"
         ;;
 
@@ -177,6 +217,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
+        sync_hooks || true  # Hook verification failure is non-fatal during install
         ;;
 
     interactive|*)
@@ -214,6 +255,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
+        sync_hooks || true  # Hook verification failure is non-fatal during install
         echo ""
         echo "Setup complete!"
         ;;
