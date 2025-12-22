@@ -3,7 +3,10 @@ set -euo pipefail
 
 # Check for unresolved review threads on a PR
 # Usage: ./check-unresolved-threads.sh <PR_NUMBER>
-# Exit codes: 0 = all resolved, 1 = unresolved threads exist, 2 = usage error
+# Exit codes:
+#   0 = all threads resolved, CI can proceed
+#   1 = unresolved threads exist, CI blocked
+#   2 = error (usage error, failed API call, or invalid response)
 
 PR_NUMBER="${1:-}"
 

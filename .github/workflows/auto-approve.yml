@@ -25,18 +25,19 @@ jobs:
               run_id: context.payload.workflow_run.id
             });
 
-            // The run-ci workflow is triggered by issue_comment, so we need to
-            // extract the PR number from the workflow run's triggering event
+            // Find the PR by matching head branch and SHA from the workflow run
             const headBranch = run.data.head_branch;
             const headSha = run.data.head_sha;
 
             // Determine correct head reference for PR lookup:
-            // - For same-repo PRs: use just the branch name.
-            // - For forked PRs: use "forkOwner:branch".
+            // - For same-repo PRs: use just the branch name
+            // - For forked PRs: use "forkOwner:branch"
+            // - If head_repository is null (shouldn't happen normally), treat as same-repo
             const headRepoFullName = run.data.head_repository?.full_name;
             const baseRepoFullName = `${context.repo.owner}/${context.repo.repo}`;
             const isFork = headRepoFullName && headRepoFullName !== baseRepoFullName;
-            const forkOwner = run.data.head_repository?.owner?.login || context.repo.owner;
+            // Only use fork owner if we confirmed it's a fork; otherwise isFork is false and headRef uses just branch
+            const forkOwner = isFork ? run.data.head_repository.owner.login : null;
             const headRef = isFork ? `${forkOwner}:${headBranch}` : headBranch;
 
             // Find open PRs with this head
