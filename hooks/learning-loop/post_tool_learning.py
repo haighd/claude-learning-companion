@@ -966,6 +966,7 @@ def main():
         # - A non-trivial command (record regardless of outcome), or
         # - A trivial command that failed (outcome == "failure")
         try:
+            sys.path.insert(0, str(Path.home() / '.claude' / 'clc'))
             sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
             from conductor import Conductor, Node
 
@@ -1023,6 +1024,7 @@ def main():
         outcome, reason = determine_mcp_outcome(tool_input, tool_output)
 
         try:
+            sys.path.insert(0, str(Path.home() / '.claude' / 'clc'))
             sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
             from conductor import Conductor, Node
 
@@ -1085,6 +1087,7 @@ def main():
         outcome, reason = determine_webfetch_outcome(tool_input, tool_output)
 
         try:
+            sys.path.insert(0, str(Path.home() / '.claude' / 'clc'))
             sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
             from conductor import Conductor, Node
 
@@ -1166,6 +1169,7 @@ def main():
         if pending and pending.get('run_id') and pending.get('exec_id'):
             # Complete the existing workflow run
             try:
+                sys.path.insert(0, str(Path.home() / '.claude' / 'clc'))
                 sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
                 from conductor import Conductor
 
@@ -1225,6 +1229,7 @@ def main():
             # No pending task found - create new workflow record
             sys.stderr.write(f"[LEARNING_LOOP] No pending task for {task_id}, creating new workflow record\n")
             try:
+                sys.path.insert(0, str(Path.home() / '.claude' / 'clc'))
                 sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
                 from conductor import Conductor, Node
 
@@ -1311,6 +1316,7 @@ def main():
 
             # Create workflow run and record as pending
             try:
+                sys.path.insert(0, str(Path.home() / '.claude' / 'clc'))
                 sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
                 from conductor import Conductor, Node
 
@@ -1363,6 +1369,7 @@ def main():
             outcome, reason = determine_outcome(tool_output)
 
             try:
+                sys.path.insert(0, str(Path.home() / '.claude' / 'clc'))
                 sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'conductor'))
                 from conductor import Conductor, Node
 
