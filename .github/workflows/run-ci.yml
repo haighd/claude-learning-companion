@@ -54,19 +54,56 @@ jobs:
     runs-on: ubuntu-latest
     needs: check-trigger
     if: needs.check-trigger.outputs.should_run == 'true'
+    outputs:
+      blocking_count: ${{ steps.categorize.outputs.blocking_count }}
+      total_unresolved: ${{ steps.categorize.outputs.total_unresolved }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: refs/pull/${{ needs.check-trigger.outputs.pr_number }}/head
 
-      - name: Check for unresolved threads
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Categorize review findings
+        id: categorize
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          chmod +x scripts/check-unresolved-threads.sh
-          ./scripts/check-unresolved-threads.sh "${{ needs.check-trigger.outputs.pr_number }}"
+          chmod +x scripts/categorize-findings.py
+          if ! FINDINGS=$(python3 scripts/categorize-findings.py "${{ needs.check-trigger.outputs.pr_number }}"); then
+            echo "::error::Failed to categorize review findings"
+            exit 1
+          fi
+
+          echo "Findings breakdown:"
+          echo "$FINDINGS" | jq '.summary'
+
+          BLOCKING=$(echo "$FINDINGS" | jq '.counts.blocking_count')
+          TOTAL=$(echo "$FINDINGS" | jq '.counts.total_unresolved')
+
+          echo "blocking_count=$BLOCKING" >> $GITHUB_OUTPUT
+          echo "total_unresolved=$TOTAL" >> $GITHUB_OUTPUT
+
+          if [ "$BLOCKING" -gt 0 ]; then
+            CRITICAL=$(echo "$FINDINGS" | jq '.summary.critical')
+            HIGH=$(echo "$FINDINGS" | jq '.summary.high')
+            echo "::error::Found $BLOCKING critical/high severity finding(s) that must be addressed"
+            echo "::error::Critical: $CRITICAL, High: $HIGH"
+            exit 1
+          fi
+
+          if [ "$TOTAL" -gt 0 ]; then
+            MEDIUM=$(echo "$FINDINGS" | jq '.summary.medium')
+            LOW=$(echo "$FINDINGS" | jq '.summary.low')
+            echo "::notice::$TOTAL unresolved thread(s) remaining (medium: $MEDIUM, low: $LOW) - CI proceeding"
+          else
+            echo "All review threads resolved. CI can proceed."
+          fi
 
   python-checks:
     name: Python Syntax & Lint
