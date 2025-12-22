@@ -62,7 +62,11 @@ def get_repo_info() -> tuple[str, str]:
 
 
 def get_review_threads(owner: str, repo: str, pr_number: int) -> list[dict[str, Any]]:
-    """Fetch all review threads for a PR using GraphQL."""
+    """Fetch review threads for a PR using GraphQL.
+
+    Note: Limited to first 100 threads. PRs with 100+ threads indicate
+    a process problem and should be split or reviewed manually.
+    """
     query = '''
     query($owner: String!, $repo: String!, $pr: Int!) {
       repository(owner: $owner, name: $repo) {
@@ -102,7 +106,15 @@ def get_review_threads(owner: str, repo: str, pr_number: int) -> list[dict[str, 
     if result.returncode != 0:
         raise RuntimeError(f'GraphQL query failed: {result.stderr}')
 
-    data = json.loads(result.stdout)
+    if not result.stdout or not result.stdout.strip():
+        raise RuntimeError('GraphQL query returned empty response')
+
+    try:
+        data = json.loads(result.stdout)
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f'GraphQL returned invalid JSON: {e}')
+
+    # Note: Fetches max 100 threads. PRs with 100+ threads indicate process issues.
     threads = data.get('data', {}).get('repository', {}).get('pullRequest', {}).get('reviewThreads', {}).get('nodes', [])
     return threads or []
 

@@ -28,7 +28,7 @@ This project uses an automated CI/CD pipeline with dual AI reviewers (Gemini Cod
 | Critical | `![critical]` | Must fix before CI |
 | High | `![high]` | Must fix before CI |
 | Medium | `![medium]` | Recommended but optional |
-| Low/Nit | `![low]`, `nit:` | Optional improvement |
+| Low/Nit | `![low]`, `nit:`, `nitpick:`, `minor:` | Optional improvement |
 
 ### Workflow Diagram
 
