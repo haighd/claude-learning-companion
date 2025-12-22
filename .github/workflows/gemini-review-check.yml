@@ -1,4 +1,4 @@
-name: Enforce Gemini Review Marker
+name: Ensure AI Reviews
 
 on:
   pull_request:
@@ -11,19 +11,21 @@ permissions:
   pull-requests: read
 
 jobs:
-  ensure-gemini-comment:
+  ensure-reviews:
+    name: Check AI Reviewer Status
     runs-on: ubuntu-latest
     env:
-      REQUIRED_MARKER: '/gemini review'
+      GEMINI_MARKER: '/gemini review'
     steps:
-      - name: Ensure `/gemini review` appears in the PR
+      - name: Check for AI reviewer activity
         uses: actions/github-script@v7
         with:
           script: |
             const { owner, repo } = context.repo;
             const prNumber = context.payload.pull_request.number;
-            const requiredMarker = process.env.REQUIRED_MARKER;
+            const geminiMarker = process.env.GEMINI_MARKER;
 
+            // Fetch all comments
             const issueComments = await github.paginate(
               github.rest.issues.listComments,
               { owner, repo, issue_number: prNumber }
@@ -34,28 +36,65 @@ jobs:
               { owner, repo, pull_number: prNumber }
             );
 
+            const reviews = await github.paginate(
+              github.rest.pulls.listReviews,
+              { owner, repo, pull_number: prNumber }
+            );
+
             const allComments = [...issueComments, ...reviewComments];
-            const hasMarker = allComments.some((comment) => {
-              return comment.body && comment.body.toLowerCase().includes(requiredMarker);
+
+            // Check Gemini status
+            const geminiTriggered = allComments.some((comment) => {
+              return comment.body && comment.body.toLowerCase().includes(geminiMarker);
             });
 
-            if (hasMarker) {
-              core.info('Found `/gemini review` comment; skipping reminder.');
-              return;
+            const geminiReviewed = allComments.some((comment) => {
+              return comment.user && comment.user.login.includes('gemini');
+            }) || reviews.some((review) => {
+              return review.user && review.user.login.includes('gemini');
+            });
+
+            // Check Copilot status (auto-triggered via ruleset)
+            const copilotReviewed = allComments.some((comment) => {
+              return comment.user && (
+                comment.user.login.includes('copilot') ||
+                comment.user.login === 'github-actions[bot]'
+              );
+            }) || reviews.some((review) => {
+              return review.user && (
+                review.user.login.includes('copilot') ||
+                review.body && review.body.includes('Copilot reviewed')
+              );
+            });
+
+            // Log status
+            core.info(`Gemini triggered: ${geminiTriggered}`);
+            core.info(`Gemini reviewed: ${geminiReviewed}`);
+            core.info(`Copilot reviewed: ${copilotReviewed}`);
+
+            // Post Gemini trigger if not present
+            if (!geminiTriggered) {
+              const reminder = [
+                '🤖 **AI Review Status**',
+                '',
+                '| Reviewer | Status |',
+                '|----------|--------|',
+                `| Gemini | Triggering... |`,
+                `| Copilot | ${copilotReviewed ? '✅ Active' : '⏳ Pending (auto-triggered)'} |`,
+                '',
+                'This comment includes the required `/gemini review` marker.',
+                '',
+                geminiMarker
+              ].join('\n');
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body: reminder
+              });
+
+              core.info('Posted AI review status with Gemini trigger.');
+            } else {
+              core.info('Gemini already triggered; skipping reminder.');
             }
-
-            const reminder = [
-              'Friendly reminder to trigger Gemini Code Assist for the most recent push.',
-              'This comment includes the required `/gemini review` marker so the workflow that watches for it can succeed.',
-              '',
-              requiredMarker
-            ].join('\n');
-
-            await github.rest.issues.createComment({
-              owner,
-              repo,
-              issue_number: prNumber,
-              body: reminder
-            });
-
-            core.info('Posted `/gemini review` reminder comment.');
