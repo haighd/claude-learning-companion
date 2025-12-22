@@ -55,16 +55,11 @@ jobs:
             });
 
             // Check Copilot status (auto-triggered via ruleset)
+            // Copilot's reviewer bot uses 'copilot-pull-request-reviewer[bot]' login
             const copilotReviewed = allComments.some((comment) => {
-              return comment.user && (
-                comment.user.login.includes('copilot') ||
-                comment.user.login === 'github-actions[bot]'
-              );
+              return comment.user && comment.user.login.includes('copilot');
             }) || reviews.some((review) => {
-              return review.user && (
-                review.user.login.includes('copilot') ||
-                review.body && review.body.includes('Copilot reviewed')
-              );
+              return review.user && review.user.login.includes('copilot');
             });
 
             // Log status

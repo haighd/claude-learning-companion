@@ -75,7 +75,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Free disk space
-        uses: jlumbroso/free-disk-space@main
+        uses: jlumbroso/free-disk-space@v1.3.1
         with:
           tool-cache: false
           android: true
@@ -89,12 +89,13 @@ jobs:
         run: |
           echo "Available disk space:"
           df -h /
-          AVAIL=$(df / | awk 'NR==2 {gsub(/G/,"",$4); print $4}')
-          if [ "${AVAIL%.*}" -lt 10 ]; then
-            echo "::error::Less than 10GB available. Failing early."
+          # Use --block-size=1G for consistent GB output regardless of size
+          AVAIL=$(df --block-size=1G / | awk 'NR==2 {print $4}')
+          if [ "$AVAIL" -lt 10 ]; then
+            echo "::error::Less than 10GB available ($AVAIL GB). Failing early."
             exit 1
           fi
-          echo "✓ Sufficient disk space available"
+          echo "✓ Sufficient disk space available ($AVAIL GB)"
 
       - name: Checkout PR
         uses: actions/checkout@v4
