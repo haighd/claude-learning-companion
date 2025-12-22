@@ -283,10 +283,12 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
         (r'(?i)out of memory', "Out of memory"),
     ]
 
-    # Check both stdout and stderr for error patterns
-    combined_output = f"{stdout}\n{stderr}" if stderr else stdout
+    # Check both stdout and stderr for error patterns independently
+    # (checking separately avoids pattern matching issues at string boundaries)
     for pattern, reason in bash_error_patterns:
-        if re.search(pattern, combined_output):
+        if re.search(pattern, stdout):
+            return "failure", reason
+        if stderr and re.search(pattern, stderr):
             return "failure", reason
 
     # Check for common success patterns
@@ -323,9 +325,12 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
             return "success", reason
 
     # Phase 1.3: Detect JSON responses - structured data usually means success
-    if stdout.strip():
+    stdout_stripped = stdout.strip()
+    stderr_stripped = stderr.strip()
+
+    if stdout_stripped:
         try:
-            if stdout.strip().startswith('{') or stdout.strip().startswith('['):
+            if stdout_stripped.startswith('{') or stdout_stripped.startswith('['):
                 json.loads(stdout)
                 return "success", "Returned JSON data"
         except (json.JSONDecodeError, ValueError):
@@ -334,7 +339,7 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
     # Phase 1.2: Success-by-absence logic
     # If stderr is empty and no error patterns matched, infer success
     # Rationale: Commands that complete without errors succeeded
-    if not stderr.strip():
+    if not stderr_stripped:
         # Check if stdout has any concerning patterns we might have missed
         concerning_patterns = [
             r'(?i)\bwarning\b',
@@ -343,13 +348,13 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
         has_concerns = any(re.search(p, stdout) for p in concerning_patterns)
 
         if not has_concerns:
-            if stdout.strip():
+            if stdout_stripped:
                 return "success", "Command completed with output"
             else:
                 return "success", "Command completed silently"
 
     # Only return "unknown" if stderr has content we don't understand
-    if stderr.strip():
+    if stderr_stripped:
         return "unknown", f"Stderr present: {stderr[:50]}"
 
     return "unknown", "Could not determine outcome"

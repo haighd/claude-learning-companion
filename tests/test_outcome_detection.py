@@ -11,7 +11,12 @@ Target: < 10% unknown outcomes
 import sys
 from pathlib import Path
 
-# Add hooks directory to path for imports, relative to this test file
+# Add hooks directory to path for imports, relative to this test file.
+# Note: sys.path modification is a common pattern in test files where the module
+# being tested isn't installed as a package. This is acceptable for tests because:
+# 1. It's isolated to the test module scope
+# 2. pytest handles test discovery independently
+# 3. The hooks directory isn't a proper Python package (no __init__.py hierarchy)
 HOOKS_DIR = Path(__file__).resolve().parents[1] / 'hooks' / 'learning-loop'
 sys.path.insert(0, str(HOOKS_DIR))
 
@@ -283,11 +288,23 @@ class TestPythonErrors:
         )
         assert result[0] == "failure"
 
-    def test_import_error_is_failure(self):
-        """ImportError = failure."""
+    def test_import_error_in_stderr_is_failure(self):
+        """ImportError in stderr = failure."""
         result = determine_bash_outcome(
             {},
             {"stdout": "", "stderr": "ImportError: No module named 'foo'", "interrupted": False}
+        )
+        assert result[0] == "failure"
+
+    def test_import_error_in_stdout_is_failure(self):
+        """ImportError in stdout = failure.
+
+        Python tracebacks can appear in stdout in some execution contexts
+        (e.g., subprocess with combined output, certain test runners).
+        """
+        result = determine_bash_outcome(
+            {},
+            {"stdout": "ImportError: No module named 'foo'", "stderr": "", "interrupted": False}
         )
         assert result[0] == "failure"
 
