@@ -237,12 +237,17 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
     if not tool_output:
         return "unknown", "No output to analyze"
 
-    # Get output content
-    output = ""
-    if isinstance(tool_output, str):
-        output = tool_output
-    elif isinstance(tool_output, dict):
-        output = tool_output.get("output", "") or tool_output.get("stdout", "") or str(tool_output)
+    # Extract output from Claude's Bash response structure
+    # Claude returns: {"stdout": "...", "stderr": "...", "interrupted": bool, "isImage": bool}
+    stdout = ""
+    stderr = ""
+    if isinstance(tool_output, dict):
+        stdout = tool_output.get("stdout", "") or ""
+        stderr = tool_output.get("stderr", "") or ""
+    elif isinstance(tool_output, str):
+        stdout = tool_output
+
+    output = stdout  # Primary output for pattern matching
 
     # Exit code patterns (if captured in output) - catch variations like:
     # "exit code 1", "exited with code 1", "exit status 1", "returned 1"
@@ -278,31 +283,73 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
         (r'(?i)out of memory', "Out of memory"),
     ]
 
+    # Check both stdout and stderr for error patterns
+    combined_output = f"{stdout}\n{stderr}" if stderr else stdout
     for pattern, reason in bash_error_patterns:
-        if re.search(pattern, output):
+        if re.search(pattern, combined_output):
             return "failure", reason
 
     # Check for common success patterns
     # Use \A and \Z anchors for absolute string start/end (no MULTILINE needed)
     bash_success_patterns = [
+        # Existing patterns
         (r'(?i)successfully', "Operation successful"),
         (r'(?i)completed', "Operation completed"),
         (r'(?is)done\.?\s*\Z', "Done"),  # Only match "done" at absolute end of output
         (r'(?i)\Aok\s', "OK status"),     # Only match "ok " at absolute start of output
         (r'(?i)\bpassed\b', "Tests passed"),  # Word boundary to avoid "bypassed"
         (r'(?i)\d+ passing', "Tests passing"),
+        # NEW patterns (Phase 1.4)
+        (r'(?i)\bfound\b', "Resource found"),
+        (r'(?i)\bexists\b', "Resource exists"),
+        (r'(?i)\bcreated\b', "Resource created"),
+        (r'(?i)\bupdated\b', "Resource updated"),
+        (r'(?i)\bdeleted\b', "Resource deleted"),
+        (r'(?i)\binstalled\b', "Package installed"),
+        (r'(?i)\bstarted\b', "Process started"),
+        (r'(?i)\bstopped\b', "Process stopped"),
+        (r'(?i)\brestarted\b', "Process restarted"),
+        (r'(?i)\d+\s+(files?|items?|rows?|records?)', "Count result"),
+        (r'(?i)\btrue\b', "Boolean true"),
+        (r'(?i)\bfalse\b', "Boolean false"),
+        (r'(?i)already\s+\w+', "Idempotent result"),
     ]
 
     for pattern, reason in bash_success_patterns:
         if re.search(pattern, output):
             return "success", reason
 
-    # If we got output without any recognized success or error patterns,
-    # outcome is ambiguous - be conservative
-    if output.strip():
-        return "unknown", "Output present but no clear success indicators"
+    # Phase 1.3: Detect JSON responses - structured data usually means success
+    if stdout.strip():
+        try:
+            if stdout.strip().startswith('{') or stdout.strip().startswith('['):
+                json.loads(stdout)
+                return "success", "Returned JSON data"
+        except (json.JSONDecodeError, ValueError):
+            pass  # Not JSON, continue checking
 
-    return "unknown", "No output and no clear outcome indicators"
+    # Phase 1.2: Success-by-absence logic
+    # If stderr is empty and no error patterns matched, infer success
+    # Rationale: Commands that complete without errors succeeded
+    if not stderr.strip():
+        # Check if stdout has any concerning patterns we might have missed
+        concerning_patterns = [
+            r'(?i)\bwarning\b',
+            r'(?i)\bdeprecated\b',
+        ]
+        has_concerns = any(re.search(p, stdout) for p in concerning_patterns)
+
+        if not has_concerns:
+            if stdout.strip():
+                return "success", "Command completed with output"
+            else:
+                return "success", "Command completed silently"
+
+    # Only return "unknown" if stderr has content we don't understand
+    if stderr.strip():
+        return "unknown", f"Stderr present: {stderr[:50]}"
+
+    return "unknown", "Could not determine outcome"
 
 
 def determine_mcp_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, str]:
