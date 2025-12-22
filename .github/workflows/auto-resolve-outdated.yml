@@ -1,0 +1,101 @@
+name: Auto-Resolve Outdated Threads
+
+on:
+  pull_request:
+    types: [synchronize]  # Triggers on new commits pushed to PR
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  resolve-outdated:
+    name: Resolve Outdated Review Threads
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve outdated review threads
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+
+            // Get all review threads using GraphQL
+            const query = `
+              query($owner: String!, $repo: String!, $pr: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $pr) {
+                    reviewThreads(first: 100) {
+                      nodes {
+                        id
+                        isResolved
+                        isOutdated
+                        comments(first: 1) {
+                          nodes {
+                            body
+                            author { login }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+            const result = await github.graphql(query, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pr: prNumber
+            });
+
+            const threads = result.repository.pullRequest.reviewThreads.nodes;
+            const outdatedUnresolved = threads.filter(t => t.isOutdated && !t.isResolved);
+
+            if (outdatedUnresolved.length === 0) {
+              core.info('No outdated unresolved threads found');
+              return;
+            }
+
+            core.info(`Found ${outdatedUnresolved.length} outdated unresolved thread(s)`);
+
+            let resolvedCount = 0;
+            const errors = [];
+
+            for (const thread of outdatedUnresolved) {
+              try {
+                // Resolve the thread (skip adding comment to avoid noise)
+                await github.graphql(`
+                  mutation($threadId: ID!) {
+                    resolveReviewThread(input: {threadId: $threadId}) {
+                      thread { isResolved }
+                    }
+                  }
+                `, { threadId: thread.id });
+
+                resolvedCount++;
+                core.info(`Resolved outdated thread: ${thread.id}`);
+              } catch (error) {
+                errors.push({ id: thread.id, error: error.message });
+                core.warning(`Failed to resolve thread ${thread.id}: ${error.message}`);
+              }
+            }
+
+            // Post summary comment if any threads were resolved
+            if (resolvedCount > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: [
+                  `🔄 **Auto-resolved ${resolvedCount} outdated review thread(s)**`,
+                  '',
+                  'These threads were on code that has since been modified.',
+                  'The original feedback may no longer apply to the current code.',
+                  '',
+                  errors.length > 0 ? `⚠️ ${errors.length} thread(s) could not be resolved automatically.` : ''
+                ].filter(Boolean).join('\n')
+              });
+            }
+
+            core.setOutput('resolved_count', resolvedCount);
+            core.setOutput('error_count', errors.length);
