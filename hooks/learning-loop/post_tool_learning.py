@@ -800,7 +800,13 @@ def extract_task_description(tool_input: dict, tool_name: str) -> str:
         file_path = tool_input.get("file_path") or tool_input.get("path")
         if file_path is not None:
             # Normalize to text so os.path.basename doesn't raise TypeError and the value is human-readable.
-            path_str = os.fsdecode(file_path)
+            if isinstance(file_path, (bytes, bytearray, os.PathLike)):
+                path_str = os.fsdecode(file_path)
+            elif isinstance(file_path, str):
+                path_str = file_path
+            else:
+                # Fallback: best-effort stringification for unexpected types
+                path_str = str(file_path)
             basename = os.path.basename(path_str)
             if basename:
                 return f"{tool_name}: {basename}"
