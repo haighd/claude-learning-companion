@@ -876,8 +876,6 @@ def extract_output_snippet(tool_output: dict, max_length: int = 200) -> str:
                 part_to_append = part[:remaining]
                 snippet_parts.append(part_to_append)
                 current_len += len(part_to_append)
-            return "\n".join(snippet_parts)
-
     # Try to get error or stderr
     error = tool_output.get("error") or tool_output.get("stderr")
     if error:
