@@ -70,41 +70,53 @@ else
     sleep 3
 fi
 
-# Detect package manager
-if command -v bun &> /dev/null; then
-    PKG_MGR="bun"
-elif command -v npm &> /dev/null; then
-    PKG_MGR="npm"
+# Check if production build exists - determines frontend serving mode
+HAS_PROD_BUILD=false
+if [ -d "$FRONTEND_PATH/dist" ]; then
+    HAS_PROD_BUILD=true
+    FRONTEND_URL="http://localhost:$BACKEND_PORT"
+    FRONTEND_MODE="(production build served by backend)"
+    echo "[OK] Production build found - backend will serve frontend"
 else
-    echo "Error: Neither bun nor npm found. Install from https://bun.sh or https://nodejs.org"
-    exit 1
-fi
+    FRONTEND_URL="http://localhost:$FRONTEND_PORT"
+    FRONTEND_MODE="(Vite dev server)"
 
-# Check if frontend already running
-if curl -s "http://localhost:$FRONTEND_PORT" >/dev/null 2>&1; then
-    echo "[OK] Frontend already running on port $FRONTEND_PORT"
-else
-    echo "[Starting] Frontend dev server (using $PKG_MGR)..."
-    cd "$FRONTEND_PATH" && $PKG_MGR run dev &
-    STARTED_SERVERS=true
-    sleep 4
+    # Detect package manager
+    if command -v bun &> /dev/null; then
+        PKG_MGR="bun"
+    elif command -v npm &> /dev/null; then
+        PKG_MGR="npm"
+    else
+        echo "Error: Neither bun nor npm found. Install from https://bun.sh or https://nodejs.org"
+        exit 1
+    fi
+
+    # Check if frontend already running
+    if curl -s "http://localhost:$FRONTEND_PORT" >/dev/null 2>&1; then
+        echo "[OK] Frontend dev server already running on port $FRONTEND_PORT"
+    else
+        echo "[Starting] Frontend dev server (using $PKG_MGR)..."
+        cd "$FRONTEND_PATH" && $PKG_MGR run dev &
+        STARTED_SERVERS=true
+        sleep 4
+    fi
 fi
 
 # Open browser
 echo "[Opening] Browser..."
 if command -v xdg-open >/dev/null 2>&1; then
-    xdg-open "http://localhost:$FRONTEND_PORT"
+    xdg-open "$FRONTEND_URL"
 elif command -v open >/dev/null 2>&1; then
-    open "http://localhost:$FRONTEND_PORT"
+    open "$FRONTEND_URL"
 else
-    start "http://localhost:$FRONTEND_PORT" 2>/dev/null || echo "Open http://localhost:$FRONTEND_PORT in your browser"
+    start "$FRONTEND_URL" 2>/dev/null || echo "Open $FRONTEND_URL in your browser"
 fi
 
 echo ""
 echo "========================================================"
 echo "  Dashboard is running!"
 echo ""
-echo "  Frontend:  http://localhost:$FRONTEND_PORT"
+echo "  Frontend:  $FRONTEND_URL $FRONTEND_MODE"
 echo "  Backend:   http://localhost:$BACKEND_PORT"
 echo "  API Docs:  http://localhost:$BACKEND_PORT/docs"
 echo ""
