@@ -801,9 +801,11 @@ def extract_task_description(tool_input: dict, tool_name: str) -> str:
         if isinstance(prompt, list):
             prompt = "\n".join(map(str, prompt))
         if isinstance(prompt, str):
-            first_line = prompt.strip().split("\n")[0].strip()
-            if first_line:
-                return first_line[:100]
+            # Iterate to find first non-empty line (handles leading newlines correctly)
+            for line in prompt.splitlines():
+                stripped_line = line.strip()
+                if stripped_line:
+                    return stripped_line[:100]
 
     # Priority 6: Fallback
     return f"{tool_name} operation"
@@ -842,12 +844,7 @@ def extract_output_snippet(tool_output: dict, max_length: int = 200) -> str:
             return content[:max_length]
         elif isinstance(content, list):
             # Handle list of content items (e.g., [{"type": "text", "text": "..."}])
-            text_parts = []
-            for item in content:
-                if isinstance(item, dict):
-                    text_parts.append(item.get("text", ""))
-                else:
-                    text_parts.append(str(item))
+            text_parts = (item.get("text", "") if isinstance(item, dict) else str(item) for item in content)
             return "\n".join(text_parts)[:max_length]
 
     # Try to get error or stderr
