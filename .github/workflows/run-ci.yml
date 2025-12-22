@@ -74,6 +74,29 @@ jobs:
     if: needs.check-trigger.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: false
+
+      - name: Check available disk space
+        run: |
+          echo "Available disk space:"
+          df -h /
+          # Use --block-size=1G for consistent GB output regardless of size
+          AVAIL=$(df --block-size=1G / | awk 'NR==2 {print $4}')
+          if [ "$AVAIL" -lt 10 ]; then
+            echo "::error::Less than 10GB available ($AVAIL GB). Failing early."
+            exit 1
+          fi
+          echo "✓ Sufficient disk space available ($AVAIL GB)"
+
       - name: Checkout PR
         uses: actions/checkout@v4
         with:
