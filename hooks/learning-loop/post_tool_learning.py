@@ -752,7 +752,7 @@ def check_golden_rule_promotion(conn):
         sys.stderr.write(f"Warning: Failed to check golden rule promotion: {e}\n")
 
 
-def extract_task_description(tool_input: dict, tool_name: str, tool_output: dict) -> str:
+def extract_task_description(tool_input: dict, tool_name: str) -> str:
     """Extract a meaningful task description from tool inputs.
 
     Priority order:
@@ -763,17 +763,13 @@ def extract_task_description(tool_input: dict, tool_name: str, tool_output: dict
     5. First line of prompt
     6. Fallback to tool name operation
     """
-    # Priority 1: Explicit description
-    if tool_input.get("description"):
-        desc = tool_input["description"].strip()
-        if desc:
-            return desc[:100]
+    # Priority 1: Explicit description (walrus operator for conciseness)
+    if desc := tool_input.get("description", "").strip():
+        return desc[:100]
 
     # Priority 2: Command (for Bash)
-    if tool_name == "Bash" and tool_input.get("command"):
-        cmd = tool_input["command"].strip()
-        if cmd:
-            return cmd[:100]
+    if tool_name == "Bash" and (cmd := tool_input.get("command", "").strip()):
+        return cmd[:100]
 
     # Priority 3: URL or query (for WebFetch/WebSearch)
     if tool_name in ("WebFetch", "WebSearch"):
@@ -844,11 +840,8 @@ def extract_output_snippet(tool_output: dict, max_length: int = 200) -> str:
         if task_output_val:
             return str(task_output_val)[:max_length]
 
-    # Fallback: filtered string representation
-    output_str = str(tool_output)
-    # Remove common noise patterns
-    output_str = re.sub(r'\{["\']type["\']\s*:\s*["\']text["\']\s*,', '', output_str)
-    return output_str[:max_length]
+    # Fallback: raw string representation (avoiding brittle regex that could create malformed output)
+    return str(tool_output)[:max_length]
 
 
 def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str, domains: List[str], tool_name: str = "Task"):
@@ -861,7 +854,7 @@ def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str
         cursor = conn.cursor()
 
         # Extract task description using helper
-        description = extract_task_description(tool_input, tool_name, tool_output)
+        description = extract_task_description(tool_input, tool_name)
 
         # Extract output snippet using helper
         output_snippet = extract_output_snippet(tool_output, max_length=200)

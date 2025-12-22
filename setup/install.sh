@@ -132,22 +132,22 @@ sync_hooks() {
         return 1
     fi
 
-    # Verify each critical hook file
-    local all_present=true
+    # Verify each critical hook file (count missing for better diagnostics)
+    local missing_count=0
     for hook in "${critical_hooks[@]}"; do
         if [ -f "$source_hooks_dir/$hook" ]; then
             echo "[CLC]   ✓ $hook verified"
         else
             echo "[CLC]   ✗ $hook MISSING"
-            all_present=false
+            ((missing_count++))
         fi
     done
 
-    if [ "$all_present" = true ]; then
+    if [ "$missing_count" -eq 0 ]; then
         echo "[CLC] Hook verification: PASS"
         return 0
     else
-        echo "[CLC] Hook verification: FAIL - some hooks are missing"
+        echo "[CLC] Hook verification: FAIL - $missing_count hook(s) missing"
         return 1
     fi
 }

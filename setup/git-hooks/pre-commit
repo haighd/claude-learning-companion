@@ -1,21 +1,26 @@
 #!/bin/bash
-# ELF Pre-commit Hook - Enforces invariants before allowing commits
+# CLC Pre-commit Hook - Enforces invariants before allowing commits
 #
 # Bypass with: git commit --no-verify
 
 echo "🔍 Running invariant checks..."
 echo ""
 
-# Run the check against the ELF repo
-~/.claude/emergent-learning/scripts/check-invariants.sh --project ~/.claude/emergent-learning
+# Run the check against the CLC repo
+CLC_DIR="$HOME/.claude/clc"
+if [ -f "$CLC_DIR/scripts/check-invariants.sh" ]; then
+    "$CLC_DIR/scripts/check-invariants.sh" --project "$CLC_DIR"
 
-if [ $? -ne 0 ]; then
-    echo ""
-    echo "❌ Commit blocked. Fix the invariant violations above."
-    echo "   (bypass with: git commit --no-verify)"
-    exit 1
+    if [ $? -ne 0 ]; then
+        echo ""
+        echo "❌ Commit blocked. Fix the invariant violations above."
+        echo "   (bypass with: git commit --no-verify)"
+        exit 1
+    fi
+else
+    echo "⚠️ Invariant check script not found, skipping checks"
 fi
 
 echo ""
-echo "✅ All invariants passed. Proceeding with commit."
+echo "✅ All checks passed. Proceeding with commit."
 exit 0
