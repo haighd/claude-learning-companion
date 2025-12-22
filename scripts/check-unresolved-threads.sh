@@ -38,10 +38,18 @@ QUERY='query($owner: String!, $repo: String!, $pr: Int!) {
   }
 }'
 
-RESULT=$(gh api graphql -f query="$QUERY" -f owner="$OWNER" -f repo="$REPO" -F pr="$PR_NUMBER" 2>&1)
+# Capture stdout and stderr separately to avoid corrupting JSON with warning messages
+STDERR_FILE=$(mktemp)
+RESULT=$(gh api graphql -f query="$QUERY" -f owner="$OWNER" -f repo="$REPO" -F pr="$PR_NUMBER" 2>"$STDERR_FILE") || {
+    echo "Error: Failed to query review threads" >&2
+    cat "$STDERR_FILE" >&2
+    rm -f "$STDERR_FILE"
+    exit 2
+}
+rm -f "$STDERR_FILE"
 
 if ! echo "$RESULT" | grep -q '"reviewThreads"'; then
-    echo "Error: Failed to query review threads" >&2
+    echo "Error: GraphQL response missing reviewThreads data" >&2
     echo "$RESULT" >&2
     exit 2
 fi
