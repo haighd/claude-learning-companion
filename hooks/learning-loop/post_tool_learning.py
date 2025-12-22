@@ -928,11 +928,11 @@ def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str
 
         # Add prompt context if available
         if prompt_val := tool_input.get("prompt"):
-            prompt_str = _get_prompt_as_string(prompt_val)
-            prompt_preview = prompt_str.strip()[:100]
-            if prompt_preview:
+            stripped_prompt = _get_prompt_as_string(prompt_val).strip()
+            if stripped_prompt:
+                prompt_preview = stripped_prompt[:100]
                 summary_parts.append(
-                    f"Prompt: {prompt_preview}{'...' if len(prompt_str.strip()) > 100 else ''}"
+                    f"Prompt: {prompt_preview}{'...' if len(stripped_prompt) > 100 else ''}"
                 )
 
         summary = "\n\n".join(summary_parts)
