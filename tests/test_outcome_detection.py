@@ -11,8 +11,9 @@ Target: < 10% unknown outcomes
 import sys
 from pathlib import Path
 
-# Add hooks directory to path for imports
-sys.path.insert(0, str(Path.home() / '.claude' / 'clc' / 'hooks' / 'learning-loop'))
+# Add hooks directory to path for imports, relative to this test file
+HOOKS_DIR = Path(__file__).resolve().parents[1] / 'hooks' / 'learning-loop'
+sys.path.insert(0, str(HOOKS_DIR))
 
 import pytest
 from post_tool_learning import determine_bash_outcome
@@ -30,12 +31,17 @@ class TestEmptyOutputSuccess:
         assert result[0] == "success"
         assert "silently" in result[1].lower()
 
-    def test_empty_string_output_is_success(self):
-        """String output that is empty = success."""
+    def test_empty_string_output_is_unknown(self):
+        """Empty string output = unknown (ambiguous, could be no output).
+
+        When tool_output is a plain empty string (not a dict with empty fields),
+        Python treats it as falsy and the function returns early with "No output
+        to analyze". This is correct - an empty string at this level is ambiguous.
+        Use dict format with explicit stdout/stderr fields for clarity.
+        """
         result = determine_bash_outcome({}, "")
-        # Empty string with no dict structure falls through to "unknown"
-        # because we can't distinguish stdout from stderr
-        assert result[0] in ("success", "unknown")
+        assert result[0] == "unknown"
+        assert "no output" in result[1].lower()
 
 
 class TestJsonResponseSuccess:
@@ -182,6 +188,20 @@ class TestSuccessPatterns:
             {"stdout": "true", "stderr": "", "interrupted": False}
         )
         assert result[0] == "success"
+        assert "boolean" in result[1].lower()
+
+    def test_boolean_false(self):
+        """Boolean false = success (command completed with result).
+
+        Outputting 'false' is distinct from failure - the command successfully
+        returned a boolean result (e.g., git config, test commands).
+        """
+        result = determine_bash_outcome(
+            {},
+            {"stdout": "false", "stderr": "", "interrupted": False}
+        )
+        assert result[0] == "success"
+        assert "boolean" in result[1].lower()
 
     def test_already_exists(self):
         """'already exists' (idempotent) = success."""
@@ -193,17 +213,21 @@ class TestSuccessPatterns:
 
 
 class TestWarningHandling:
-    """Test that warnings don't prevent success classification."""
+    """Test that warnings are handled appropriately."""
 
-    def test_warning_in_output_still_unknown(self):
-        """Warnings should result in unknown, not failure."""
+    def test_warning_in_output_is_unknown(self):
+        """Warnings result in unknown outcome (conservative approach).
+
+        Warnings are concerning but not failures. The success-by-absence logic
+        explicitly checks for warning patterns and excludes them from automatic
+        success classification, resulting in 'unknown' for human review.
+        """
         result = determine_bash_outcome(
             {},
             {"stdout": "Warning: deprecated function used", "stderr": "", "interrupted": False}
         )
-        # With current implementation, warnings make it unknown
-        # This could be changed to success with caveats in future
-        assert result[0] in ("success", "unknown")
+        assert result[0] == "unknown"
+        assert "could not determine" in result[1].lower()
 
 
 class TestStderrPresent:

@@ -242,8 +242,8 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
     stdout = ""
     stderr = ""
     if isinstance(tool_output, dict):
-        stdout = tool_output.get("stdout", "") or ""
-        stderr = tool_output.get("stderr", "") or ""
+        stdout = tool_output.get("stdout", "")
+        stderr = tool_output.get("stderr", "")
     elif isinstance(tool_output, str):
         stdout = tool_output
 
@@ -311,7 +311,10 @@ def determine_bash_outcome(tool_input: dict, tool_output: dict) -> Tuple[str, st
         (r'(?i)\brestarted\b', "Process restarted"),
         (r'(?i)\d+\s+(files?|items?|rows?|records?)', "Count result"),
         (r'(?i)\btrue\b', "Boolean true"),
-        (r'(?i)\bfalse\b', "Boolean false"),
+        # Note: "false" as output indicates command completed and returned a boolean result
+        # (e.g., `git config core.autocrlf`, `test -f file && echo true || echo false`)
+        # This is distinct from failure - the command succeeded in returning its result
+        (r'(?i)\bfalse\b', "Boolean result"),
         (r'(?i)already\s+\w+', "Idempotent result"),
     ]
 
