@@ -863,8 +863,6 @@ def extract_output_snippet(tool_output: dict, max_length: int = 200) -> str:
                     break
                 snippet_parts.append(part[:remaining])
                 current_len += min(len(part), remaining)
-                if current_len >= max_length:
-                    break
             return "\n".join(snippet_parts)
 
     # Try to get error or stderr
