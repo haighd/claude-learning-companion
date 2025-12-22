@@ -782,23 +782,28 @@ def extract_task_description(tool_input: dict, tool_name: str) -> str:
 
     # Priority 3: URL or query (for WebFetch/WebSearch)
     if tool_name in ("WebFetch", "WebSearch"):
-        url = tool_input.get("url") or tool_input.get("query", "")
-        if url:
-            return f"{tool_name}: {url[:80]}"
+        url_or_query = tool_input.get("url") or tool_input.get("query")
+        if url_or_query:
+            return f"{tool_name}: {str(url_or_query)[:80]}"
 
     # Priority 4: File path basename (for Edit/Write/Read)
     if tool_name in ("Edit", "Write", "Read"):
-        file_path = tool_input.get("file_path", "")
-        if file_path:
-            basename = os.path.basename(file_path)
-            return f"{tool_name}: {basename}"
+        file_path = tool_input.get("file_path")
+        if file_path is not None:
+            # Convert to string to prevent TypeError and make raw value visible
+            path_str = str(file_path)
+            basename = os.path.basename(path_str)
+            if basename:
+                return f"{tool_name}: {basename}"
 
     # Priority 5: First line of prompt
-    if tool_input.get("prompt"):
-        prompt_lines = tool_input["prompt"].strip().split("\n")
-        first_line = prompt_lines[0].strip()
-        if first_line:
-            return first_line[:100]
+    if prompt := tool_input.get("prompt"):
+        if isinstance(prompt, list):
+            prompt = "\n".join(map(str, prompt))
+        if isinstance(prompt, str):
+            first_line = prompt.strip().split("\n")[0].strip()
+            if first_line:
+                return first_line[:100]
 
     # Priority 6: Fallback
     return f"{tool_name} operation"
@@ -892,10 +897,13 @@ def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str
             summary_parts.append(f"Output snippet: {output_snippet}")
 
         # Add prompt context if available
-        if tool_input.get("prompt"):
-            prompt_preview = tool_input["prompt"][:100].strip()
-            if prompt_preview:
-                summary_parts.append(f"Prompt: {prompt_preview}...")
+        if prompt := tool_input.get("prompt"):
+            if isinstance(prompt, list):
+                prompt = "\n".join(map(str, prompt))
+            if isinstance(prompt, str):
+                prompt_preview = prompt[:100].strip()
+                if prompt_preview:
+                    summary_parts.append(f"Prompt: {prompt_preview}...")
 
         summary = "\n\n".join(summary_parts)
         domain = domains[0] if domains else "general"
