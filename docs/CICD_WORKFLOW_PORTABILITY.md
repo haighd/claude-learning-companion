@@ -20,6 +20,38 @@ The workflow provides:
 
 ## Quick Start
 
+### Automated Migration (Recommended)
+
+Use the migration script to automate most steps:
+
+```bash
+# From the CLC repository
+./scripts/migrate-cicd-workflow.sh /path/to/your/repo
+
+# With bot account setup
+./scripts/migrate-cicd-workflow.sh --with-bot-setup /path/to/your/repo
+
+# Dry run to see what would change
+./scripts/migrate-cicd-workflow.sh --dry-run /path/to/your/repo
+
+# Customize bot name and maintainer
+./scripts/migrate-cicd-workflow.sh --bot-name mybot --maintainer alice /path/to/your/repo
+```
+
+The script will:
+- Copy all workflow files with customized usernames
+- Copy and make executable the categorize-findings.py script
+- Create required GitHub labels (ready-to-merge, do-not-merge)
+- Optionally configure bot account and secrets
+
+After running, follow the manual steps printed by the script.
+
+---
+
+### Manual Migration
+
+If you prefer manual setup, follow these steps:
+
 ### Step 1: Copy Workflow Files
 
 Copy these files to your repository's `.github/workflows/` directory:
@@ -199,13 +231,19 @@ Copilot reviews automatically on PR creation and updates.
 
 ## Migration Checklist
 
-- [ ] Copy workflow files to `.github/workflows/`
-- [ ] Copy `categorize-findings.py` to `scripts/`
-- [ ] Make script executable
-- [ ] Create bot account (optional)
-- [ ] Add `BOT_PAT` secret (optional)
-- [ ] Add bot as collaborator (optional)
-- [ ] Create `ready-to-merge` label
-- [ ] Install Gemini Code Assist
+### Automated by Script
+- [x] Copy workflow files to `.github/workflows/`
+- [x] Copy `categorize-findings.py` to `scripts/`
+- [x] Make script executable
+- [x] Create `ready-to-merge` label
+- [x] Create `do-not-merge` label
+- [x] Add `BOT_PAT` secret (with `--with-bot-setup`)
+- [x] Add bot as collaborator (with `--with-bot-setup`)
+
+### Manual Steps
+- [ ] Customize build/test steps in `run-ci.yml`
+- [ ] Create bot account (if using auto-approval)
+- [ ] Install Gemini Code Assist from marketplace
 - [ ] Enable GitHub Copilot
+- [ ] Commit and push workflow files
 - [ ] Test with a sample PR
