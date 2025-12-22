@@ -49,9 +49,28 @@ jobs:
               content: 'rocket'
             });
 
+  check-thread-status:
+    name: Check Review Threads
+    runs-on: ubuntu-latest
+    needs: check-trigger
+    if: needs.check-trigger.outputs.should_run == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ needs.check-trigger.outputs.pr_number }}/head
+
+      - name: Check for unresolved threads
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          chmod +x scripts/check-unresolved-threads.sh
+          ./scripts/check-unresolved-threads.sh "${{ needs.check-trigger.outputs.pr_number }}"
+
   python-checks:
     name: Python Syntax & Lint
-    needs: check-trigger
+    needs: [check-trigger, check-thread-status]
     if: needs.check-trigger.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -80,7 +99,7 @@ jobs:
 
   run-tests:
     name: Run Tests
-    needs: [check-trigger, python-checks]
+    needs: [check-trigger, check-thread-status, python-checks]
     if: needs.check-trigger.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     continue-on-error: true  # Don't fail if no tests exist
@@ -117,16 +136,16 @@ jobs:
 
   finalize:
     name: Finalize CI
-    needs: [check-trigger, python-checks, run-tests]
+    needs: [check-trigger, check-thread-status, python-checks, run-tests]
     if: always() && needs.check-trigger.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Check all jobs status
         id: status
         run: |
-          # Python checks must pass
+          # Thread check and Python checks must pass
           # Tests can be skipped or fail (continue-on-error) for now
-          if [ "${{ needs.python-checks.result }}" == "success" ]; then
+          if [ "${{ needs.check-thread-status.result }}" == "success" ] && [ "${{ needs.python-checks.result }}" == "success" ]; then
             echo "all_passed=true" >> $GITHUB_OUTPUT
           else
             echo "all_passed=false" >> $GITHUB_OUTPUT
@@ -162,6 +181,7 @@ jobs:
         with:
           script: |
             const results = {
+              thread_check: '${{ needs.check-thread-status.result }}',
               python_checks: '${{ needs.python-checks.result }}',
               tests: '${{ needs.run-tests.result }}'
             };
