@@ -114,7 +114,6 @@ def get_review_threads(owner: str, repo: str, pr_number: int) -> list[dict[str, 
     except json.JSONDecodeError as e:
         raise RuntimeError(f'GraphQL returned invalid JSON: {e}')
 
-    # Note: Fetches max 100 threads. PRs with 100+ threads indicate process issues.
     threads = data.get('data', {}).get('repository', {}).get('pullRequest', {}).get('reviewThreads', {}).get('nodes', [])
     return threads or []
 

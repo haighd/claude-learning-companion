@@ -75,7 +75,10 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           chmod +x scripts/categorize-findings.py
-          FINDINGS=$(python3 scripts/categorize-findings.py "${{ needs.check-trigger.outputs.pr_number }}")
+          if ! FINDINGS=$(python3 scripts/categorize-findings.py "${{ needs.check-trigger.outputs.pr_number }}"); then
+            echo "::error::Failed to categorize review findings"
+            exit 1
+          fi
 
           echo "Findings breakdown:"
           echo "$FINDINGS" | jq '.summary'
