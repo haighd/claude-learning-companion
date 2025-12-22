@@ -20,6 +20,38 @@ The workflow provides:
 
 ## Quick Start
 
+### Automated Migration (Recommended)
+
+Use the migration script to automate most steps:
+
+```bash
+# From the CLC repository
+./scripts/migrate-cicd-workflow.sh /path/to/your/repo
+
+# With bot account setup
+./scripts/migrate-cicd-workflow.sh --with-bot-setup /path/to/your/repo
+
+# Dry run to see what would change
+./scripts/migrate-cicd-workflow.sh --dry-run /path/to/your/repo
+
+# Customize bot name and maintainer
+./scripts/migrate-cicd-workflow.sh --bot-name mybot --maintainer alice /path/to/your/repo
+```
+
+The script will:
+- Copy all workflow files with customized usernames
+- Copy and make executable the categorize-findings.py script
+- Create required GitHub labels (ready-to-merge, do-not-merge)
+- Optionally configure bot account and secrets
+
+After running, follow the manual steps printed by the script.
+
+---
+
+### Manual Migration
+
+If you prefer manual setup, follow these steps:
+
 ### Step 1: Copy Workflow Files
 
 Copy these files to your repository's `.github/workflows/` directory:
@@ -59,6 +91,16 @@ If using bot auto-approval:
 Create these labels in your repository:
 - `ready-to-merge` - Applied when PR is ready for final merge
 - `do-not-merge` - Blocks auto-approval (optional)
+
+### Step 5: Configure Branch Protection
+
+After the first CI run completes, add the `CI Pipeline` status check to your branch protection:
+
+1. Go to **Settings → Rules → Rulesets** (or Branch protection rules)
+2. Add `CI Pipeline` as a required status check
+3. The status check appears after the first `/run-ci` triggers the workflow
+
+**Note:** The workflow uses explicit commit status reporting (`github.rest.repos.createCommitStatus`) to make the status visible in branch protection. This is required because `issue_comment` triggered workflows don't automatically create status checks.
 
 ## Workflow Configuration
 
@@ -110,6 +152,7 @@ Triggered by `/run-ci` comment. Features:
 - Severity-based thread checking
 - Configurable build/test steps
 - Success/failure reporting via comments
+- **Explicit commit status reporting** for branch protection (`CI Pipeline` status)
 
 ### auto-resolve-outdated.yml
 
@@ -197,15 +240,28 @@ Copilot reviews automatically on PR creation and updates.
 - Check Copilot is enabled for the repository
 - Verify bot accounts have repository access
 
+### `CI Pipeline` status check not appearing in branch protection
+- The status check only appears after the first successful `/run-ci` trigger
+- Run `/run-ci` on any open PR to create the status for the first time
+- Verify the workflow has `statuses: write` permission
+- Check that `Set pending commit status` step ran in the workflow logs
+
 ## Migration Checklist
 
-- [ ] Copy workflow files to `.github/workflows/`
-- [ ] Copy `categorize-findings.py` to `scripts/`
-- [ ] Make script executable
-- [ ] Create bot account (optional)
-- [ ] Add `BOT_PAT` secret (optional)
-- [ ] Add bot as collaborator (optional)
-- [ ] Create `ready-to-merge` label
-- [ ] Install Gemini Code Assist
+### Automated by Script
+- [x] Copy workflow files to `.github/workflows/`
+- [x] Copy `categorize-findings.py` to `scripts/`
+- [x] Make script executable
+- [x] Create `ready-to-merge` label
+- [x] Create `do-not-merge` label
+- [x] Add `BOT_PAT` secret (with `--with-bot-setup`)
+- [x] Add bot as collaborator (with `--with-bot-setup`)
+
+### Manual Steps
+- [ ] Customize build/test steps in `run-ci.yml`
+- [ ] Create bot account (if using auto-approval)
+- [ ] Install Gemini Code Assist from marketplace
 - [ ] Enable GitHub Copilot
-- [ ] Test with a sample PR
+- [ ] Commit and push workflow files
+- [ ] Test with a sample PR (run `/run-ci`)
+- [ ] Add `CI Pipeline` to required status checks in branch protection

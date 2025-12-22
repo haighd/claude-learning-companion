@@ -4,6 +4,12 @@ on:
   issue_comment:
     types: [created]
 
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+  statuses: write
+
 jobs:
   check-trigger:
     name: Check /run-ci trigger
@@ -14,7 +20,21 @@ jobs:
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
       pr_number: ${{ github.event.issue.number }}
+      head_sha: ${{ steps.get-sha.outputs.sha }}
     steps:
+      - name: Get PR head SHA
+        id: get-sha
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            core.setOutput('sha', pr.data.head.sha);
+            return pr.data.head.sha;
+
       - name: Check commenter permissions
         id: check
         uses: actions/github-script@v7
@@ -47,6 +67,21 @@ jobs:
               repo: context.repo.repo,
               comment_id: context.payload.comment.id,
               content: 'rocket'
+            });
+
+      - name: Set pending commit status
+        if: steps.check.outputs.should_run == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: '${{ steps.get-sha.outputs.sha }}',
+              state: 'pending',
+              context: 'CI Pipeline',
+              description: 'CI Pipeline running...',
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
             });
 
   check-thread-status:
@@ -211,6 +246,21 @@ jobs:
             echo "all_passed=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Set success commit status
+        if: steps.status.outputs.all_passed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: '${{ needs.check-trigger.outputs.head_sha }}',
+              state: 'success',
+              context: 'CI Pipeline',
+              description: 'All checks passed',
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
+
       - name: Report CI success
         if: steps.status.outputs.all_passed == 'true'
         uses: actions/github-script@v7
@@ -229,6 +279,21 @@ jobs:
             });
 
             // Note: ready-to-merge label is now added by auto-approve.yml after bot approval
+
+      - name: Set failure commit status
+        if: steps.status.outputs.all_passed == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: '${{ needs.check-trigger.outputs.head_sha }}',
+              state: 'failure',
+              context: 'CI Pipeline',
+              description: 'CI checks failed',
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
 
       - name: Report failure
         if: steps.status.outputs.all_passed == 'false'
