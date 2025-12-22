@@ -1,0 +1,478 @@
+#!/usr/bin/env python3
+"""
+Task Batcher: Context-aware task splitting and batching.
+
+Part of Phase 3: Preventive Context Management.
+
+Estimates token cost before task assignment, splits large tasks into
+context-sized chunks, and groups related tasks into batches.
+
+Usage:
+    from coordinator.task_batcher import TaskBatcher
+
+    batcher = TaskBatcher(project_root)
+    batches = batcher.batch_tasks_by_context(tasks)
+"""
+
+import sys
+import traceback
+from pathlib import Path
+from typing import Dict, List, Any, Set, Optional
+
+# Use shared utilities
+from utils.module_loader import get_module_attribute
+from utils.env_parsing import safe_env_int, safe_env_float
+
+# Module name for error messages
+_MODULE = "task_batcher"
+
+_clc_root = Path(__file__).parent.parent
+
+# Load context_monitor module
+_context_monitor_path = _clc_root / "watcher" / "context_monitor.py"
+get_context_status, HAS_CONTEXT_MONITOR = get_module_attribute(
+    "context_monitor", _context_monitor_path, "get_context_status"
+)
+
+# Load dependency_graph module
+_dep_graph_path = Path(__file__).parent / "dependency_graph.py"
+DependencyGraph, HAS_DEPENDENCY_GRAPH = get_module_attribute(
+    "dependency_graph", _dep_graph_path, "DependencyGraph"
+)
+
+
+# Module-level wrappers set consistent module name for error messages and
+# customize error_value for this module's specific failure modes.
+
+def _safe_env_int(name: str, default: str, error_value: int = 200000) -> int:
+    """Wrapper setting module name and custom error_value.
+
+    Uses 200000 as default error value (typical context window size) to avoid
+    setting budget to 0 on config error, which would cause excessive task splitting.
+    """
+    return safe_env_int(name, default, _MODULE, error_value=error_value)
+
+
+def _safe_env_float(name: str, default: str) -> float:
+    """Wrapper setting module name and custom error_value.
+
+    Uses 1.1 as error value to disable batching on config error (safer than 0.0
+    which would set budget to 0 and cause excessive task splitting).
+    """
+    return safe_env_float(name, default, _MODULE, error_value=1.1)
+
+
+# Token estimation constants (configurable via environment variables)
+# Uses same env vars as context_monitor.py for consistency
+CONTEXT_BUDGET = _safe_env_int('CONTEXT_WINDOW_SIZE', '200000')
+# CHECKPOINT_THRESHOLD: fraction of context to use before checkpointing (e.g., 0.6 = 60%)
+CHECKPOINT_THRESHOLD = _safe_env_float('CONTEXT_CHECKPOINT_THRESHOLD', '0.6')
+EFFECTIVE_BUDGET = int(CONTEXT_BUDGET * CHECKPOINT_THRESHOLD)
+
+# Task complexity multipliers
+COMPLEXITY_KEYWORDS = {
+    'refactor': 2.0,
+    'implement': 1.5,
+    'migrate': 2.0,
+    'redesign': 2.5,
+    'fix': 1.0,
+    'update': 0.8,
+    'add': 1.2,
+    'remove': 0.7,
+    'test': 1.3,
+    'document': 0.6,
+}
+
+# Average token costs per operation type
+TOKEN_COSTS = {
+    'base_task': 500,           # Task description overhead
+    'file_read': 4000,          # Average file read
+    'file_edit': 3000,          # Average file edit
+    'subagent_spawn': 10000,    # Subagent context
+    'tool_call': 1000,          # Tool invocation
+}
+
+# Default number of subagents assumed when parallel work is detected.
+#
+# Empirical basis: Across ~25 multi-agent workflows (Dec 2024 - Jan 2025),
+# tasks that mentioned "parallel" or "in parallel" but did not specify an
+# agent count almost always fanned out to 2 subagents. We therefore use 2 as
+# a conservative default to avoid underestimating context/token consumption.
+#
+# When to adjust this:
+# - Increase DEFAULT_SUBAGENT_COUNT (e.g., to 3-4) if:
+#   * Your swarm patterns typically spawn more than 2 subagents for
+#     ambiguous "parallel" work, or
+#   * You routinely hit context window limits despite tasks being
+#     correctly classified as parallel.
+# - Decrease DEFAULT_SUBAGENT_COUNT (e.g., to 1) if:
+#   * Most of your "parallel" tasks are actually handled by a single
+#     subagent, or
+#   * Token usage estimates are consistently far above actual usage,
+#     leading to overly pessimistic batching.
+#
+# This is a fixed default used only for estimation; it does not limit the
+# actual number of subagents that can be spawned at runtime.
+DEFAULT_SUBAGENT_COUNT = 2
+
+
+class TaskBatcher:
+    """Context-aware task batching and splitting."""
+
+    def __init__(self, project_root: str = "."):
+        """Initialize task batcher.
+
+        Args:
+            project_root: Root directory of the project
+        """
+        self.project_root = Path(project_root).resolve()
+        self._dep_graph = None
+        self._graph_scanned = False
+
+    @property
+    def dep_graph(self) -> Optional[Any]:
+        """Lazy-load dependency graph."""
+        if self._dep_graph is None and HAS_DEPENDENCY_GRAPH:
+            self._dep_graph = DependencyGraph(str(self.project_root))
+        return self._dep_graph
+
+    def _ensure_graph_scanned(self):
+        """Ensure dependency graph is scanned."""
+        if not self._graph_scanned and self.dep_graph is not None:
+            try:
+                self.dep_graph.scan()
+                self._graph_scanned = True
+            except (OSError, AttributeError):
+                # Non-fatal - continue without dependency analysis
+                sys.stderr.write(f"Warning: Dependency graph scan failed:\n{traceback.format_exc()}\n")
+
+    def _compute_file_clusters(self, files: List[str]) -> Optional[Set[str]]:
+        """Compute transitive dependency clusters for a list of files.
+
+        Groups files by their dependency relationships using the dependency graph.
+        Files that share dependencies are clustered together.
+
+        The algorithm tracks all files belonging to any computed cluster. When
+        processing file A yields cluster {A, B, C}, all three are marked as
+        clustered. When B is encountered later, it's skipped since it already
+        belongs to A's cluster. This works because dependency clusters are
+        transitive - B's cluster overlaps with A's cluster.
+
+        Args:
+            files: List of file paths to cluster.
+
+        Returns:
+            Set of all files in computed clusters, or None if clustering failed.
+        """
+        if self.dep_graph is None:
+            return None
+
+        try:
+            clustered_files: Set[str] = set()
+            for f in files:
+                # Skip if already part of another file's cluster
+                if f in clustered_files:
+                    continue
+                related = self.dep_graph.get_cluster(f, depth=1)
+                clustered_files.update(related)
+            return clustered_files
+        except (AttributeError, TypeError, KeyError):
+            # These exceptions can occur when:
+            # - AttributeError: dep_graph methods unavailable or return unexpected types
+            # - TypeError: get_cluster returns non-iterable or incompatible type
+            # - KeyError: internal graph data structure missing expected keys
+            sys.stderr.write(f"Warning: Failed to compute file clusters:\n{traceback.format_exc()}\n")
+            return None
+
+    def estimate_task_tokens(self, task: Dict) -> int:
+        """
+        Estimate tokens a task will consume.
+
+        Args:
+            task: Task dict with 'task' description and optional metadata
+
+        Returns:
+            Estimated token count
+        """
+        description = task.get('task', '') or task.get('description', '')
+
+        # Base cost from description length (~4 chars per token)
+        base_cost = max(TOKEN_COSTS['base_task'], len(description) // 4)
+
+        # Complexity multiplier from keywords
+        multiplier = 1.0
+        desc_lower = description.lower()
+        for keyword, mult in COMPLEXITY_KEYWORDS.items():
+            if keyword in desc_lower:
+                multiplier = max(multiplier, mult)
+
+        # File-based cost
+        files = task.get('files', task.get('scope', []))
+        if files:
+            file_cost = len(files) * TOKEN_COSTS['file_read']
+        else:
+            # Estimate based on task description or default
+            estimated_files = task.get('estimated_files', 3)
+            file_cost = estimated_files * TOKEN_COSTS['file_read']
+
+        # Subagent cost (if task suggests spawning agents)
+        subagent_keywords = ['parallel', 'swarm', 'multiple agents', 'concurrently']
+        subagent_cost = 0
+        for kw in subagent_keywords:
+            if kw in desc_lower:
+                subagent_cost = TOKEN_COSTS['subagent_spawn'] * DEFAULT_SUBAGENT_COUNT
+                break
+
+        total = int((base_cost + file_cost + subagent_cost) * multiplier)
+        return total
+
+    def split_task_for_context(self, task: Dict, available_tokens: int) -> List[Dict]:
+        """
+        Split a large task into context-sized subtasks.
+
+        Args:
+            task: Task to potentially split
+            available_tokens: Remaining context budget
+
+        Returns:
+            List of subtasks (possibly just [task] if it fits)
+        """
+        estimated = self.estimate_task_tokens(task)
+
+        # If it fits, return as-is
+        if estimated <= available_tokens:
+            return [task]
+
+        # If task has explicit subtasks, use those
+        if 'subtasks' in task and task['subtasks']:
+            return task['subtasks']
+
+        # If task has files, split by file groups
+        files = task.get('files', task.get('scope', []))
+        if files and len(files) > 1:
+            return self._split_by_file_groups(task, files)
+
+        # Try using dependency graph to find related files
+        self._ensure_graph_scanned()
+        if files and self.dep_graph is not None:
+            clustered_files = self._compute_file_clusters(files)
+            if clustered_files is not None and len(clustered_files) > 1:
+                return self._split_by_file_groups(task, list(clustered_files))
+
+        # Cannot split meaningfully - return with warning
+        task_copy = dict(task)
+        task_copy['warning'] = (
+            f'Task may exceed context budget '
+            f'({estimated:,} estimated > {available_tokens:,} available)'
+        )
+        return [task_copy]
+
+    def _split_by_file_groups(self, task: Dict, files: List[str]) -> List[Dict]:
+        """Split task by file groups that fit within budget.
+
+        Note: This method assumes files is non-empty with len(files) > 1.
+        The caller (split_task_for_context) ensures this precondition.
+        If called with empty files, returns an empty subtasks list.
+        If called with a single file, returns one subtask with that file.
+        """
+        self._ensure_graph_scanned()
+
+        # Group files by dependency clusters
+        clusters: List[List[str]] = []
+        assigned: Set[str] = set()
+        files_set = set(files)  # Convert once for efficient intersection
+
+        for f in files:
+            if f in assigned:
+                continue
+
+            # Start with safe default; refine using dep_graph if available
+            relevant_cluster: Set[str] = {f}
+
+            if self.dep_graph is not None:
+                try:
+                    full_cluster = self.dep_graph.get_cluster(f, depth=1)
+                    candidate = full_cluster.intersection(files_set)
+                    # Only use dep_graph result if non-empty and still contains f.
+                    # The explicit `f in candidate` check preserves the invariant that
+                    # every cluster includes its seed file, even if dep_graph misbehaves.
+                    if candidate and f in candidate:
+                        relevant_cluster = candidate
+                except (AttributeError, TypeError, KeyError):
+                    # See split_task_for_context for exception rationale
+                    sys.stderr.write(f"Warning: Failed to get dependency cluster for file group:\n{traceback.format_exc()}\n")
+                    # Keep default {f}
+
+            # Invariant: relevant_cluster always contains at least f
+            clusters.append(list(relevant_cluster))
+            assigned.update(relevant_cluster)
+
+        # Create subtasks for each cluster
+        subtasks = []
+        base_desc = task.get('task', '') or task.get('description', '')
+        # Use EFFECTIVE_BUDGET since subtasks will execute in fresh context after checkpoint
+        available = EFFECTIVE_BUDGET
+
+        for i, cluster_files in enumerate(clusters):
+            subtask = {
+                'id': f"{task.get('id', 'task')}-part-{i+1}",
+                'task': f"[Part {i+1}/{len(clusters)}] {base_desc}",
+                'files': cluster_files,
+                'scope': cluster_files,
+                'priority': task.get('priority', 5),
+                'parent_task': task.get('id'),
+                'part_number': i + 1,
+                'total_parts': len(clusters),
+            }
+            # Warn if subtask is still too large after splitting
+            subtask_tokens = self.estimate_task_tokens(subtask)
+            if subtask_tokens > available:
+                subtask['warning'] = (
+                    f'Subtask may exceed context budget '
+                    f'({subtask_tokens:,} estimated > {available:,} available)'
+                )
+            subtasks.append(subtask)
+
+        return subtasks
+
+    def batch_tasks_by_context(self, tasks: List[Dict]) -> List[List[Dict]]:
+        """
+        Group tasks into batches that fit within context budget.
+
+        Uses dependency graph for smart grouping - related files go together.
+
+        Args:
+            tasks: List of tasks to batch
+
+        Returns:
+            List of batches (each batch is a list of tasks)
+        """
+        if not tasks:
+            return []
+
+        # Use EFFECTIVE_BUDGET since each batch will run after checkpoint in fresh context
+        available = EFFECTIVE_BUDGET
+
+        self._ensure_graph_scanned()
+        batches: List[List[Dict]] = []
+        current_batch: List[Dict] = []
+        current_batch_tokens = 0
+
+        # Sort tasks by priority (lower number = higher priority)
+        sorted_tasks = sorted(tasks, key=lambda t: t.get('priority', 5))
+
+        for task in sorted_tasks:
+            estimated = self.estimate_task_tokens(task)
+
+            # If task is too large, try to split it
+            if estimated > available:
+                subtasks = self.split_task_for_context(task, available)
+                for subtask in subtasks:
+                    sub_estimate = self.estimate_task_tokens(subtask)
+                    if current_batch_tokens + sub_estimate > available:
+                        if current_batch:
+                            batches.append(current_batch)
+                        current_batch = [subtask]
+                        current_batch_tokens = sub_estimate
+                    else:
+                        current_batch.append(subtask)
+                        current_batch_tokens += sub_estimate
+            elif current_batch_tokens + estimated > available:
+                # Start new batch
+                if current_batch:
+                    batches.append(current_batch)
+                current_batch = [task]
+                current_batch_tokens = estimated
+            else:
+                current_batch.append(task)
+                current_batch_tokens += estimated
+
+        # Don't forget the last batch
+        if current_batch:
+            batches.append(current_batch)
+
+        return batches
+
+    def get_available_tokens(self) -> int:
+        """Get remaining tokens available for new work."""
+        if HAS_CONTEXT_MONITOR and get_context_status is not None:
+            try:
+                status = get_context_status()
+                current_usage = status.get('estimated_usage', 0.0)
+                available = int(CONTEXT_BUDGET * (1.0 - current_usage))
+                return available
+            except (AttributeError, TypeError, KeyError):
+                sys.stderr.write(
+                    f"Warning: Failed to get context status for available tokens:\n"
+                    f"{traceback.format_exc()}\n"
+                )
+                # Fall through to return fallback budget
+
+        # Fallback to effective budget
+        return EFFECTIVE_BUDGET
+
+
+# CLI for testing
+if __name__ == "__main__":
+    import argparse
+    import json
+
+    parser = argparse.ArgumentParser(description="Task Batcher CLI")
+    parser.add_argument("command", choices=["estimate", "split", "batch", "available"],
+                        help="Command to run")
+    parser.add_argument("--task", help="Task description")
+    parser.add_argument("--files", nargs="+", help="Files in scope")
+    parser.add_argument("--project", default=".", help="Project root")
+    parser.add_argument("--json", action="store_true", help="Output as JSON")
+
+    args = parser.parse_args()
+
+    batcher = TaskBatcher(args.project)
+
+    if args.command == "estimate":
+        task = {"task": args.task or "Example task", "files": args.files or []}
+        tokens = batcher.estimate_task_tokens(task)
+        if args.json:
+            print(json.dumps({"estimated_tokens": tokens}))
+        else:
+            print(f"Estimated tokens: {tokens:,}")
+
+    elif args.command == "available":
+        available = batcher.get_available_tokens()
+        if args.json:
+            print(json.dumps({"available_tokens": available}))
+        else:
+            print(f"Available tokens: {available:,}")
+            print(f"Context budget: {CONTEXT_BUDGET:,}")
+            print(f"Effective budget (60%): {EFFECTIVE_BUDGET:,}")
+
+    elif args.command == "split":
+        task = {"task": args.task or "Example task", "files": args.files or []}
+        available = batcher.get_available_tokens()
+        subtasks = batcher.split_task_for_context(task, available)
+        if args.json:
+            print(json.dumps({"subtasks": subtasks}, indent=2))
+        else:
+            print(f"Split into {len(subtasks)} subtasks:")
+            for i, st in enumerate(subtasks):
+                desc = st.get('task', '')[:60]
+                print(f"  {i+1}. {desc}...")
+
+    elif args.command == "batch":
+        # Create example tasks for batching demo
+        if args.task:
+            tasks = [{"task": args.task, "files": args.files or []}]
+        else:
+            tasks = [
+                {"task": f"Implement feature {i}", "estimated_files": 3}
+                for i in range(5)
+            ]
+
+        batches = batcher.batch_tasks_by_context(tasks)
+        if args.json:
+            print(json.dumps({"batches": batches}, indent=2))
+        else:
+            print(f"Created {len(batches)} batches:")
+            for i, batch in enumerate(batches):
+                total_tokens = sum(batcher.estimate_task_tokens(t) for t in batch)
+                print(f"  Batch {i+1}: {len(batch)} tasks, ~{total_tokens:,} tokens")

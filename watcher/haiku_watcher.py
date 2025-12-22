@@ -17,9 +17,26 @@ Design:
 
 import json
 import sys
+import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, Optional
+
+# Import context monitor for Phase 2 proactive checkpoint management
+try:
+    from watcher.context_monitor import get_context_status
+    CONTEXT_MONITOR_AVAILABLE = True
+except ImportError:
+    get_context_status = None
+    CONTEXT_MONITOR_AVAILABLE = False
+
+# Import shared formatting utility
+try:
+    from utils.formatting import format_usage_percentage
+    HAS_FORMATTING = True
+except ImportError:
+    format_usage_percentage = None
+    HAS_FORMATTING = False
 
 # Paths
 COORDINATION_DIR = Path.home() / ".claude" / "clc" / ".coordination"
@@ -34,13 +51,14 @@ def gather_state() -> Dict[str, Any]:
         "blackboard": {},
         "agent_files": [],
         "recent_activity": [],
+        "context_status": None,  # Phase 2: Context utilization monitoring
     }
 
     # Read blackboard
     if BLACKBOARD_FILE.exists():
         try:
             state["blackboard"] = json.loads(BLACKBOARD_FILE.read_text())
-        except (json.JSONDecodeError, IOError, OSError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             state["blackboard"] = {"error": f"Could not parse blackboard.json: {e}"}
 
     # List agent files
@@ -64,19 +82,60 @@ def gather_state() -> Dict[str, Any]:
                 "last_heartbeat_seconds_ago": round(age_seconds),
             })
 
+    # Phase 2: Get context utilization status
+    if CONTEXT_MONITOR_AVAILABLE and get_context_status:
+        try:
+            state["context_status"] = get_context_status()
+        except (AttributeError, TypeError, KeyError, OSError, ValueError):
+            # All exceptions are handled uniformly here because:
+            # 1. Context status is non-critical - watcher can continue without it
+            # 2. We log the full traceback for debugging regardless of error type
+            # 3. Grouping avoids coupling to context_monitor's internal implementation
+            # Exception types cover: module/attribute issues (AttributeError),
+            # data type mismatches (TypeError), missing dict keys (KeyError),
+            # file system errors (OSError), and parsing errors (ValueError).
+            sys.stderr.write(f"[haiku_watcher] Failed to get context status:\n{traceback.format_exc()}\n")
+            state["context_status"] = {"error": "Failed to get context status (see stderr for details)"}
+
     return state
 
 
 def get_haiku_prompt(state: Dict[str, Any]) -> str:
     """Build the prompt for the Haiku monitoring agent."""
+
+    # Format context status section if available
+    context_section = ""
+    context_status = state.get("context_status")
+    if context_status and isinstance(context_status, dict) and "estimated_usage" in context_status:
+        usage = context_status.get("estimated_usage", 0)
+        if HAS_FORMATTING and format_usage_percentage:
+            usage_str, is_valid = format_usage_percentage(usage, "haiku_watcher")
+        else:
+            # Fallback if formatting utility not available
+            try:
+                usage_str = f"{float(usage) * 100:.0f}%"
+            except (ValueError, TypeError):
+                usage_str = f"invalid ({repr(usage)})"
+        should_checkpoint = context_status.get("should_checkpoint", False)
+        reason = context_status.get("reason", "N/A")
+        in_cooldown = context_status.get("in_cooldown", False)
+        context_section = f"""
+## Context Utilization (Phase 2)
+
+- **Estimated Usage**: {usage_str}
+- **Should Checkpoint**: {should_checkpoint}
+- **Reason**: {reason}
+- **In Cooldown**: {in_cooldown}
+"""
+
     return f"""You are a lightweight monitoring agent checking on a multi-agent swarm.
 
 ## Current Coordination State
 
 ```json
-{json.dumps(state, indent=2)}
+{json.dumps(state, indent=2, default=str)}
 ```
-
+{context_section}
 ## Your Task
 
 Analyze this state and determine if anything needs attention:
@@ -85,6 +144,7 @@ Analyze this state and determine if anything needs attention:
 2. Are there any error indicators in the blackboard?
 3. Is there a deadlock or conflict between agents?
 4. Are tasks progressing or stuck?
+5. **Is context utilization > 60%?** (trigger checkpoint if not in cooldown)
 
 ## Response Format
 
@@ -92,6 +152,13 @@ If everything looks fine:
 ```
 STATUS: nominal
 NOTES: [brief observation]
+```
+
+If context needs checkpointing (usage > 60% and not in cooldown):
+```
+STATUS: context_high
+REASON: Context at XX% utilization
+RECOMMENDED_ACTION: trigger_checkpoint
 ```
 
 If there's a problem requiring intervention:

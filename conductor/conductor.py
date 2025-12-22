@@ -25,12 +25,13 @@ import sqlite3
 import hashlib
 import time
 from pathlib import Path
-from datetime import datetime, timedelta
-from typing import Optional, Dict, List, Any, Callable, Tuple
+from datetime import datetime, timedelta, timezone
+from typing import Optional, Dict, List, Any, Callable, Tuple, Union
 from contextlib import contextmanager
 from dataclasses import dataclass, asdict
 from enum import Enum
 import re
+import traceback
 
 
 def safe_eval_condition(condition: str, context: dict) -> bool:
@@ -87,6 +88,14 @@ except ImportError:
         from blackboard import Blackboard
     except ImportError:
         Blackboard = None  # Will run without blackboard if not available
+
+# Phase 3: Context monitoring for batch boundary checkpoints
+from utils.module_loader import get_module_attribute
+
+_context_monitor_path = Path(__file__).parent.parent / "watcher" / "context_monitor.py"
+get_context_status, HAS_CONTEXT_MONITOR = get_module_attribute(
+    "context_monitor", _context_monitor_path, "get_context_status"
+)
 
 
 class NodeType(Enum):
@@ -218,6 +227,8 @@ class Conductor:
             yield conn
             conn.commit()
         except Exception:
+            # Broad catch is intentional: rollback on ANY error before re-raising.
+            # This ensures database consistency regardless of error type.
             conn.rollback()
             raise
         finally:
@@ -891,15 +902,103 @@ class Conductor:
                 next_nodes.append(edge.to_node)
         return next_nodes
 
+    # Phase 3: Batch boundary checkpoint methods
+
+    def _check_batch_boundary(self) -> Optional[Dict]:
+        """
+        Check if checkpoint should be triggered at batch boundary.
+
+        Returns:
+            Context status dict if checkpoint should be triggered, None otherwise.
+            The status dict includes estimated_usage, metrics, and reason.
+        """
+
+        if not HAS_CONTEXT_MONITOR or get_context_status is None:
+            return None
+
+        try:
+            status = get_context_status()
+            if status.get('should_checkpoint', False):
+                return status
+            return None
+        except (AttributeError, TypeError, OSError, ValueError, json.JSONDecodeError):
+            # Can fail due to:
+            # - AttributeError/TypeError: context monitor module issues
+            # - OSError: file system issues reading session state
+            # - ValueError: datetime parsing errors
+            # - json.JSONDecodeError: corrupted session state file
+            sys.stderr.write(f"Warning: Context check failed:\n{traceback.format_exc()}\n")
+            return None
+
+    def _trigger_checkpoint(self, run_id: int, context: Dict, reason: str,
+                            context_status: Optional[Dict] = None) -> None:
+        """
+        Trigger checkpoint via blackboard message.
+
+        Args:
+            run_id: Current workflow run ID
+            context: Current workflow context
+            reason: Why checkpoint is being triggered
+            context_status: Optional context monitor status with usage metrics
+        """
+        if self.blackboard is None:
+            return
+
+        try:
+            # Build checkpoint message with context status if available
+            checkpoint_content = {
+                "action": "checkpoint",
+                "reason": reason,
+                "run_id": run_id,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            # Add context metrics if available
+            estimated_usage = None
+            if context_status:
+                estimated_usage = context_status.get("estimated_usage", 0)
+                checkpoint_content["estimated_usage"] = estimated_usage
+                checkpoint_content["metrics"] = context_status.get("metrics", {})
+
+            # Write checkpoint trigger to blackboard
+            self.blackboard.send_message(
+                from_agent="conductor",
+                to_agent="claude-main",
+                content=json.dumps(checkpoint_content),
+                msg_type="checkpoint_trigger"
+            )
+
+            # Log decision
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                self._log_decision(cursor, run_id, "checkpoint_triggered", {
+                    "reason": reason,
+                    "context_keys": list(context.keys())[:10],  # First 10 keys
+                    "estimated_usage": estimated_usage
+                }, f"Checkpoint triggered at batch boundary: {reason}")
+
+        except (OSError, AttributeError, sqlite3.Error):
+            # OSError: file system issues with blackboard
+            # AttributeError: blackboard module may not have trigger function
+            # sqlite3.Error: database logging failures
+            sys.stderr.write(f"Warning: Failed to trigger checkpoint:\n{traceback.format_exc()}\n")
+
     def run_workflow(self, workflow_name: str, input_data: Dict = None,
-                     on_node_complete: Callable = None) -> int:
+                     on_node_complete: Callable = None,
+                     on_batch_boundary: Callable = None,
+                     auto_checkpoint: bool = True) -> int:
         """
         Execute a workflow from start to finish.
 
         Args:
             workflow_name: Name of workflow to run
             input_data: Initial input parameters
-            on_node_complete: Callback after each node (for progress reporting)
+            on_node_complete: Optional callback after each node completes.
+                Signature: (node_id: str, context: Dict) -> None
+            on_batch_boundary: Optional callback between batches for custom handling.
+                Signature: (run_id: int, context: Dict, should_checkpoint: bool) -> None
+                Called when batch boundary is reached; receives checkpoint recommendation.
+            auto_checkpoint: If True, automatically trigger checkpoint when context
+                utilization exceeds threshold at batch boundaries (Phase 3). Default: True.
 
         Returns:
             Run ID
@@ -946,6 +1045,25 @@ class Conductor:
                 next_nodes.extend(self._get_next_nodes(node_id, edges_from, context))
 
             current_nodes = list(set(next_nodes))
+
+            # Check for batch boundaries: transitions between workflow phases where
+            # context may have grown significantly. This triggers only when there are
+            # more nodes to process (current_nodes non-empty), giving us a chance to
+            # checkpoint and preserve context quality between phases. No checkpoint
+            # is triggered at workflow completion (handled separately by run finalization).
+            #
+            # Note: We call _check_batch_boundary() even when only on_batch_boundary is
+            # set (without auto_checkpoint) because the callback needs accurate context
+            # status to make informed decisions. The overhead is acceptable since
+            # on_batch_boundary is typically used with auto_checkpoint anyway.
+            if current_nodes and (auto_checkpoint or on_batch_boundary):
+                context_status = self._check_batch_boundary()
+                should_checkpoint = context_status is not None
+                if on_batch_boundary:
+                    on_batch_boundary(run_id, context, should_checkpoint)
+
+                if auto_checkpoint and should_checkpoint:
+                    self._trigger_checkpoint(run_id, context, "batch_boundary", context_status)
 
         # Complete the run
         self.update_run_context(run_id, context)

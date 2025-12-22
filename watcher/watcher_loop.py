@@ -26,22 +26,128 @@ Usage:
 
 import json
 import sys
-from datetime import datetime
+import traceback
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
+
+# Use shared file locking utility
+from utils.file_locking import acquire_lock, release_lock, LockingNotSupportedError
 
 # Paths
 COORDINATION_DIR = Path.home() / ".claude" / "clc" / ".coordination"
 BLACKBOARD_FILE = COORDINATION_DIR / "blackboard.json"
+LOCK_FILE = BLACKBOARD_FILE.with_suffix(".lock")
 WATCHER_LOG = COORDINATION_DIR / "watcher-log.md"
 STOP_FILE = COORDINATION_DIR / "watcher-stop"
 DECISION_FILE = COORDINATION_DIR / "decision.md"
 
 
+def utc_timestamp_iso() -> str:
+    """Return current UTC timestamp in ISO format."""
+    return datetime.now(timezone.utc).isoformat()
+
+
+def trigger_checkpoint_via_blackboard(reason: str, metrics: Optional[Dict] = None) -> Optional[str]:
+    """Write checkpoint trigger message to blackboard.
+
+    This allows the watcher to request a checkpoint without directly executing it.
+    The main Claude agent's checkpoint-responder hook will read this message
+    and prompt the user/agent to run /checkpoint.
+
+    Uses file locking to prevent race conditions with concurrent readers/writers.
+
+    Note: This function implements its own blackboard manipulation rather than using
+    the coordinator.blackboard.Blackboard class because:
+    1. The watcher operates at CLC level (~/.claude/clc/) not project level
+    2. Requires UTC timestamps (Blackboard uses naive datetime)
+    3. Needs timeout-based locking via file_locking module (Blackboard blocks indefinitely)
+    4. Uses checkpoint_trigger message type specific to the watcher protocol
+    TODO: Consider consolidating with Blackboard class in a future refactor by
+    adding UTC timestamp support and configurable paths to the Blackboard class.
+
+    Args:
+        reason: Why checkpoint is being triggered (e.g., "context_60_percent")
+        metrics: Optional dict of context metrics (usage, counts, etc.)
+
+    Returns:
+        Message ID if successful, None on failure
+    """
+    lock_fd = None
+    lock_acquired = False
+    try:
+        # Ensure directory exists before locking
+        COORDINATION_DIR.mkdir(parents=True, exist_ok=True)
+
+        # Acquire exclusive lock to prevent race conditions
+        lock_fd = open(LOCK_FILE, "w")
+        acquire_lock(lock_fd)
+        lock_acquired = True
+
+        # Load or create blackboard under lock
+        if BLACKBOARD_FILE.exists():
+            bb = json.loads(BLACKBOARD_FILE.read_text())
+        else:
+            bb = {"messages": [], "context": {}}
+
+        # Ensure messages list exists
+        if "messages" not in bb:
+            bb["messages"] = []
+
+        # Create checkpoint trigger message
+        msg_id = f"msg-{uuid.uuid4().hex[:8]}"
+        # Standardize message format: estimated_usage at top level for consistency
+        # with conductor.py checkpoint triggers. Extract metrics sub-dict (raw counters)
+        # rather than including the full context_status object.
+        metrics_dict = metrics or {}
+        message = {
+            "id": msg_id,
+            "type": "checkpoint_trigger",
+            "from": "watcher",
+            "to": "claude-main",
+            "content": json.dumps({
+                "reason": reason,
+                "estimated_usage": metrics_dict.get("estimated_usage"),
+                "metrics": metrics_dict.get("metrics", {}),
+            }),
+            "read": False,
+            "timestamp": utc_timestamp_iso()
+        }
+
+        bb["messages"].append(message)
+
+        # Write atomically
+        temp_file = BLACKBOARD_FILE.with_suffix(".tmp")
+        temp_file.write_text(json.dumps(bb, indent=2))
+        temp_file.rename(BLACKBOARD_FILE)
+
+        return msg_id
+
+    # TimeoutError is raised by acquire_lock when lock cannot be obtained (file_locking.py:68)
+    except (json.JSONDecodeError, OSError, LockingNotSupportedError, TimeoutError) as exc:
+        # Include specific guidance for TimeoutError which indicates lock contention
+        timeout_hint = ""
+        if isinstance(exc, TimeoutError):
+            timeout_hint = " (another process may be holding the lock - consider increasing timeout)"
+        print(
+            f"Failed to write checkpoint trigger due to {type(exc).__name__}: {exc}{timeout_hint}\n"
+            f"{traceback.format_exc()}",
+            file=sys.stderr,
+        )
+        return None
+    finally:
+        if lock_acquired:
+            release_lock(lock_fd)
+        if lock_fd:
+            lock_fd.close()
+
+
 def gather_state() -> Dict[str, Any]:
     """Gather current coordination state."""
+    now = datetime.now(timezone.utc)
     state = {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": now.isoformat(),
         "blackboard": {},
         "agent_files": [],
         "stop_requested": STOP_FILE.exists(),
@@ -50,12 +156,12 @@ def gather_state() -> Dict[str, Any]:
     if BLACKBOARD_FILE.exists():
         try:
             state["blackboard"] = json.loads(BLACKBOARD_FILE.read_text())
-        except (json.JSONDecodeError, IOError, OSError) as e:
+        except (json.JSONDecodeError, OSError) as e:
             state["blackboard"] = {"error": f"Could not parse blackboard.json: {e}"}
 
     for f in COORDINATION_DIR.glob("agent_*.md"):
-        mtime = datetime.fromtimestamp(f.stat().st_mtime)
-        age_seconds = (datetime.now() - mtime).total_seconds()
+        mtime = datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc)
+        age_seconds = (now - mtime).total_seconds()
         state["agent_files"].append({
             "name": f.name,
             "age_seconds": round(age_seconds),
@@ -258,7 +364,7 @@ RESULT: <outcome>
 def stop_watcher_loop():
     """Create stop signal file."""
     COORDINATION_DIR.mkdir(parents=True, exist_ok=True)
-    STOP_FILE.write_text(f"Stop requested at {datetime.now().isoformat()}\n")
+    STOP_FILE.write_text(f"Stop requested at {utc_timestamp_iso()}\n")
     print(f"Stop signal created: {STOP_FILE}")
     print("Monitoring will stop - no more watchers will be spawned.")
 
@@ -305,12 +411,16 @@ def check_status():
         print(f"   Active: {active} | Completed: {completed} | Other: {other}")
 
         # Check for stale
+        now = datetime.now(timezone.utc)
         for aid, agent in agents.items():
             last_seen = agent.get("last_seen", "")
             if last_seen:
                 try:
                     ls_time = datetime.fromisoformat(last_seen.replace("Z", "+00:00"))
-                    age = (datetime.now(ls_time.tzinfo) - ls_time).total_seconds()
+                    # Ensure timezone-aware comparison
+                    if ls_time.tzinfo is None:
+                        ls_time = ls_time.replace(tzinfo=timezone.utc)
+                    age = (now - ls_time).total_seconds()
                     if age > 120 and agent.get("status") == "active":
                         print(f"   [!] {aid}: STALE ({int(age)}s since last update)")
                 except (ValueError, TypeError, AttributeError) as e:
