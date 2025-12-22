@@ -174,7 +174,7 @@ jobs:
             echo "all_passed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Add ready-to-merge label
+      - name: Report CI success
         if: steps.status.outputs.all_passed == 'true'
         uses: actions/github-script@v7
         with:
@@ -184,19 +184,14 @@ jobs:
               ? '(tests skipped - none configured)'
               : '(tests ran)';
 
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: ${{ needs.check-trigger.outputs.pr_number }},
-              labels: ['ready-to-merge']
-            });
-
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: ${{ needs.check-trigger.outputs.pr_number }},
-              body: `✅ All CI checks passed ${testStatus}! This PR is ready to merge.`
+              body: `✅ CI checks passed ${testStatus}. Auto-approval workflow will run next.`
             });
+
+            // Note: ready-to-merge label is now added by auto-approve.yml after bot approval
 
       - name: Report failure
         if: steps.status.outputs.all_passed == 'false'
