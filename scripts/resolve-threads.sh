@@ -1,56 +1,51 @@
 #!/bin/bash
+set -euo pipefail
+
 # Bulk resolve review threads on a PR
 # Usage: ./resolve-threads.sh <PR_NUMBER> [--outdated-only] [--dry-run]
 
-PR_NUMBER="$1"
-REPO="${GITHUB_REPOSITORY:-haighd/claude-learning-companion}"
+PR_NUMBER="${1:-}"
+
+if [ -z "$PR_NUMBER" ]; then
+    echo "Usage: $0 <PR_NUMBER> [--outdated-only] [--dry-run]" >&2
+    exit 2
+fi
+shift
+
 OUTDATED_ONLY=false
 DRY_RUN=false
 
 # Parse flags
-shift
-while [ $# -gt 0 ]; do
-    case "$1" in
+for arg in "$@"; do
+    case "$arg" in
         --outdated-only) OUTDATED_ONLY=true ;;
         --dry-run) DRY_RUN=true ;;
+        *)
+            echo "Unknown option: $arg" >&2
+            echo "Usage: $0 <PR_NUMBER> [--outdated-only] [--dry-run]" >&2
+            exit 2
+            ;;
     esac
-    shift
 done
 
-if [ -z "$PR_NUMBER" ]; then
-    echo "Usage: $0 <PR_NUMBER> [--outdated-only] [--dry-run]"
-    exit 2
-fi
-
-# Fetch unresolved thread IDs
+# Fetch unresolved thread IDs using gh pr view
 echo "Fetching unresolved threads for PR #$PR_NUMBER..."
 
-THREADS=$(gh api graphql -f query='
-query($owner: String!, $repo: String!, $pr: Int!) {
-  repository(owner: $owner, name: $repo) {
-    pullRequest(number: $pr) {
-      reviewThreads(first: 100) {
-        nodes {
-          id
-          isResolved
-          isOutdated
-          comments(first: 1) {
-            nodes { body path line }
-          }
-        }
-      }
-    }
-  }
-}' -f owner="${REPO%/*}" -f repo="${REPO#*/}" -F pr="$PR_NUMBER")
-
-# Filter threads
+JQ_FILTER='[.reviewThreads[] | select(.isResolved == false'
 if [ "$OUTDATED_ONLY" = true ]; then
-    THREAD_IDS=$(echo "$THREADS" | jq -r '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false and .isOutdated == true) | .id')
-else
-    THREAD_IDS=$(echo "$THREADS" | jq -r '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false) | .id')
+    JQ_FILTER+=' and .isOutdated == true'
 fi
+JQ_FILTER+=')]'
 
-COUNT=$(echo "$THREAD_IDS" | grep -c . || echo 0)
+THREADS_JSON=$(gh pr view "$PR_NUMBER" --json reviewThreads --jq "$JQ_FILTER")
+THREAD_IDS=$(echo "$THREADS_JSON" | jq -r '.[].id')
+
+# Fix: Use proper empty check instead of grep -c which returns 1 on no match
+if [ -z "$THREAD_IDS" ]; then
+    COUNT=0
+else
+    COUNT=$(echo "$THREAD_IDS" | wc -l | tr -d ' ')
+fi
 
 if [ "$COUNT" -eq 0 ]; then
     echo "No unresolved threads found."
@@ -79,13 +74,13 @@ for THREAD_ID in $THREAD_IDS; do
       }' -f threadId="$THREAD_ID" 2>&1)
 
     if echo "$RESULT" | grep -q '"isResolved":true'; then
-        ((RESOLVED++))
+        RESOLVED=$((RESOLVED + 1))
     else
         echo "  Failed to resolve: $RESULT"
-        ((FAILED++))
+        FAILED=$((FAILED + 1))
     fi
 done
 
 echo ""
 echo "Summary: $RESOLVED resolved, $FAILED failed"
-exit $FAILED
+exit "$FAILED"
