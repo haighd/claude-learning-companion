@@ -64,7 +64,7 @@ fi
 RESOLVED=0
 FAILED=0
 
-for THREAD_ID in $THREAD_IDS; do
+echo "$THREAD_IDS" | while IFS= read -r THREAD_ID; do
     echo "Resolving thread: $THREAD_ID"
     RESULT=$(gh api graphql -f query='
       mutation($threadId: ID!) {
