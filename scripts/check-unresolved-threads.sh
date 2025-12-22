@@ -46,7 +46,7 @@ if ! echo "$RESULT" | grep -q '"reviewThreads"'; then
     exit 2
 fi
 
-UNRESOLVED=$(echo "$RESULT" | jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false)] | length')
+UNRESOLVED=$(echo "$RESULT" | jq '[.data.repository.pullRequest.reviewThreads.nodes // [] | .[] | select(.isResolved == false)] | length')
 
 if [ "$UNRESOLVED" -gt 0 ]; then
     echo "::error::Found $UNRESOLVED unresolved review thread(s) on PR #$PR_NUMBER"
