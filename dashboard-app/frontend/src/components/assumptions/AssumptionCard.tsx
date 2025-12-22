@@ -1,6 +1,6 @@
 import { CheckCircle, AlertTriangle, ChevronDown, ThumbsUp, HelpCircle } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
 import { AssumptionCardProps } from './types'
+import { formatRelativeTime } from '../../utils/formatDate'
 import { getStatusBadge, getConfidenceColor } from './utils'
 
 export default function AssumptionCard({
@@ -84,14 +84,14 @@ export default function AssumptionCard({
               <div>
                 <span className="text-slate-400">Created:</span>
                 <span className="text-white ml-2">
-                  {formatDistanceToNow(new Date(assumption.created_at), { addSuffix: true })}
+                  {formatRelativeTime(assumption.created_at)}
                 </span>
               </div>
               {assumption.last_verified_at && (
                 <div>
                   <span className="text-slate-400">Last Verified:</span>
                   <span className="text-white ml-2">
-                    {formatDistanceToNow(new Date(assumption.last_verified_at), { addSuffix: true })}
+                    {formatRelativeTime(assumption.last_verified_at)}
                   </span>
                 </div>
               )}

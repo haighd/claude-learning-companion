@@ -1,5 +1,6 @@
 import { Brain, Target, AlertTriangle } from 'lucide-react'
 import { ResultItemProps } from './types'
+import { formatLocalTime } from '../../utils/formatDate'
 
 export default function ResultItem({ item, index }: ResultItemProps) {
   // Detect type of result and render appropriately
@@ -45,7 +46,7 @@ export default function ResultItem({ item, index }: ResultItemProps) {
         )}
         <div className="flex items-center space-x-3 text-xs text-slate-400 mt-2">
           <span>{item.domain}</span>
-          <span>{item.created_at}</span>
+          <span>{formatLocalTime(item.created_at)}</span>
         </div>
       </div>
     )

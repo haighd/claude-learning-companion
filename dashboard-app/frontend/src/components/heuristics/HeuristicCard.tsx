@@ -4,6 +4,7 @@ import { EditFormData, LifecycleInfo } from './types'
 import LifecycleProgress from './LifecycleProgress'
 import HeuristicEditForm from './HeuristicEditForm'
 import HeuristicActions from './HeuristicActions'
+import { formatLocalDate } from '../../utils/formatDate'
 
 interface HeuristicCardProps {
   heuristic: Heuristic
@@ -130,7 +131,7 @@ export default function HeuristicCard({
               </div>
               <div>
                 <span className="text-slate-400">Created:</span>
-                <span className="text-white ml-2">{new Date(h.created_at).toLocaleDateString()}</span>
+                <span className="text-white ml-2">{formatLocalDate(h.created_at)}</span>
               </div>
             </div>
 

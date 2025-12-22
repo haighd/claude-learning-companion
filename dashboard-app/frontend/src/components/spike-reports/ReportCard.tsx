@@ -1,6 +1,6 @@
 import { Clock, Tag, BookOpen, AlertCircle, ExternalLink } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
 import { ReportCardProps } from './types'
+import { formatRelativeTime } from '../../utils/formatDate'
 import StarRating from './StarRating'
 
 export default function ReportCard({
@@ -68,7 +68,7 @@ export default function ReportCard({
             </span>
           </div>
           <div className="text-xs text-slate-400">
-            {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
+            {formatRelativeTime(report.created_at)}
           </div>
         </div>
       </div>

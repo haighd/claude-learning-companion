@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Session, SessionDetail } from '../types'
 import { Clock } from 'lucide-react'
-import { format } from 'date-fns'
 import { useAPI } from '../hooks/useAPI'
+import { formatLocalTime } from '../utils/formatDate'
 import { SessionFilters, SessionCard, SessionDetail as SessionDetailComponent } from './session-history'
 import type { DateFilter, SessionHistoryPanelProps } from './session-history/types'
 
@@ -83,11 +83,7 @@ export default function SessionHistoryPanel({ className = '' }: SessionHistoryPa
   })
 
   const formatTimestamp = (timestamp: string) => {
-    try {
-      return format(new Date(timestamp), 'MMM d, HH:mm:ss')
-    } catch {
-      return timestamp
-    }
+    return formatLocalTime(timestamp, 'MMM d, HH:mm:ss')
   }
 
   return (

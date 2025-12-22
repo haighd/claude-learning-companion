@@ -1,6 +1,6 @@
 import { User, Bot, GitBranch, MessageSquare, ChevronDown } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
 import { SessionCardProps } from './types'
+import { formatRelativeTime } from '../../utils/formatDate'
 
 export default function SessionCard({
   session,
@@ -38,7 +38,7 @@ export default function SessionCard({
         <div className="flex items-center space-x-4 flex-shrink-0 ml-4">
           <div className="text-right">
             <div className="text-sm font-medium text-white">
-              {formatDistanceToNow(new Date(session.first_timestamp), { addSuffix: true })}
+              {formatRelativeTime(session.first_timestamp)}
             </div>
             <div className="flex items-center space-x-1 text-xs text-slate-400">
               <MessageSquare className="w-3 h-3" />
