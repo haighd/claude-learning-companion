@@ -780,8 +780,8 @@ def extract_task_description(tool_input: dict, tool_name: str) -> str:
         tool_name: Name of the tool being executed.
 
     Returns:
-        A string description truncated to 100 characters maximum for priorities 1-2,
-        or with tool-specific formatting for priorities 3-5, or "{tool_name} operation"
+        A string description truncated to 100 characters maximum for priorities 1-2 and 5,
+        or with tool-specific formatting for priorities 3-4, or "{tool_name} operation"
         as fallback.
     """
     # Priority 1: Explicit description
