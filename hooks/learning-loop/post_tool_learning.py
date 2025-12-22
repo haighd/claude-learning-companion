@@ -802,13 +802,12 @@ def extract_task_description(tool_input: dict, tool_name: str) -> str:
     if tool_name in FILE_OPERATION_TOOLS:
         file_path = tool_input.get("file_path") or tool_input.get("path")
         if file_path is not None:
-            # Normalize to a text string for consistent, human-readable output regardless of input type (str/bytes).
-            if isinstance(file_path, (bytes, bytearray, os.PathLike)):
+            # Normalize to a text string for consistent, human-readable output regardless
+            # of input type (str/bytes/PathLike). Fall back to best-effort stringification
+            # for unexpected types.
+            try:
                 path_str = os.fsdecode(file_path)
-            elif isinstance(file_path, str):
-                path_str = file_path
-            else:
-                # Fallback: best-effort stringification for unexpected types
+            except (TypeError, ValueError):
                 path_str = str(file_path)
             basename = os.path.basename(path_str)
             if basename:

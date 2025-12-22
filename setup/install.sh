@@ -129,7 +129,7 @@ sync_hooks() {
 
     # Check source hooks directory exists
     if [ ! -d "$source_hooks_dir" ]; then
-        echo "[CLC] WARNING: Source hooks directory not found: $source_hooks_dir"
+        echo "[CLC] WARNING: Source hooks directory not found: $source_hooks_dir" >&2
         return 1
     fi
 
@@ -139,7 +139,7 @@ sync_hooks() {
         if [ -f "$source_hooks_dir/$hook" ]; then
             echo "[CLC]   ✓ $hook verified"
         else
-            echo "[CLC]   ✗ $hook MISSING"
+            echo "[CLC]   ✗ $hook MISSING" >&2
             missing_count=$((missing_count + 1))
         fi
     done
@@ -148,7 +148,7 @@ sync_hooks() {
         echo "[CLC] Hook verification: PASS"
         return 0
     else
-        echo "[CLC] Hook verification: FAIL - $missing_count hook(s) missing"
+        echo "[CLC] Hook verification: FAIL - $missing_count hook(s) missing" >&2
         return 1
     fi
 }
