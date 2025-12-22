@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Emergent Learning Dashboard', () => {
+test.describe('Claude Learning Companion Dashboard', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -11,7 +11,7 @@ test.describe('Emergent Learning Dashboard', () => {
   test('loads and displays header', async ({ page }) => {
     // Check header is visible
     await expect(page.locator('header')).toBeVisible();
-    await expect(page.getByText('Emergent Learning')).toBeVisible();
+    await expect(page.getByText('Claude Learning Companion')).toBeVisible();
     await expect(page.getByText('Agent Intelligence Dashboard')).toBeVisible();
   });
 

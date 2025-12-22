@@ -2,7 +2,7 @@
  * Notification System Usage Examples
  *
  * This file demonstrates various ways to use the notification system
- * in the Emergent Learning Dashboard.
+ * in the Claude Learning Companion Dashboard.
  */
 
 import { useNotifications } from '../hooks/useNotifications'
