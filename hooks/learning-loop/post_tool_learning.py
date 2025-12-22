@@ -923,7 +923,9 @@ def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str
             prompt_str = _get_prompt_as_string(prompt_val)
             prompt_preview = prompt_str.strip()[:100]
             if prompt_preview:
-                summary_parts.append(f"Prompt: {prompt_preview}...")
+                summary_parts.append(
+                    f"Prompt: {prompt_preview}{'...' if len(prompt_str.strip()) > 100 else ''}"
+                )
 
         summary = "\n\n".join(summary_parts)
         domain = domains[0] if domains else "general"
