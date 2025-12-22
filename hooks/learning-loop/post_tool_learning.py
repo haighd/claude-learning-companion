@@ -858,11 +858,18 @@ def extract_output_snippet(tool_output: dict, max_length: int = 200) -> str:
                 part = item.get("text", "") if isinstance(item, dict) else str(item)
                 if not part:
                     continue
+
+                # Account for newline character for all but the first part
+                if snippet_parts:
+                    current_len += 1  # for the '\n'
+
                 remaining = max_length - current_len
                 if remaining <= 0:
                     break
-                snippet_parts.append(part[:remaining])
-                current_len += min(len(part), remaining)
+
+                part_to_append = part[:remaining]
+                snippet_parts.append(part_to_append)
+                current_len += len(part_to_append)
             return "\n".join(snippet_parts)
 
     # Try to get error or stderr
