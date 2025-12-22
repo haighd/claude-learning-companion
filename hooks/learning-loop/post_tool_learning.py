@@ -795,9 +795,9 @@ def extract_task_description(tool_input: dict, tool_name: str) -> str:
         if url_or_query:
             return f"{tool_name}: {str(url_or_query)[:80]}"
 
-    # Priority 4: File path basename (for Edit/Write/Read)
-    if tool_name in ("Edit", "Write", "Read"):
-        file_path = tool_input.get("file_path")
+    # Priority 4: File path basename (for file operation tools)
+    if tool_name in ("Edit", "Write", "Read", "Grep", "Glob"):
+        file_path = tool_input.get("file_path") or tool_input.get("path")
         if file_path is not None:
             # Normalize to text so os.path.basename doesn't raise TypeError and the value is human-readable.
             if isinstance(file_path, bytes):
