@@ -1,6 +1,6 @@
 import { ChevronDown, Eye, TrendingUp } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
 import { ReportCardProps } from './types'
+import { formatRelativeTime } from '../../utils/formatDate'
 import { getClassificationBadge, calculateSuccessRate } from './utils'
 import SignalList from './SignalList'
 
@@ -26,7 +26,7 @@ export default function ReportCard({
               </span>
               <span className="text-xs text-gray-500">•</span>
               <span className="text-xs text-gray-400">
-                {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
+                {formatRelativeTime(report.created_at)}
               </span>
             </div>
 
