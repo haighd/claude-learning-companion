@@ -70,10 +70,17 @@ else
     sleep 3
 fi
 
-# Check if production build exists - if so, backend serves frontend
+# Check if production build exists - determines frontend serving mode
+HAS_PROD_BUILD=false
 if [ -d "$FRONTEND_PATH/dist" ]; then
+    HAS_PROD_BUILD=true
+    FRONTEND_URL="http://localhost:$BACKEND_PORT"
+    FRONTEND_MODE="(production build served by backend)"
     echo "[OK] Production build found - backend will serve frontend"
 else
+    FRONTEND_URL="http://localhost:$FRONTEND_PORT"
+    FRONTEND_MODE="(Vite dev server)"
+
     # Detect package manager
     if command -v bun &> /dev/null; then
         PKG_MGR="bun"
@@ -93,17 +100,6 @@ else
         STARTED_SERVERS=true
         sleep 4
     fi
-fi
-
-# Determine which port serves the frontend
-# If dist/ exists, backend serves frontend on 8888
-# Otherwise, Vite dev server serves on 3001
-if [ -d "$FRONTEND_PATH/dist" ]; then
-    FRONTEND_URL="http://localhost:$BACKEND_PORT"
-    FRONTEND_MODE="(production build served by backend)"
-else
-    FRONTEND_URL="http://localhost:$FRONTEND_PORT"
-    FRONTEND_MODE="(Vite dev server)"
 fi
 
 # Open browser
