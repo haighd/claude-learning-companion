@@ -117,6 +117,41 @@ install_git_hooks() {
     fi
 }
 
+sync_hooks() {
+    # Verify and synchronize learning loop hooks
+    # Note: settings.json already points to source hooks in clc directory
+    # This function verifies the hook files exist and are valid
+    local source_hooks_dir="$CLC_DIR/hooks/learning-loop"
+    local critical_hooks=("pre_tool_learning.py" "post_tool_learning.py")
+
+    echo "[CLC] Verifying hook setup..."
+
+    # Check source hooks directory exists
+    if [ ! -d "$source_hooks_dir" ]; then
+        echo "[CLC] WARNING: Source hooks directory not found: $source_hooks_dir"
+        return 1
+    fi
+
+    # Verify each critical hook file
+    local all_present=true
+    for hook in "${critical_hooks[@]}"; do
+        if [ -f "$source_hooks_dir/$hook" ]; then
+            echo "[CLC]   ✓ $hook verified"
+        else
+            echo "[CLC]   ✗ $hook MISSING"
+            all_present=false
+        fi
+    done
+
+    if [ "$all_present" = true ]; then
+        echo "[CLC] Hook verification: PASS"
+        return 0
+    else
+        echo "[CLC] Hook verification: FAIL - some hooks are missing"
+        return 1
+    fi
+}
+
 case "$MODE" in
     fresh)
         # New user - install everything
@@ -124,6 +159,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
+        sync_hooks
         echo "[CLC] Fresh install complete"
         ;;
 
@@ -133,6 +169,7 @@ case "$MODE" in
         install_commands true
         install_settings
         install_git_hooks
+        sync_hooks
         echo "[CLC] Update complete"
         ;;
 
@@ -156,6 +193,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
+        sync_hooks
         ;;
 
     replace)
@@ -167,6 +205,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
+        sync_hooks
         echo "[CLC] Replaced config (backup: CLAUDE.md.backup)"
         ;;
 
@@ -177,6 +216,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
+        sync_hooks
         ;;
 
     interactive|*)
@@ -214,6 +254,7 @@ case "$MODE" in
         install_commands
         install_settings
         install_git_hooks
+        sync_hooks
         echo ""
         echo "Setup complete!"
         ;;

@@ -752,7 +752,106 @@ def check_golden_rule_promotion(conn):
         sys.stderr.write(f"Warning: Failed to check golden rule promotion: {e}\n")
 
 
-def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str, domains: List[str]):
+def extract_task_description(tool_input: dict, tool_name: str, tool_output: dict) -> str:
+    """Extract a meaningful task description from tool inputs.
+
+    Priority order:
+    1. Explicit description field
+    2. Command (for Bash tool)
+    3. URL or query (for WebFetch/WebSearch)
+    4. File path basename (for Edit/Write/Read)
+    5. First line of prompt
+    6. Fallback to tool name operation
+    """
+    # Priority 1: Explicit description
+    if tool_input.get("description"):
+        desc = tool_input["description"].strip()
+        if desc:
+            return desc[:100]
+
+    # Priority 2: Command (for Bash)
+    if tool_name == "Bash" and tool_input.get("command"):
+        cmd = tool_input["command"].strip()
+        if cmd:
+            return cmd[:100]
+
+    # Priority 3: URL or query (for WebFetch/WebSearch)
+    if tool_name in ("WebFetch", "WebSearch"):
+        url = tool_input.get("url") or tool_input.get("query", "")
+        if url:
+            return f"{tool_name}: {url[:80]}"
+
+    # Priority 4: File path basename (for Edit/Write/Read)
+    if tool_name in ("Edit", "Write", "Read"):
+        file_path = tool_input.get("file_path", "")
+        if file_path:
+            basename = os.path.basename(file_path)
+            return f"{tool_name}: {basename}"
+
+    # Priority 5: First line of prompt
+    if tool_input.get("prompt"):
+        prompt_lines = tool_input["prompt"].strip().split("\n")
+        first_line = prompt_lines[0].strip()
+        if first_line:
+            return first_line[:100]
+
+    # Priority 6: Fallback
+    return f"{tool_name} operation"
+
+
+def extract_output_snippet(tool_output: dict, max_length: int = 200) -> str:
+    """Extract a meaningful snippet from tool output.
+
+    Handles various output structures:
+    - tool_output['content'] (string or list)
+    - tool_output['error'] or tool_output['stderr']
+    - tool_output['task']['output'] (for TaskOutput)
+    - Filtered string representation
+    """
+    if not tool_output:
+        return ""
+
+    if isinstance(tool_output, str):
+        return tool_output[:max_length]
+
+    if not isinstance(tool_output, dict):
+        return str(tool_output)[:max_length]
+
+    # Try to get content field
+    content = tool_output.get("content")
+    if content:
+        if isinstance(content, str):
+            return content[:max_length]
+        elif isinstance(content, list):
+            # Handle list of content items (e.g., [{"type": "text", "text": "..."}])
+            text_parts = []
+            for item in content:
+                if isinstance(item, dict):
+                    text_parts.append(item.get("text", ""))
+                else:
+                    text_parts.append(str(item))
+            return "\n".join(text_parts)[:max_length]
+
+    # Try to get error or stderr
+    error = tool_output.get("error") or tool_output.get("stderr")
+    if error:
+        return str(error)[:max_length]
+
+    # Try TaskOutput structure: task.output
+    if "task" in tool_output and isinstance(tool_output["task"], dict):
+        task_data = tool_output["task"]
+        task_output_val = task_data.get("output") or task_data.get("result", "")
+        if task_output_val:
+            return str(task_output_val)[:max_length]
+
+    # Fallback: filtered string representation
+    output_str = str(tool_output)
+    # Remove common noise patterns
+    output_str = re.sub(r'\{["\']type["\']\s*:\s*["\']text["\']\s*,', '', output_str)
+    return output_str[:max_length]
+
+
+def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str, domains: List[str], tool_name: str = "Task"):
     """Auto-record a failure to the learnings table."""
     conn = get_db_connection()
     if not conn:
@@ -761,22 +860,34 @@ def auto_record_failure(tool_input: dict, tool_output: dict, outcome_reason: str
     try:
         cursor = conn.cursor()
 
-        # Extract details
-        prompt = tool_input.get("prompt", "")[:500]
-        description = tool_input.get("description", "unknown task")
+        # Extract task description using helper
+        description = extract_task_description(tool_input, tool_name, tool_output)
 
-        # Get output content
-        output_content = ""
-        if isinstance(tool_output, dict):
-            output_content = str(tool_output.get("content", ""))[:1000]
-        elif isinstance(tool_output, str):
-            output_content = tool_output[:1000]
+        # Extract output snippet using helper
+        output_snippet = extract_output_snippet(tool_output, max_length=200)
 
         # Create failure record
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filepath = f"auto-failures/failure_{timestamp}.md"
         title = f"Auto-captured: {description[:50]}"
-        summary = f"Reason: {outcome_reason}\n\nTask: {description}\n\nOutput snippet: {output_content[:200]}"
+
+        # Build enhanced summary with contextual metadata
+        summary_parts = [
+            f"Reason: {outcome_reason}",
+            f"Tool: {tool_name}",
+            f"Task: {description}",
+        ]
+
+        if output_snippet:
+            summary_parts.append(f"Output snippet: {output_snippet}")
+
+        # Add prompt context if available
+        if tool_input.get("prompt"):
+            prompt_preview = tool_input["prompt"][:100].strip()
+            if prompt_preview:
+                summary_parts.append(f"Prompt: {prompt_preview}...")
+
+        summary = "\n\n".join(summary_parts)
         domain = domains[0] if domains else "general"
 
         cursor.execute("""
@@ -1512,7 +1623,7 @@ def main():
 
     # Auto-record failure if task failed
     if outcome == "failure":
-        auto_record_failure(tool_input, tool_output, reason, domains_queried)
+        auto_record_failure(tool_input, tool_output, reason, domains_queried, tool_name)
 
         # SELF-HEALING: Attempt automatic recovery for tool failures
         if SELF_HEALING_AVAILABLE and process_self_healing_failure and tool_name not in ["Task", "TaskOutput"]:
