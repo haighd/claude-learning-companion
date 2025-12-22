@@ -30,12 +30,21 @@ jobs:
             const headBranch = run.data.head_branch;
             const headSha = run.data.head_sha;
 
-            // Find open PRs with this head SHA
+            // Determine correct head reference for PR lookup:
+            // - For same-repo PRs: use just the branch name.
+            // - For forked PRs: use "forkOwner:branch".
+            const headRepoFullName = run.data.head_repository?.full_name;
+            const baseRepoFullName = `${context.repo.owner}/${context.repo.repo}`;
+            const isFork = headRepoFullName && headRepoFullName !== baseRepoFullName;
+            const forkOwner = run.data.head_repository?.owner?.login || context.repo.owner;
+            const headRef = isFork ? `${forkOwner}:${headBranch}` : headBranch;
+
+            // Find open PRs with this head
             const { data: prs } = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open',
-              head: `${context.repo.owner}:${headBranch}`
+              head: headRef
             });
 
             if (prs.length === 0) {
@@ -55,7 +64,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const prNumber = ${{ steps.get-pr.outputs.pr_number || 0 }};
+            const prNumber = ${{ steps.get-pr.outputs.pr_number }};
             if (!prNumber) {
               core.setOutput('should_approve', 'false');
               core.setOutput('reason', 'No PR number');
