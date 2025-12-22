@@ -1,8 +1,8 @@
 import { ChevronDown, XCircle, Code } from 'lucide-react'
 import { InvariantCardProps } from './types'
-import { formatRelativeTime } from '../../utils/formatDate'
 import { getSeverityBadge, getStatusBadge, getScopeBadge } from './utils'
 import InvariantActions from './InvariantActions'
+import { formatRelativeTime } from '../../utils/formatDate'
 
 export default function InvariantCard({
   invariant,
@@ -106,7 +106,7 @@ export default function InvariantCard({
                 <div>
                   <span className="text-slate-400">Last Violated:</span>
                   <span className="text-red-400 ml-2">
-                    {formatDistanceToNow(new Date(invariant.last_violated_at), { addSuffix: true })}
+                    {formatRelativeTime(invariant.last_violated_at)}
                   </span>
                 </div>
               )}
