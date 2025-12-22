@@ -762,6 +762,15 @@ def extract_task_description(tool_input: dict, tool_name: str) -> str:
     4. File path basename (for Edit/Write/Read)
     5. First line of prompt
     6. Fallback to tool name operation
+
+    Args:
+        tool_input: Dictionary containing tool input parameters.
+        tool_name: Name of the tool being executed.
+
+    Returns:
+        A string description truncated to 100 characters maximum for priorities 1-2,
+        or with tool-specific formatting for priorities 3-5, or "{tool_name} operation"
+        as fallback.
     """
     # Priority 1: Explicit description (walrus operator for conciseness)
     if desc := tool_input.get("description", "").strip():
@@ -798,11 +807,19 @@ def extract_task_description(tool_input: dict, tool_name: str) -> str:
 def extract_output_snippet(tool_output: dict, max_length: int = 200) -> str:
     """Extract a meaningful snippet from tool output.
 
+    Args:
+        tool_output: Dictionary containing the tool's output data.
+        max_length: Maximum length of the returned snippet (default 200).
+
+    Returns:
+        A string snippet from the output, truncated to max_length characters.
+        Returns empty string if tool_output is falsy.
+
     Handles various output structures:
     - tool_output['content'] (string or list)
     - tool_output['error'] or tool_output['stderr']
     - tool_output['task']['output'] (for TaskOutput)
-    - Filtered string representation
+    - Raw string representation as fallback
     """
     if not tool_output:
         return ""
@@ -840,7 +857,7 @@ def extract_output_snippet(tool_output: dict, max_length: int = 200) -> str:
         if task_output_val:
             return str(task_output_val)[:max_length]
 
-    # Fallback: raw string representation (avoiding brittle regex that could create malformed output)
+    # Fallback: convert to string and truncate
     return str(tool_output)[:max_length]
 
 

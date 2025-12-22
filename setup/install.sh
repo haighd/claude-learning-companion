@@ -139,7 +139,7 @@ sync_hooks() {
             echo "[CLC]   ✓ $hook verified"
         else
             echo "[CLC]   ✗ $hook MISSING"
-            ((missing_count++))
+            missing_count=$((missing_count + 1))
         fi
     done
 
