@@ -78,7 +78,7 @@
 
 ### Hook System
 - Source: `~/.claude/clc/hooks/learning-loop/`
-- Installed: `~/.claude/hooks/learning-loop/`
+- Installed: `~/.claude/clc/hooks/learning-loop/` (run from source)
 - **Status**: Not Started
 - **Impact**: Both issues touch this integration
 
