@@ -22,7 +22,7 @@ import sys
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Optional, Tuple
+from typing import Any, List, Dict, Optional, Tuple
 
 # Import trail helper
 try:
@@ -755,7 +755,7 @@ def check_golden_rule_promotion(conn):
         sys.stderr.write(f"Warning: Failed to check golden rule promotion: {e}\n")
 
 
-def _get_prompt_as_string(prompt_val) -> str:
+def _get_prompt_as_string(prompt_val: Any) -> str:
     """Converts a prompt value (str, list, or other) to a single string."""
     if prompt_val is None:
         return ""
@@ -827,11 +827,11 @@ def extract_task_description(tool_input: dict, tool_name: str) -> str:
     return f"{tool_name} operation"
 
 
-def extract_output_snippet(tool_output: dict, max_length: int = 200) -> str:
+def extract_output_snippet(tool_output: Any, max_length: int = 200) -> str:
     """Extract a meaningful snippet from tool output.
 
     Args:
-        tool_output: Dictionary containing the tool's output data.
+        tool_output: Tool output data (dict, str, or other types).
         max_length: Maximum length of the returned snippet (default 200).
 
     Returns:
