@@ -71,7 +71,7 @@ This project uses an automated CI/CD pipeline with dual AI reviewers (Gemini Cod
 python3 scripts/categorize-findings.py <PR_NUMBER>
 ```
 
-**Check for unresolved threads:**
+**Check for all unresolved threads (regardless of severity):**
 ```bash
 ./scripts/check-unresolved-threads.sh <PR_NUMBER>
 ```

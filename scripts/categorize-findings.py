@@ -53,8 +53,8 @@ def get_repo_info() -> tuple[str, str]:
         text=True
     )
     if result.returncode == 0:
-        # Parse github.com:owner/repo or github.com/owner/repo
-        match = re.search(r'github\.com[:/]([^/]+)/([^/.]+)', result.stdout)
+        # Parse github.com:owner/repo or github.com/owner/repo.git
+        match = re.search(r'github\.com[:/]([^/]+)/([^/\s]+?)(?:\.git)?(?:\s|$)', result.stdout)
         if match:
             return match.group(1), match.group(2)
 
