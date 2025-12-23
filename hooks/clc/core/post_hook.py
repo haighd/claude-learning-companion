@@ -70,7 +70,7 @@ except ImportError:
         determine_outcome = _outcome_module.determine_outcome
     except (ImportError, FileNotFoundError, AttributeError) as e:
         # Capture exception before closure to avoid late binding issues
-        _import_error = repr(e)
+        _import_error = str(e)
         def determine_outcome(tool_output):
             return "unknown", f"Shared module import failed: {_import_error}"
 

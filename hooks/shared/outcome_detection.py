@@ -9,6 +9,9 @@ used by both post_tool_learning.py and post_hook.py to avoid code duplication.
 import re
 from typing import Tuple
 
+# Context window size for false positive detection (chars before/after match)
+CONTEXT_WINDOW_SIZE = 50
+
 # =============================================================================
 # Pre-compiled regex patterns for outcome detection (module-level for performance)
 # =============================================================================
@@ -157,10 +160,10 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
     for compiled_pattern, reason in FAILURE_PATTERNS:
         match = compiled_pattern.search(content)
         if match:
-            # Extract context window: 50 chars before + match + 50 chars after
-            # (i.e., up to 100 + match_length characters) to detect false positive patterns
-            match_start = max(0, match.start() - 50)
-            match_end = min(len(content), match.end() + 50)
+            # Extract context window: N chars before + match + N chars after
+            # (i.e., up to 2*N + match_length characters) to detect false positive patterns
+            match_start = max(0, match.start() - CONTEXT_WINDOW_SIZE)
+            match_end = min(len(content), match.end() + CONTEXT_WINDOW_SIZE)
             context = content[match_start:match_end]
 
             is_false_positive = any(fp.search(context) for fp in FALSE_POSITIVE_PATTERNS)
