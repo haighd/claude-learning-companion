@@ -563,8 +563,6 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
     if not content:
         return "unknown", "Empty output"
 
-    content_lower = content.lower()
-
     # ==========================================================================
     # PHASE 1: CHECK SUCCESS SIGNALS FIRST (prevents false positives)
     # ==========================================================================
@@ -649,20 +647,20 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
 
     # Extended false positive patterns for code analysis scenarios
     false_positive_patterns = [
-        # Existing patterns
+        # Discussion patterns - talking about errors, not actual errors
         r'(?i)was not found to be',
         r'(?i)\berror handling\b',
         r'(?i)\bno errors?\b',
         r'(?i)\bwithout errors?\b',
         r'(?i)\berror.?free\b',
-        r'(?i)\b(fixed|resolved|corrected|repaired)\b.*\b(error|failure|bug|issue|exception)',
-        r'(?i)\b(error|failure|bug|issue|exception)\b.*(fixed|resolved|corrected|repaired)',
-        r'(?i)\binvestigated.*\b(failed|error|failure)',
-        r'(?i)\banalyzed.*\b(error|failure|failed)',
-        r'(?i)\bhandl(e|es|ed|ing).*\b(error|failure|exception)',
-        r'(?i)\b(error|failure|exception)\s+handl',
-        r'(?i)resolved.*\b(error|failure|exception)',
-        # NEW: Code analysis false positives
+        r'(?i)\b(fixed|resolved|corrected|repaired)\b.*\b(error|failure|bug|issue|exception)',  # "fixed the error"
+        r'(?i)\b(error|failure|bug|issue|exception)\b.*(fixed|resolved|corrected|repaired)',   # "error was fixed"
+        r'(?i)\binvestigated.*\b(failed|error|failure)',  # "investigated the failure"
+        r'(?i)\banalyzed.*\b(error|failure|failed)',      # "analyzed the error"
+        r'(?i)\bhandl(e|es|ed|ing).*\b(error|failure|exception)',  # "handles errors"
+        r'(?i)\b(error|failure|exception)\s+handl',       # "exception handling"
+        r'(?i)resolved.*\b(error|failure|exception)',     # "resolved the exception"
+        # Python exception types being discussed
         r'(?i)TypeError[:\s]',           # Python type errors in discussion
         r'(?i)ValueError[:\s]',          # Python value errors in discussion
         r'(?i)KeyError[:\s]',            # Python key errors in discussion
@@ -670,11 +668,13 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
         r'(?i)ImportError[:\s]',         # Python import errors in discussion
         r'(?i)RuntimeError[:\s]',        # Python runtime errors in discussion
         r'(?i)SyntaxError[:\s]',         # Python syntax errors in discussion
+        # Code references and literals
         r'(?i)`[^`]*error[^`]*`',        # Code references in backticks
-        r'(?i)```[\s\S]{0,500}?error',   # In code blocks (limited lookahead)
+        r'(?i)```[^`]{0,500}?error',     # In code blocks (limited lookahead)
         r'(?i)#\s*.*error',              # Comment lines discussing errors
         r'(?i)"[^"]*error[^"]*"',        # Double-quoted strings
         r"(?i)'[^']*error[^']*'",        # Single-quoted strings
+        # Code identifiers and patterns
         r'(?i)\.error\s*\(',             # Method calls like .error()
         r'(?i)error_',                   # Variable names like error_message
         r'(?i)_error\b',                 # Variable names like last_error
@@ -693,6 +693,7 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
         match = re.search(pattern, content, re.MULTILINE)
         if match:
             # Verify this isn't a false positive by checking surrounding context
+            # Use 50 characters before and after the match (100 characters total context)
             match_start = max(0, match.start() - 50)
             match_end = min(len(content), match.end() + 50)
             context = content[match_start:match_end]

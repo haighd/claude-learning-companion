@@ -190,8 +190,6 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
     if not content:
         return "unknown", "Empty output"
 
-    content_lower = content.lower()
-
     # ==========================================================================
     # PHASE 1: CHECK SUCCESS SIGNALS FIRST (prevents false positives)
     # ==========================================================================
@@ -275,20 +273,20 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
 
     # Extended false positive patterns for code analysis scenarios
     false_positive_patterns = [
-        # Existing patterns
+        # Discussion patterns - talking about errors, not actual errors
         r'(?i)was not found to be',
         r'(?i)\berror handling\b',
         r'(?i)\bno errors?\b',
         r'(?i)\bwithout errors?\b',
         r'(?i)\berror.?free\b',
-        r'(?i)\b(fixed|resolved|corrected|repaired)\b.*\b(error|failure|bug|issue|exception)',
-        r'(?i)\b(error|failure|bug|issue|exception)\b.*(fixed|resolved|corrected|repaired)',
-        r'(?i)\binvestigated.*\b(failed|error|failure)',
-        r'(?i)\banalyzed.*\b(error|failure|failed)',
-        r'(?i)\bhandl(e|es|ed|ing).*\b(error|failure|exception)',
-        r'(?i)\b(error|failure|exception)\s+handl',
-        r'(?i)resolved.*\b(error|failure|exception)',
-        # NEW: Code analysis false positives
+        r'(?i)\b(fixed|resolved|corrected|repaired)\b.*\b(error|failure|bug|issue|exception)',  # "fixed the error"
+        r'(?i)\b(error|failure|bug|issue|exception)\b.*(fixed|resolved|corrected|repaired)',   # "error was fixed"
+        r'(?i)\binvestigated.*\b(failed|error|failure)',  # "investigated the failure"
+        r'(?i)\banalyzed.*\b(error|failure|failed)',      # "analyzed the error"
+        r'(?i)\bhandl(e|es|ed|ing).*\b(error|failure|exception)',  # "handles errors"
+        r'(?i)\b(error|failure|exception)\s+handl',       # "exception handling"
+        r'(?i)resolved.*\b(error|failure|exception)',     # "resolved the exception"
+        # Python exception types being discussed
         r'(?i)TypeError[:\s]',
         r'(?i)ValueError[:\s]',
         r'(?i)KeyError[:\s]',
@@ -296,28 +294,31 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
         r'(?i)ImportError[:\s]',
         r'(?i)RuntimeError[:\s]',
         r'(?i)SyntaxError[:\s]',
-        r'(?i)`[^`]*error[^`]*`',
-        r'(?i)```[\s\S]{0,500}?error',
-        r'(?i)#\s*.*error',
-        r'(?i)"[^"]*error[^"]*"',
-        r"(?i)'[^']*error[^']*'",
-        r'(?i)\.error\s*\(',
-        r'(?i)error_',
-        r'(?i)_error\b',
-        r'(?i)\berror[A-Z]',
-        r'(?i)on_?error',
-        r'(?i)if\s+.*error',
-        r'(?i)catch.*error',
-        r'(?i)except.*Error',
-        r'(?i)raise.*Error',
-        r'(?i)Error\s*=',
-        r'(?i):\s*Error\b',
-        r'(?i)->.*Error',
+        # Code references and literals
+        r'(?i)`[^`]*error[^`]*`',        # Code references in backticks
+        r'(?i)```[^`]{0,500}?error',     # In code blocks (limited lookahead)
+        r'(?i)#\s*.*error',              # Comment lines discussing errors
+        r'(?i)"[^"]*error[^"]*"',        # Double-quoted strings
+        r"(?i)'[^']*error[^']*'",        # Single-quoted strings
+        # Code identifiers and patterns
+        r'(?i)\.error\s*\(',             # Method calls like .error()
+        r'(?i)error_',                   # Variable names like error_message
+        r'(?i)_error\b',                 # Variable names like last_error
+        r'(?i)\berror[A-Z]',             # camelCase like errorMessage
+        r'(?i)on_?error',                # Event handlers like onError, on_error
+        r'(?i)if\s+.*error',             # Conditional checks: if error
+        r'(?i)catch.*error',             # Exception catching patterns
+        r'(?i)except.*Error',            # Python except clauses
+        r'(?i)raise.*Error',             # Python raise statements (in code discussion)
+        r'(?i)Error\s*=',                # Variable assignment
+        r'(?i):\s*Error\b',              # Type annotations
+        r'(?i)->.*Error',                # Return type annotations
     ]
 
     for pattern, reason in failure_patterns:
         match = re.search(pattern, content, re.MULTILINE)
         if match:
+            # Use 50 characters before and after the match (100 characters total context)
             match_start = max(0, match.start() - 50)
             match_end = min(len(content), match.end() + 50)
             context = content[match_start:match_end]
