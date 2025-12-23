@@ -61,10 +61,10 @@ try:
 except ImportError:
     try:
         from hooks.shared.outcome_detection import determine_outcome
-    except ImportError:
+    except ImportError as e:
         # Fallback: define locally if import fails
         def determine_outcome(tool_output):
-            return "unknown", "Import failed"
+            return "unknown", f"Import failed: {e!r}"
 
 
 class AdvisoryVerifier:

@@ -59,7 +59,7 @@ FAILURE_PATTERNS = [
     (re.compile(r'(?i)\btraceback\b'), "Exception traceback"),
     (re.compile(r'(?i)\bpermission denied\b'), "Permission denied"),
     (re.compile(r'(?i)\btimed?\s+out\b'), "Timeout occurred"),
-    (re.compile(r'(?i)^.*\bnot found\s*$', re.MULTILINE), "Resource not found"),
+    (re.compile(r'(?i)\bnot found\s*$', re.MULTILINE), "Resource not found"),
 ]
 
 # False positive patterns for code analysis scenarios
@@ -87,7 +87,7 @@ FALSE_POSITIVE_PATTERNS = [
     re.compile(r'(?i)SyntaxError[:\s]'),
     # Code references and literals
     re.compile(r'(?i)`[^`]*error[^`]*`'),
-    re.compile(r'(?i)```[\s\S]{0,500}?error'),
+    re.compile(r'(?i)```[\s\S]*?error'),
     re.compile(r'(?i)#\s*.*error'),
     re.compile(r'(?i)"[^"]*error[^"]*"'),
     re.compile(r"(?i)'[^']*error[^']*'"),
