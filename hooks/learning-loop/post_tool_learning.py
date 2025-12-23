@@ -32,15 +32,19 @@ except ImportError:
     def lay_trails(*args, **kwargs): pass
 
 # Import shared outcome detection logic (eliminates code duplication)
+# Note: Hooks run as isolated subprocesses, so we use importlib for robust imports
 try:
     from hooks.shared.outcome_detection import determine_outcome
 except ImportError:
     try:
-        # Fallback for different import contexts
-        import sys
-        sys.path.insert(0, str(Path.home() / ".claude" / "clc"))
-        from hooks.shared.outcome_detection import determine_outcome
-    except ImportError:
+        # Use importlib for direct file import (avoids sys.path modification)
+        import importlib.util
+        _outcome_module_path = Path.home() / ".claude" / "clc" / "hooks" / "shared" / "outcome_detection.py"
+        _spec = importlib.util.spec_from_file_location("outcome_detection", _outcome_module_path)
+        _outcome_module = importlib.util.module_from_spec(_spec)
+        _spec.loader.exec_module(_outcome_module)
+        determine_outcome = _outcome_module.determine_outcome
+    except Exception:
         # Last resort: define a minimal fallback
         def determine_outcome(tool_output):
             return "unknown", "Shared module import failed"

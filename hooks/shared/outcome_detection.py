@@ -87,7 +87,7 @@ FALSE_POSITIVE_PATTERNS = [
     re.compile(r'(?i)SyntaxError[:\s]'),
     # Code references and literals
     re.compile(r'(?i)`[^`]*error[^`]*`'),
-    re.compile(r'(?i)```[^`]{0,500}?error'),
+    re.compile(r'(?i)```[\s\S]{0,500}?error'),
     re.compile(r'(?i)#\s*.*error'),
     re.compile(r'(?i)"[^"]*error[^"]*"'),
     re.compile(r"(?i)'[^']*error[^']*'"),

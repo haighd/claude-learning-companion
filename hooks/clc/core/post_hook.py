@@ -63,11 +63,7 @@ except ImportError:
         from hooks.shared.outcome_detection import determine_outcome
     except ImportError:
         # Fallback: define locally if import fails
-        from hooks.shared.outcome_detection import (
-            SUCCESS_PATTERNS, FAILURE_PATTERNS, FALSE_POSITIVE_PATTERNS, STRUCTURE_PATTERN
-        )
         def determine_outcome(tool_output):
-            # Minimal fallback implementation
             return "unknown", "Import failed"
 
 
