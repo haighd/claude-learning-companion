@@ -57,14 +57,22 @@ except ImportError:
 
 # Import shared outcome detection logic
 try:
-    from ...shared.outcome_detection import determine_outcome
+    from hooks.shared.outcome_detection import determine_outcome
 except ImportError:
     try:
-        from hooks.shared.outcome_detection import determine_outcome
-    except ImportError as e:
-        # Fallback: define locally if import fails
+        # Use importlib for direct file import (avoids sys.path modification)
+        # Path relative to this file for portability
+        import importlib.util
+        _outcome_module_path = Path(__file__).resolve().parent.parent.parent / "shared" / "outcome_detection.py"
+        _spec = importlib.util.spec_from_file_location("outcome_detection", _outcome_module_path)
+        _outcome_module = importlib.util.module_from_spec(_spec)
+        _spec.loader.exec_module(_outcome_module)
+        determine_outcome = _outcome_module.determine_outcome
+    except (ImportError, FileNotFoundError, AttributeError) as e:
+        # Capture exception before closure to avoid late binding issues
+        _import_error = repr(e)
         def determine_outcome(tool_output):
-            return "unknown", f"Import failed: {e!r}"
+            return "unknown", f"Shared module import failed: {_import_error}"
 
 
 class AdvisoryVerifier:

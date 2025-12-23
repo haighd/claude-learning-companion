@@ -85,19 +85,10 @@ FALSE_POSITIVE_PATTERNS = [
     re.compile(r'(?i)#\s*.*error'),
     re.compile(r'(?i)"[^"]*error[^"]*"'),
     re.compile(r"(?i)'[^']*error[^']*'"),
-    # Code identifiers and patterns
-    re.compile(r'(?i)\.error\s*\('),
-    re.compile(r'(?i)error_'),
-    re.compile(r'(?i)_error\b'),
-    re.compile(r'(?i)\berror[A-Z]'),
-    re.compile(r'(?i)on_?error'),
-    re.compile(r'(?i)if\s+.*error'),
-    re.compile(r'(?i)catch.*error'),
-    re.compile(r'(?i)except.*Error'),
-    re.compile(r'(?i)raise.*Error'),
-    re.compile(r'(?i)Error\s*='),
-    re.compile(r'(?i):\s*Error\b'),
-    re.compile(r'(?i)->.*Error'),
+    # Code identifiers and patterns (consolidated for efficiency)
+    re.compile(r'(?i)(\.error\s*\(|error_|_error\b|\berror[A-Z]|on_?error)'),
+    re.compile(r'(?i)(if\s+.*error|catch.*error|except.*Error|raise.*Error)'),
+    re.compile(r'(?i)(Error\s*=|:\s*Error\b|->.*Error)'),
 ]
 
 # Structure detection pattern
