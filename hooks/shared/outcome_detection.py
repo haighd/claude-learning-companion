@@ -77,14 +77,8 @@ FALSE_POSITIVE_PATTERNS = [
     re.compile(r'(?i)\bhandl(e|es|ed|ing).*\b(error|failure|exception)'),
     re.compile(r'(?i)\b(error|failure|exception)\s+handl'),
     re.compile(r'(?i)resolved.*\b(error|failure|exception)'),
-    # Python exception types being discussed
-    re.compile(r'(?i)TypeError[:\s]'),
-    re.compile(r'(?i)ValueError[:\s]'),
-    re.compile(r'(?i)KeyError[:\s]'),
-    re.compile(r'(?i)AttributeError[:\s]'),
-    re.compile(r'(?i)ImportError[:\s]'),
-    re.compile(r'(?i)RuntimeError[:\s]'),
-    re.compile(r'(?i)SyntaxError[:\s]'),
+    # Python exception types being discussed (consolidated for efficiency)
+    re.compile(r'(?i)(TypeError|ValueError|KeyError|AttributeError|ImportError|RuntimeError|SyntaxError)[:\s]'),
     # Code references and literals
     re.compile(r'(?i)`[^`]*error[^`]*`'),
     re.compile(r'(?i)```[\s\S]*?error'),
@@ -126,6 +120,7 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
         return "unknown", "No output to analyze"
 
     # Get content - handle different tool response structures
+    # TODO: Consider extracting this parsing logic into a helper function
     content = ""
     if isinstance(tool_output, dict):
         # TaskOutput structure: tool_response.task.output or task.result
