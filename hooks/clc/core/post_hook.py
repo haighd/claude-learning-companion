@@ -167,6 +167,10 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
     Returns: (outcome, reason)
     - outcome: 'success', 'failure', 'unknown'
     - reason: description of why
+
+    IMPORTANT: This function prioritizes SUCCESS signals over failure patterns.
+    This prevents false positives when subagents analyze code containing error
+    handling, error messages, or discussions of errors/failures.
     """
     if not tool_output:
         return "unknown", "No output to analyze"
@@ -188,6 +192,73 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
 
     content_lower = content.lower()
 
+    # ==========================================================================
+    # PHASE 1: CHECK SUCCESS SIGNALS FIRST (prevents false positives)
+    # ==========================================================================
+
+    # Strong success indicators - explicit completion phrases
+    explicit_success_patterns = [
+        (r'(?i)\bsuccessfully\s+\w+', "Successfully completed action"),
+        (r'(?i)\btask\s+complete', "Task completed"),
+        (r'(?i)\b(work|task) is (done|finished|complete)', "Work is done"),
+        (r'(?i)\ball tests pass', "Tests passed"),
+        (r'\[success\]', "Success marker found"),
+        (r'(?i)## FINDINGS', "Findings reported"),
+        (r'(?i)\bcompleted\s+successfully', "Completed successfully"),
+        (r'(?i)## Investigation Report', "Investigation report provided"),
+        (r'(?i)## Analysis', "Analysis provided"),
+        (r'(?i)## Summary', "Summary provided"),
+        (r'(?i)here\'s (the|my|a) (complete|full|detailed)', "Detailed response provided"),
+    ]
+
+    for pattern, reason in explicit_success_patterns:
+        if re.search(pattern, content):
+            return "success", reason
+
+    # Action verbs indicating work was done (past tense)
+    action_verb_patterns = [
+        (r'(?i)\b(created|generated|built|made)\b\s+\w+', "Created something"),
+        (r'(?i)\b(fixed|resolved|corrected|repaired)\b\s+\w+', "Fixed something"),
+        (r'(?i)\b(updated|modified|changed|revised)\b\s+\w+', "Updated something"),
+        (r'(?i)\b(implemented|added|introduced)\b\s+\w+', "Implemented something"),
+        (r'(?i)\b(analyzed|examined|reviewed|investigated)\b\s+\w+', "Analyzed something"),
+        (r'(?i)\b(identified|found|discovered|located)\b\s+\w+', "Identified something"),
+        (r'(?i)\b(removed|deleted|cleaned)\b\s+\w+', "Removed something"),
+        (r'(?i)\b(refactored|reorganized|restructured)\b\s+\w+', "Refactored something"),
+        (r'(?i)\b(tested|validated|verified)\b\s+\w+', "Tested something"),
+        (r'(?i)\b(deployed|released|published)\b\s+\w+', "Deployed something"),
+    ]
+
+    for pattern, reason in action_verb_patterns:
+        if re.search(pattern, content):
+            return "success", reason
+
+    # Reporting patterns - agent is presenting findings/results
+    reporting_patterns = [
+        (r'(?i)\bhere (is|are) (the |my )?(\w+\s+)?(findings|results|analysis|summary)', "Presented findings"),
+        (r'(?i)\bi (have |\'ve )?(completed|finished|done)', "Agent reported completion"),
+        (r'(?i)\bthe (task|work|analysis|fix|implementation) is (complete|done|finished)', "Work is complete"),
+        (r'(?i)^\s*(finished|completed|done)\s+\w+', "Started with completion verb"),
+        (r'(?i)\b(summary|conclusion):', "Provided summary"),
+        (r'(?i)\brecommend(ations|s)?:', "Provided recommendations"),
+        (r'(?i)\bnow I have a (clear|complete|comprehensive|full) picture', "Comprehensive analysis done"),
+        (r'(?i)\blet me (provide|present|summarize|compile)', "Presenting results"),
+    ]
+
+    for pattern, reason in reporting_patterns:
+        if re.search(pattern, content):
+            return "success", reason
+
+    # Substantial output heuristic - long outputs with structure are likely successful
+    if len(content) > 500:
+        has_structure = bool(re.search(r'(?m)^#{1,3}\s+\w+', content))
+        if has_structure:
+            return "success", "Structured report with headers"
+
+    # ==========================================================================
+    # PHASE 2: CHECK FAILURE SIGNALS (only if no success signals found)
+    # ==========================================================================
+
     # Strong failure indicators
     failure_patterns = [
         (r'(?i)\berror\b[:\s]', "Error detected"),
@@ -202,8 +273,9 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
         (r'(?i)^.*\bnot found\s*$', "Resource not found"),
     ]
 
-    # Patterns to exclude false positives
+    # Extended false positive patterns for code analysis scenarios
     false_positive_patterns = [
+        # Existing patterns
         r'(?i)was not found to be',
         r'(?i)\berror handling\b',
         r'(?i)\bno errors?\b',
@@ -216,13 +288,38 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
         r'(?i)\bhandl(e|es|ed|ing).*\b(error|failure|exception)',
         r'(?i)\b(error|failure|exception)\s+handl',
         r'(?i)resolved.*\b(error|failure|exception)',
+        # NEW: Code analysis false positives
+        r'(?i)TypeError[:\s]',
+        r'(?i)ValueError[:\s]',
+        r'(?i)KeyError[:\s]',
+        r'(?i)AttributeError[:\s]',
+        r'(?i)ImportError[:\s]',
+        r'(?i)RuntimeError[:\s]',
+        r'(?i)SyntaxError[:\s]',
+        r'(?i)`[^`]*error[^`]*`',
+        r'(?i)```[\s\S]{0,500}?error',
+        r'(?i)#\s*.*error',
+        r'(?i)"[^"]*error[^"]*"',
+        r"(?i)'[^']*error[^']*'",
+        r'(?i)\.error\s*\(',
+        r'(?i)error_',
+        r'(?i)_error\b',
+        r'(?i)\berror[A-Z]',
+        r'(?i)on_?error',
+        r'(?i)if\s+.*error',
+        r'(?i)catch.*error',
+        r'(?i)except.*Error',
+        r'(?i)raise.*Error',
+        r'(?i)Error\s*=',
+        r'(?i):\s*Error\b',
+        r'(?i)->.*Error',
     ]
 
     for pattern, reason in failure_patterns:
         match = re.search(pattern, content, re.MULTILINE)
         if match:
-            match_start = max(0, match.start() - 30)
-            match_end = min(len(content), match.end() + 30)
+            match_start = max(0, match.start() - 50)
+            match_end = min(len(content), match.end() + 50)
             context = content[match_start:match_end]
 
             is_false_positive = any(
@@ -231,52 +328,9 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
             if not is_false_positive:
                 return "failure", reason
 
-    # Strong success indicators
-    explicit_success_patterns = [
-        (r'\bsuccessfully\s+\w+', "Successfully completed action"),
-        (r'\btask\s+complete', "Task completed"),
-        (r'\b(work|task) is (done|finished|complete)', "Work is done"),
-        (r'\ball tests pass', "Tests passed"),
-        (r'\[success\]', "Success marker found"),
-        (r'## FINDINGS', "Findings reported"),
-        (r'\bcompleted\s+successfully', "Completed successfully"),
-    ]
-
-    for pattern, reason in explicit_success_patterns:
-        if re.search(pattern, content_lower):
-            return "success", reason
-
-    # Action verbs indicating work was done
-    action_verb_patterns = [
-        (r'\b(created|generated|built|made)\b\s+\w+', "Created something"),
-        (r'\b(fixed|resolved|corrected|repaired)\b\s+\w+', "Fixed something"),
-        (r'\b(updated|modified|changed|revised)\b\s+\w+', "Updated something"),
-        (r'\b(implemented|added|introduced)\b\s+\w+', "Implemented something"),
-        (r'\b(analyzed|examined|reviewed|investigated)\b\s+\w+', "Analyzed something"),
-        (r'\b(identified|found|discovered|located)\b\s+\w+', "Identified something"),
-        (r'\b(removed|deleted|cleaned)\b\s+\w+', "Removed something"),
-        (r'\b(refactored|reorganized|restructured)\b\s+\w+', "Refactored something"),
-        (r'\b(tested|validated|verified)\b\s+\w+', "Tested something"),
-        (r'\b(deployed|released|published)\b\s+\w+', "Deployed something"),
-    ]
-
-    for pattern, reason in action_verb_patterns:
-        if re.search(pattern, content_lower):
-            return "success", reason
-
-    # Reporting patterns
-    reporting_patterns = [
-        (r'\bhere (is|are) (the |my )?(\w+\s+)?(findings|results|analysis|summary)', "Presented findings"),
-        (r'\bi (have |\'ve )?(completed|finished|done)', "Agent reported completion"),
-        (r'\bthe (task|work|analysis|fix|implementation) is (complete|done|finished)', "Work is complete"),
-        (r'^\s*(finished|completed|done)\s+\w+', "Started with completion verb"),
-        (r'\b(summary|conclusion):', "Provided summary"),
-        (r'\brecommend(ations|s)?:', "Provided recommendations"),
-    ]
-
-    for pattern, reason in reporting_patterns:
-        if re.search(pattern, content_lower):
-            return "success", reason
+    # ==========================================================================
+    # PHASE 3: FALLBACK HEURISTICS
+    # ==========================================================================
 
     # Substantial output without errors = probably success
     if len(content) > 50:
