@@ -38,8 +38,9 @@ try:
 except ImportError:
     try:
         # Use importlib for direct file import (avoids sys.path modification)
+        # Path relative to this file for portability
         import importlib.util
-        _outcome_module_path = Path.home() / ".claude" / "clc" / "hooks" / "shared" / "outcome_detection.py"
+        _outcome_module_path = Path(__file__).resolve().parent.parent / "shared" / "outcome_detection.py"
         _spec = importlib.util.spec_from_file_location("outcome_detection", _outcome_module_path)
         _outcome_module = importlib.util.module_from_spec(_spec)
         _spec.loader.exec_module(_outcome_module)
