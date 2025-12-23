@@ -31,6 +31,27 @@ except ImportError:
     def extract_file_paths(content): return []
     def lay_trails(*args, **kwargs): pass
 
+# Import shared outcome detection logic (eliminates code duplication)
+# Note: Hooks run as isolated subprocesses, so we use importlib for robust imports
+try:
+    from hooks.shared.outcome_detection import determine_outcome
+except ImportError:
+    try:
+        # Use importlib for direct file import (avoids sys.path modification)
+        # Path relative to this file for portability
+        import importlib.util
+        _outcome_module_path = Path(__file__).resolve().parent.parent / "shared" / "outcome_detection.py"
+        _spec = importlib.util.spec_from_file_location("outcome_detection", _outcome_module_path)
+        _outcome_module = importlib.util.module_from_spec(_spec)
+        _spec.loader.exec_module(_outcome_module)
+        determine_outcome = _outcome_module.determine_outcome
+    except (ImportError, FileNotFoundError, AttributeError) as e:
+        # Last resort: define a minimal fallback
+        # Capture exception before closure to avoid late binding issues
+        _import_error = str(e)
+        def determine_outcome(tool_output):
+            return "unknown", f"Shared module import failed: {_import_error}"
+
 # Paths - using Path.home() for portability
 CLC_PATH = Path.home() / ".claude" / "clc"
 DB_PATH = CLC_PATH / "memory" / "index.db"
@@ -63,6 +84,9 @@ try:
 except ImportError as e:
     sys.stderr.write(f"[LEARNING_LOOP] Self-healing not available: {e}\n")
     process_self_healing_failure = None
+
+# Note: Outcome detection patterns and determine_outcome function are now imported
+# from hooks.shared.outcome_detection to eliminate code duplication
 
 
 class AdvisoryVerifier:
@@ -523,144 +547,7 @@ def determine_webfetch_outcome(tool_input: dict, tool_output: dict) -> Tuple[str
     return "unknown", "Could not determine fetch outcome"
 
 
-def determine_outcome(tool_output: dict) -> Tuple[str, str]:
-    """Determine if the task succeeded or failed.
-
-    Returns: (outcome, reason)
-    - outcome: 'success', 'failure', 'unknown'
-    - reason: description of why
-    """
-    if not tool_output:
-        return "unknown", "No output to analyze"
-
-    # Get content - handle different tool response structures
-    content = ""
-    if isinstance(tool_output, dict):
-        # TaskOutput structure: tool_response.task.output or task.result
-        if "task" in tool_output and isinstance(tool_output["task"], dict):
-            task_data = tool_output["task"]
-            content = task_data.get("output", "") or task_data.get("result", "") or ""
-        # Task structure: tool_response.content (array of {type, text})
-        elif "content" in tool_output:
-            content = tool_output.get("content", "") or ""
-            if isinstance(content, list):
-                content = "\n".join(
-                    item.get("text", "") for item in content
-                    if isinstance(item, dict)
-                )
-        # Fallback: try common field names
-        else:
-            content = (tool_output.get("output", "") or
-                      tool_output.get("result", "") or
-                      tool_output.get("text", "") or "")
-    elif isinstance(tool_output, str):
-        content = tool_output
-
-    if not content:
-        return "unknown", "Empty output"
-
-    content_lower = content.lower()
-
-    # Strong failure indicators (case-insensitive with word boundaries)
-    failure_patterns = [
-        (r'(?i)\berror\b[:\s]', "Error detected"),
-        (r'(?i)\bexception\b[:\s]', "Exception raised"),
-        (r'(?i)\bfailed\b[:\s]', "Operation failed"),
-        (r'(?i)\bcould not\b', "Could not complete"),
-        (r'(?i)\bunable to\b', "Unable to complete"),
-        (r'\[BLOCKER\]', "Blocker encountered"),
-        (r'(?i)\btraceback\b', "Exception traceback"),
-        (r'(?i)\bpermission denied\b', "Permission denied"),
-        (r'(?i)\btimed?\s+out\b', "Timeout occurred"),  # Match "timeout" or "timed out"
-        (r'(?i)^.*\bnot found\s*$', "Resource not found"),  # Only at end of line
-    ]
-
-    # Patterns to exclude false positives
-    # These indicate discussion of errors/failures, not actual errors
-    false_positive_patterns = [
-        r'(?i)was not found to be',
-        r'(?i)\berror handling\b',
-        r'(?i)\bno errors?\b',
-        r'(?i)\bwithout errors?\b',
-        r'(?i)\berror.?free\b',
-        r'(?i)\b(fixed|resolved|corrected|repaired)\b.*\b(error|failure|bug|issue|exception)',  # "fixed the error"
-        r'(?i)\b(error|failure|bug|issue|exception)\b.*(fixed|resolved|corrected|repaired)',   # "error was fixed"
-        r'(?i)\binvestigated.*\b(failed|error|failure)',  # "investigated the failure"
-        r'(?i)\banalyzed.*\b(error|failure|failed)',      # "analyzed the error"
-        r'(?i)\bhandl(e|es|ed|ing).*\b(error|failure|exception)',  # "handles errors"
-        r'(?i)\b(error|failure|exception)\s+handl',  # "exception handling"
-        r'(?i)resolved.*\b(error|failure|exception)',  # "resolved the exception"
-    ]
-
-    for pattern, reason in failure_patterns:
-        match = re.search(pattern, content, re.MULTILINE)
-        if match:
-            # Verify this isn't a false positive by checking surrounding context
-            match_start = max(0, match.start() - 30)
-            match_end = min(len(content), match.end() + 30)
-            context = content[match_start:match_end]
-
-            # Skip if this match is part of a false positive pattern
-            is_false_positive = any(
-                re.search(fp, context) for fp in false_positive_patterns
-            )
-            if not is_false_positive:
-                return "failure", reason
-
-    # Strong success indicators - explicit completion phrases
-    explicit_success_patterns = [
-        (r'\bsuccessfully\s+\w+', "Successfully completed action"),
-        (r'\btask\s+complete', "Task completed"),
-        (r'\b(work|task) is (done|finished|complete)', "Work is done"),
-        (r'\ball tests pass', "Tests passed"),
-        (r'\[success\]', "Success marker found"),
-        (r'## FINDINGS', "Findings reported"),
-        (r'\bcompleted\s+successfully', "Completed successfully"),
-    ]
-
-    for pattern, reason in explicit_success_patterns:
-        if re.search(pattern, content_lower):
-            return "success", reason
-
-    # Action verbs that indicate work was done (past tense)
-    # These are strong indicators that a task was completed
-    action_verb_patterns = [
-        (r'\b(created|generated|built|made)\b\s+\w+', "Created something"),
-        (r'\b(fixed|resolved|corrected|repaired)\b\s+\w+', "Fixed something"),
-        (r'\b(updated|modified|changed|revised)\b\s+\w+', "Updated something"),
-        (r'\b(implemented|added|introduced)\b\s+\w+', "Implemented something"),
-        (r'\b(analyzed|examined|reviewed|investigated)\b\s+\w+', "Analyzed something"),
-        (r'\b(identified|found|discovered|located)\b\s+\w+', "Identified something"),
-        (r'\b(removed|deleted|cleaned)\b\s+\w+', "Removed something"),
-        (r'\b(refactored|reorganized|restructured)\b\s+\w+', "Refactored something"),
-        (r'\b(tested|validated|verified)\b\s+\w+', "Tested something"),
-        (r'\b(deployed|released|published)\b\s+\w+', "Deployed something"),
-    ]
-
-    for pattern, reason in action_verb_patterns:
-        if re.search(pattern, content_lower):
-            return "success", reason
-
-    # Reporting patterns - agent is presenting findings/results
-    reporting_patterns = [
-        (r'\bhere (is|are) (the |my )?(\w+\s+)?(findings|results|analysis|summary)', "Presented findings"),
-        (r'\bi (have |\'ve )?(completed|finished|done)', "Agent reported completion"),
-        (r'\bthe (task|work|analysis|fix|implementation) is (complete|done|finished)', "Work is complete"),
-        (r'^\s*(finished|completed|done)\s+\w+', "Started with completion verb"),  # "Finished the X", "Completed the Y"
-        (r'\b(summary|conclusion):', "Provided summary"),
-        (r'\brecommend(ations|s)?:', "Provided recommendations"),
-    ]
-
-    for pattern, reason in reporting_patterns:
-        if re.search(pattern, content_lower):
-            return "success", reason
-
-    # If we got substantial output without errors, probably success
-    # Lowered threshold from 100 to 50 chars since short completions are valid
-    if len(content) > 50:
-        return "success", "Substantial output without errors"
-
-    return "unknown", "Could not determine outcome"
+# Note: determine_outcome is imported from hooks.shared.outcome_detection
 
 
 def validate_heuristics(heuristic_ids: List[int], outcome: str):
