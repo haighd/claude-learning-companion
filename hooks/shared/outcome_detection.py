@@ -166,8 +166,8 @@ def determine_outcome(tool_output: dict) -> Tuple[str, str]:
     for compiled_pattern, reason in FAILURE_PATTERNS:
         match = compiled_pattern.search(content)
         if match:
-            # Extract context window: 50 chars before + match + 50 chars after (~100 chars total)
-            # This provides enough surrounding text to detect false positive patterns
+            # Extract context window: 50 chars before + match + 50 chars after
+            # (i.e., up to 100 + match_length characters) to detect false positive patterns
             match_start = max(0, match.start() - 50)
             match_end = min(len(content), match.end() + 50)
             context = content[match_start:match_end]

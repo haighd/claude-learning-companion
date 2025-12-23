@@ -47,8 +47,10 @@ except ImportError:
         determine_outcome = _outcome_module.determine_outcome
     except (ImportError, FileNotFoundError, AttributeError) as e:
         # Last resort: define a minimal fallback
+        # Capture exception before closure to avoid late binding issues
+        _import_error = repr(e)
         def determine_outcome(tool_output):
-            return "unknown", f"Shared module import failed: {e!r}"
+            return "unknown", f"Shared module import failed: {_import_error}"
 
 # Paths - using Path.home() for portability
 CLC_PATH = Path.home() / ".claude" / "clc"
