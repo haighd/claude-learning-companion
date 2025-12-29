@@ -117,7 +117,7 @@ make_scripts_executable() {
     local missing_scripts=()
     for script in "${scripts[@]}"; do
         if [ -f "$script" ]; then
-            if ! head -n 1 "$script" | grep -q -e '^#!.*python3'; then
+            if ! head -n 1 "$script" | grep -qE '^#!.*[ /]python3([.0-9]+)?([[:space:]]|$)'; then
                 echo "[CLC] WARNING: Script '$script' is missing a python3 shebang. Direct execution may fail." >&2
             fi
             chmod +x "$script"
