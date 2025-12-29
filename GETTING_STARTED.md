@@ -2,6 +2,8 @@
 
 Complete setup guide - from zero to running.
 
+> **Note for Windows users:** Commands shown as `~/.claude/clc/query/query.py` work on macOS/Linux where scripts have executable permissions. On Windows, use `python3 ~/.claude/clc/query/query.py` instead.
+
 ---
 
 ## Step 0: Prerequisites
