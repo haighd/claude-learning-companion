@@ -107,28 +107,33 @@ PYTHON_SCRIPT
 make_scripts_executable() {
     # Make Python scripts executable so they can be called directly
     # This allows calling ~/.claude/clc/query/query.py instead of python3 ~/.claude/clc/query/query.py
-    # Note: Scripts must have proper shebang (#!/usr/bin/env python3) for direct execution to work
+    # Note: This function assumes scripts already have proper shebang (#!/usr/bin/env python3).
+    #       It does not verify shebang presence - that is a prerequisite for direct execution.
     local scripts=(
         "$CLC_DIR/query/query.py"
         "$CLC_DIR/conductor/conductor.py"
         "$CLC_DIR/conductor/query_conductor.py"
     )
-    local num_scripts=${#scripts[@]}
 
     local made_count=0
+    local missing_scripts=()
     for script in "${scripts[@]}"; do
         if [ -f "$script" ]; then
             chmod +x "$script"
             made_count=$((made_count + 1))
+        else
+            missing_scripts+=("$script")
         fi
     done
 
-    if [ "$made_count" -eq "$num_scripts" ]; then
+    if [ "$made_count" -gt 0 ]; then
         echo "[CLC] Made $made_count Python script(s) executable"
-    elif [ "$made_count" -gt 0 ]; then
-        echo "[CLC] WARNING: Made $made_count of $num_scripts expected Python script(s) executable. Some scripts were not found." >&2
-    else
-        echo "[CLC] WARNING: No Python scripts found to make executable. Direct script calls may fail." >&2
+    fi
+    if [ ${#missing_scripts[@]} -gt 0 ]; then
+        echo "[CLC] WARNING: The following scripts were not found:" >&2
+        for missing in "${missing_scripts[@]}"; do
+            echo "  - $missing" >&2
+        done
     fi
 }
 
