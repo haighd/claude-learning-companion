@@ -58,7 +58,7 @@ Project-local CLAUDE.md overrides global. Add CLC integration:
 ## CLC Integration
 Before any task, query accumulated knowledge:
 ```bash
-python3 ~/.claude/clc/query/query.py --context
+~/.claude/clc/query/query.py --context
 ```
 Apply relevant golden rules and heuristics.
 ```

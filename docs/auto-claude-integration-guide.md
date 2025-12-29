@@ -57,7 +57,7 @@ These are entirely separate file paths.
 ## CLC Integration
 Before any task, query accumulated knowledge:
 ```bash
-python3 ~/.claude/clc/query/query.py --context
+~/.claude/clc/query/query.py --context
 ```
 This returns: golden rules, domain-specific heuristics, recent failures to avoid,
 and success patterns to replicate. Apply these insights to your task approach.
@@ -101,7 +101,7 @@ while True:
 
 ```bash
 # Before creating an Auto-Claude spec
-python3 ~/.claude/clc/query/query.py --domain "react" > clc-context.txt
+~/.claude/clc/query/query.py --domain "react" > clc-context.txt
 
 # Review clc-context.txt and include relevant learnings
 # in your spec's requirements or constraints
@@ -185,7 +185,7 @@ else
 ## CLC Integration (Always)
 Before any task:
 ```bash
-python3 ~/.claude/clc/query/query.py --context
+~/.claude/clc/query/query.py --context
 ```
 Apply golden rules. Record learnings when done.
 
@@ -247,7 +247,7 @@ The recommended way to use both systems together:
 ┌─────────────────────────────────────────────────────────────────┐
 │  PHASE 1: PLANNING (CLC)                                        │
 │                                                                 │
-│  $ python3 ~/.claude/clc/query/query.py --context               │
+│  $ ~/.claude/clc/query/query.py --context               │
 │                                                                 │
 │  Review:                                                        │
 │  - Relevant golden rules                                        │
@@ -346,7 +346,7 @@ Is it a quick fix (< 30 min)?
 ## CLC Integration
 Before any task, query accumulated knowledge:
 ```bash
-python3 ~/.claude/clc/query/query.py --context
+~/.claude/clc/query/query.py --context
 ```
 Apply relevant golden rules and heuristics.
 ```

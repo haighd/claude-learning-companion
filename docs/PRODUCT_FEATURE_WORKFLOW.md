@@ -389,7 +389,7 @@ gh pr comment X --body "/run-ci"          # Trigger CI
 
 2. **Link artifacts** - Use `--research`, `--prd`, `--issue` flags to maintain traceability.
 
-3. **Query CLC first** - Always `python3 ~/.claude/clc/query/query.py --context` before starting work.
+3. **Query CLC first** - Always `~/.claude/clc/query/query.py --context` before starting work.
 
 4. **Capture learnings** - The system only improves if you feed it. Don't forget Phase 6.
 

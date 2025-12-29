@@ -101,7 +101,7 @@ chmod +x install.sh
 Run this to check everything is working:
 
 ```bash
-python3 ~/.claude/clc/query/query.py --validate
+~/.claude/clc/query/query.py --validate
 ```
 
 You should see:
@@ -148,13 +148,13 @@ Then open: http://localhost:3001
 
 ```bash
 # See what Claude sees before tasks
-python3 ~/.claude/clc/query/query.py --context
+~/.claude/clc/query/query.py --context
 
 # Search by domain
-python3 ~/.claude/clc/query/query.py --domain testing
+~/.claude/clc/query/query.py --domain testing
 
 # View statistics
-python3 ~/.claude/clc/query/query.py --stats
+~/.claude/clc/query/query.py --stats
 ```
 
 ---
@@ -237,7 +237,7 @@ See `UNINSTALL.md` for clean removal instructions.
 
 | Task | Command |
 |------|---------|
-| Query CLC | `python3 ~/.claude/clc/query/query.py --context` |
-| View stats | `python3 ~/.claude/clc/query/query.py --stats` |
+| Query CLC | `~/.claude/clc/query/query.py --context` |
+| View stats | `~/.claude/clc/query/query.py --stats` |
 | Start dashboard | `cd ~/.claude/clc/dashboard-app && ./run-dashboard.sh` |
-| Validate install | `python3 ~/.claude/clc/query/query.py --validate` |
+| Validate install | `~/.claude/clc/query/query.py --validate` |

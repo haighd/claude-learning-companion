@@ -7,10 +7,10 @@
 
 ```bash
 # Load context before any task
-python3 ~/.claude/clc/query/query.py --context
+~/.claude/clc/query/query.py --context
 
 # Check domain-specific knowledge
-python3 ~/.claude/clc/query/query.py --domain coordination
+~/.claude/clc/query/query.py --domain coordination
 
 # Record a failure
 ~/.claude/clc/scripts/record-failure.sh

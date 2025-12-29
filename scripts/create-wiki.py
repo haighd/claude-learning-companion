@@ -135,7 +135,7 @@ cat ~/.claude/settings.json | grep learning-loop
 **Database errors:**
 ```bash
 # Validate database
-python3 ~/.claude/clc/query/query.py --validate
+~/.claude/clc/query/query.py --validate
 ```
 
 **Dashboard won't start:**
@@ -355,25 +355,25 @@ cli_ref = """# CLI Reference
 
 ```bash
 # Build full context (what agents see)
-python3 ~/.claude/clc/query/query.py --context
+~/.claude/clc/query/query.py --context
 
 # Query by domain
-python3 ~/.claude/clc/query/query.py --domain testing
+~/.claude/clc/query/query.py --domain testing
 
 # Query by tags
-python3 ~/.claude/clc/query/query.py --tags api,error
+~/.claude/clc/query/query.py --tags api,error
 
 # Get recent learnings
-python3 ~/.claude/clc/query/query.py --recent 10
+~/.claude/clc/query/query.py --recent 10
 
 # View statistics
-python3 ~/.claude/clc/query/query.py --stats
+~/.claude/clc/query/query.py --stats
 
 # Validate database
-python3 ~/.claude/clc/query/query.py --validate
+~/.claude/clc/query/query.py --validate
 
 # Export learnings
-python3 ~/.claude/clc/query/query.py --export > backup.json
+~/.claude/clc/query/query.py --export > backup.json
 ```
 
 ## Recording Scripts
@@ -530,7 +530,7 @@ Add your custom CLAUDE.md content AFTER the CLC section.
 ```bash
 claude
 # Say "check in" - should query building
-python3 ~/.claude/clc/query/query.py --stats
+~/.claude/clc/query/query.py --stats
 ```
 
 ## Upgrading Versions
@@ -546,7 +546,7 @@ cd /path/to/CLC-repo && git pull
 ./install.sh
 
 # 4. Validate
-python3 ~/.claude/clc/query/query.py --validate
+~/.claude/clc/query/query.py --validate
 ```
 
 ## Team Setup

@@ -211,7 +211,7 @@ Runs automatically - no user interaction required. See [watcher/README.md](watch
 
 ```bash
 # Check what has been learned
-python3 ~/.claude/clc/query/query.py --stats
+~/.claude/clc/query/query.py --stats
 
 # Start dashboard manually (if needed)
 cd ~/.claude/clc/dashboard-app && ./run-dashboard.sh
