@@ -276,6 +276,7 @@ case "$MODE" in
 
         install_commands
         install_settings
+        make_scripts_executable
         install_git_hooks
         sync_hooks || true  # Hook verification failure is non-fatal during install
         echo ""
