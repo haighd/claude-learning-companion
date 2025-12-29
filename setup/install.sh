@@ -125,7 +125,7 @@ make_scripts_executable() {
     if [ "$made_count" -gt 0 ]; then
         echo "[CLC] Made $made_count Python script(s) executable"
     else
-        echo "[CLC] No Python scripts found to make executable"
+        echo "[CLC] WARNING: No Python scripts found to make executable. Direct script calls may fail." >&2
     fi
 }
 
