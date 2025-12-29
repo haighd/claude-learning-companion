@@ -107,8 +107,6 @@ PYTHON_SCRIPT
 make_scripts_executable() {
     # Make Python scripts executable so they can be called directly
     # This allows calling ~/.claude/clc/query/query.py instead of python3 ~/.claude/clc/query/query.py
-    # Note: This function assumes scripts already have proper shebang (#!/usr/bin/env python3).
-    #       It does not verify shebang presence - that is a prerequisite for direct execution.
     local scripts=(
         "$CLC_DIR/query/query.py"
         "$CLC_DIR/conductor/conductor.py"
@@ -119,6 +117,9 @@ make_scripts_executable() {
     local missing_scripts=()
     for script in "${scripts[@]}"; do
         if [ -f "$script" ]; then
+            if ! head -n 1 "$script" | grep -q -e '^#!.*python3'; then
+                echo "[CLC] WARNING: Script '$script' is missing a python3 shebang. Direct execution may fail." >&2
+            fi
             chmod +x "$script"
             made_count=$((made_count + 1))
         else
@@ -130,10 +131,12 @@ make_scripts_executable() {
         echo "[CLC] Made $made_count Python script(s) executable"
     fi
     if [ "${#missing_scripts[@]}" -gt 0 ]; then
-        echo "[CLC] WARNING: The following scripts were not found:" >&2
+        echo "[CLC] WARNING: The following scripts were not found and could not be made executable:" >&2
         for missing in "${missing_scripts[@]}"; do
             echo "  - $missing" >&2
         done
+        echo "[CLC] If you intentionally excluded these components, you can ignore this warning." >&2
+        echo "[CLC] Otherwise, verify that your installation completed successfully." >&2
     fi
 }
 
