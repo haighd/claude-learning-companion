@@ -1,5 +1,7 @@
 # CLI Reference
 
+> **Note for Windows users:** The direct script execution syntax shown below (e.g., `~/.claude/clc/query/query.py`) works on macOS and Linux where scripts are made executable with proper shebangs. On Windows, use `python3 ~/.claude/clc/query/query.py` instead.
+
 ## Query Commands
 
 ```bash
