@@ -73,7 +73,7 @@ Add your custom CLAUDE.md content AFTER the CLC section.
 ```bash
 claude
 # Say "check in" - should query building
-python ~/.claude/clc/query/query.py --stats
+python3 ~/.claude/clc/query/query.py --stats
 ```
 
 ## Upgrading Versions
@@ -89,7 +89,7 @@ cd ~/.claude/clc && git pull
 ./install.sh
 
 # 4. Validate
-python ~/.claude/clc/query/query.py --validate
+python3 ~/.claude/clc/query/query.py --validate
 ```
 
 ## Team Setup

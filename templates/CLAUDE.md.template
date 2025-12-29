@@ -18,11 +18,11 @@ Before starting ANY investigation, debugging, research, or problem-solving task:
 
 1. **QUERY THE BUILDING:**
    ```bash
-   python ~/.claude/clc/query/query.py --context
+   python3 ~/.claude/clc/query/query.py --context
    ```
    For domain-specific work:
    ```bash
-   python ~/.claude/clc/query/query.py --domain [domain]
+   python3 ~/.claude/clc/query/query.py --domain [domain]
    ```
 
 2. **VERIFY YOU HAVE QUERIED:**
@@ -80,12 +80,12 @@ Before starting ANY investigation, debugging, research, or problem-solving task:
 
 **Standard query (REQUIRED for most tasks):**
 ```bash
-python ~/.claude/clc/query/query.py --context
+python3 ~/.claude/clc/query/query.py --context
 ```
 
 **Domain-specific query:**
 ```bash
-python ~/.claude/clc/query/query.py --domain [domain]
+python3 ~/.claude/clc/query/query.py --domain [domain]
 ```
 
 **After querying, you MUST:**
@@ -177,7 +177,7 @@ Escalate to human (create file in ceo-inbox/) when:
 If you realize mid-task that you did NOT query CLC:
 
 1. **STOP immediately**
-2. **Query now:** `python ~/.claude/clc/query/query.py --context`
+2. **Query now:** `python3 ~/.claude/clc/query/query.py --context`
 3. **Review the results** - adjust your approach based on learnings
 4. **Continue with corrected approach**
 

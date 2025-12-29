@@ -103,20 +103,20 @@ Type `/search` followed by any question in plain English. Claude will search you
 
 ```bash
 # List workflow runs
-python ~/.claude/clc/conductor/query_conductor.py --workflows
+python3 ~/.claude/clc/conductor/query_conductor.py --workflows
 
 # Show specific run
-python ~/.claude/clc/conductor/query_conductor.py --workflow 123
+python3 ~/.claude/clc/conductor/query_conductor.py --workflow 123
 
 # Show failures
-python ~/.claude/clc/conductor/query_conductor.py --failures
+python3 ~/.claude/clc/conductor/query_conductor.py --failures
 
 # Show hotspots
-python ~/.claude/clc/conductor/query_conductor.py --hotspots
+python3 ~/.claude/clc/conductor/query_conductor.py --hotspots
 
 # Show trails by scent
-python ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
+python3 ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
 
 # Statistics
-python ~/.claude/clc/conductor/query_conductor.py --stats
+python3 ~/.claude/clc/conductor/query_conductor.py --stats
 ```

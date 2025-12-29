@@ -113,10 +113,10 @@ The building contains institutional knowledge that could:
 - Guide your approach with hard-won lessons
 
 Query the building first:
-  python ~/.claude/clc/query/query.py --context
+  python3 ~/.claude/clc/query/query.py --context
 
 Or for domain-specific guidance:
-  python ~/.claude/clc/query/query.py --domain [domain]
+  python3 ~/.claude/clc/query/query.py --domain [domain]
 
 Override (emergency only): export {OVERRIDE_ENV_VAR}=1{time_info}"""
 

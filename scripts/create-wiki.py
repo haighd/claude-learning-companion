@@ -135,7 +135,7 @@ cat ~/.claude/settings.json | grep learning-loop
 **Database errors:**
 ```bash
 # Validate database
-python ~/.claude/clc/query/query.py --validate
+python3 ~/.claude/clc/query/query.py --validate
 ```
 
 **Dashboard won't start:**
@@ -335,10 +335,10 @@ Defined in `~/.claude/clc/agents/`:
 ## Query Conductor
 
 ```bash
-python ~/.claude/clc/conductor/query_conductor.py --workflows
-python ~/.claude/clc/conductor/query_conductor.py --failures
-python ~/.claude/clc/conductor/query_conductor.py --hotspots
-python ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
+python3 ~/.claude/clc/conductor/query_conductor.py --workflows
+python3 ~/.claude/clc/conductor/query_conductor.py --failures
+python3 ~/.claude/clc/conductor/query_conductor.py --hotspots
+python3 ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
 ```
 
 ## When to Use Swarm
@@ -355,25 +355,25 @@ cli_ref = """# CLI Reference
 
 ```bash
 # Build full context (what agents see)
-python ~/.claude/clc/query/query.py --context
+python3 ~/.claude/clc/query/query.py --context
 
 # Query by domain
-python ~/.claude/clc/query/query.py --domain testing
+python3 ~/.claude/clc/query/query.py --domain testing
 
 # Query by tags
-python ~/.claude/clc/query/query.py --tags api,error
+python3 ~/.claude/clc/query/query.py --tags api,error
 
 # Get recent learnings
-python ~/.claude/clc/query/query.py --recent 10
+python3 ~/.claude/clc/query/query.py --recent 10
 
 # View statistics
-python ~/.claude/clc/query/query.py --stats
+python3 ~/.claude/clc/query/query.py --stats
 
 # Validate database
-python ~/.claude/clc/query/query.py --validate
+python3 ~/.claude/clc/query/query.py --validate
 
 # Export learnings
-python ~/.claude/clc/query/query.py --export > backup.json
+python3 ~/.claude/clc/query/query.py --export > backup.json
 ```
 
 ## Recording Scripts
@@ -393,22 +393,22 @@ python ~/.claude/clc/query/query.py --export > backup.json
 
 ```bash
 # List workflow runs
-python ~/.claude/clc/conductor/query_conductor.py --workflows
+python3 ~/.claude/clc/conductor/query_conductor.py --workflows
 
 # Show specific run
-python ~/.claude/clc/conductor/query_conductor.py --workflow 123
+python3 ~/.claude/clc/conductor/query_conductor.py --workflow 123
 
 # Show failures
-python ~/.claude/clc/conductor/query_conductor.py --failures
+python3 ~/.claude/clc/conductor/query_conductor.py --failures
 
 # Show hotspots
-python ~/.claude/clc/conductor/query_conductor.py --hotspots
+python3 ~/.claude/clc/conductor/query_conductor.py --hotspots
 
 # Show trails by scent
-python ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
+python3 ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
 
 # Statistics
-python ~/.claude/clc/conductor/query_conductor.py --stats
+python3 ~/.claude/clc/conductor/query_conductor.py --stats
 ```
 """
 
@@ -530,7 +530,7 @@ Add your custom CLAUDE.md content AFTER the CLC section.
 ```bash
 claude
 # Say "check in" - should query building
-python ~/.claude/clc/query/query.py --stats
+python3 ~/.claude/clc/query/query.py --stats
 ```
 
 ## Upgrading Versions
@@ -546,7 +546,7 @@ cd /path/to/CLC-repo && git pull
 ./install.sh
 
 # 4. Validate
-python ~/.claude/clc/query/query.py --validate
+python3 ~/.claude/clc/query/query.py --validate
 ```
 
 ## Team Setup
