@@ -129,7 +129,7 @@ make_scripts_executable() {
     if [ "$made_count" -gt 0 ]; then
         echo "[CLC] Made $made_count Python script(s) executable"
     fi
-    if [ ${#missing_scripts[@]} -gt 0 ]; then
+    if [ "${#missing_scripts[@]}" -gt 0 ]; then
         echo "[CLC] WARNING: The following scripts were not found:" >&2
         for missing in "${missing_scripts[@]}"; do
             echo "  - $missing" >&2
