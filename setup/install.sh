@@ -113,6 +113,7 @@ make_scripts_executable() {
         "$CLC_DIR/conductor/conductor.py"
         "$CLC_DIR/conductor/query_conductor.py"
     )
+    local num_scripts=${#scripts[@]}
 
     local made_count=0
     for script in "${scripts[@]}"; do
@@ -122,10 +123,12 @@ make_scripts_executable() {
         fi
     done
 
-    if [ "$made_count" -gt 0 ]; then
+    if [ "$made_count" -eq "$num_scripts" ]; then
         echo "[CLC] Made $made_count Python script(s) executable"
+    elif [ "$made_count" -gt 0 ]; then
+        echo "[CLC] WARNING: Made $made_count of $num_scripts expected Python script(s) executable. Some scripts were not found." >&2
     else
-        echo "[CLC] WARNING: No Python scripts found to make executable. Expected: ${scripts[*]}. Direct script calls may fail." >&2
+        echo "[CLC] WARNING: No Python scripts found to make executable. Direct script calls may fail." >&2
     fi
 }
 
