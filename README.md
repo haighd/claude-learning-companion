@@ -211,7 +211,7 @@ Runs automatically - no user interaction required. See [watcher/README.md](watch
 
 ```bash
 # Check what has been learned
-python ~/.claude/clc/query/query.py --stats
+~/.claude/clc/query/query.py --stats
 
 # Start dashboard manually (if needed)
 cd ~/.claude/clc/dashboard-app && ./run-dashboard.sh
@@ -264,9 +264,9 @@ asyncio.run(main())
 
 **CLI unchanged** - handles async internally:
 ```bash
-python -m query --context --domain debugging
-python -m query --stats
-python -m query --validate
+~/.claude/clc/query/query.py --context --domain debugging
+~/.claude/clc/query/query.py --stats
+~/.claude/clc/query/query.py --validate
 ```
 
 See [query/MIGRATION.md](query/MIGRATION.md) for migration guide from sync API.

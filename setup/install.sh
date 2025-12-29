@@ -104,6 +104,42 @@ print(f"[CLC] settings.json configured with hooks at: {clc_hooks}")
 PYTHON_SCRIPT
 }
 
+make_scripts_executable() {
+    # Make Python scripts executable so they can be called directly
+    # This allows calling ~/.claude/clc/query/query.py instead of python3 ~/.claude/clc/query/query.py
+    local scripts=(
+        "$CLC_DIR/query/query.py"
+        "$CLC_DIR/conductor/conductor.py"
+        "$CLC_DIR/conductor/query_conductor.py"
+    )
+
+    local made_count=0
+    local missing_scripts=()
+    for script in "${scripts[@]}"; do
+        if [ -f "$script" ]; then
+            if ! head -n 1 "$script" | grep -qE '^#!.*[ /]python3([.0-9]+)?([[:space:]]|$)'; then
+                echo "[CLC] WARNING: Script '$script' is missing a python3 shebang. Direct execution may fail." >&2
+            fi
+            chmod +x "$script"
+            made_count=$((made_count + 1))
+        else
+            missing_scripts+=("$script")
+        fi
+    done
+
+    if [ "$made_count" -gt 0 ]; then
+        echo "[CLC] Made $made_count Python script(s) executable"
+    fi
+    if [ "${#missing_scripts[@]}" -gt 0 ]; then
+        echo "[CLC] WARNING: The following scripts were not found and could not be made executable:" >&2
+        for missing in "${missing_scripts[@]}"; do
+            echo "  - $missing" >&2
+        done
+        echo "[CLC] If you intentionally excluded these components, you can ignore this warning." >&2
+        echo "[CLC] Otherwise, verify that your installation completed successfully." >&2
+    fi
+}
+
 install_git_hooks() {
     # Install git pre-commit hook for invariant enforcement
     local git_hooks_dir="$CLC_DIR/.git/hooks"
@@ -159,6 +195,7 @@ case "$MODE" in
         cp "$SCRIPT_DIR/CLAUDE.md.template" "$CLAUDE_DIR/CLAUDE.md"
         install_commands
         install_settings
+        make_scripts_executable
         install_git_hooks
         sync_hooks || true  # Hook verification failure is non-fatal during install
         echo "[CLC] Fresh install complete"
@@ -169,6 +206,7 @@ case "$MODE" in
         echo "[CLC] Updating all commands..."
         install_commands true
         install_settings
+        make_scripts_executable
         install_git_hooks
         sync_hooks || true  # Hook verification failure is non-fatal during install
         echo "[CLC] Update complete"
@@ -193,6 +231,7 @@ case "$MODE" in
         fi
         install_commands
         install_settings
+        make_scripts_executable
         install_git_hooks
         sync_hooks || true  # Hook verification failure is non-fatal during install
         ;;
@@ -205,6 +244,7 @@ case "$MODE" in
         cp "$SCRIPT_DIR/CLAUDE.md.template" "$CLAUDE_DIR/CLAUDE.md"
         install_commands
         install_settings
+        make_scripts_executable
         install_git_hooks
         sync_hooks || true  # Hook verification failure is non-fatal during install
         echo "[CLC] Replaced config (backup: CLAUDE.md.backup)"
@@ -216,6 +256,7 @@ case "$MODE" in
         echo "[CLC] Warning: CLC may not function correctly without CLAUDE.md instructions"
         install_commands
         install_settings
+        make_scripts_executable
         install_git_hooks
         sync_hooks || true  # Hook verification failure is non-fatal during install
         ;;
@@ -254,6 +295,7 @@ case "$MODE" in
 
         install_commands
         install_settings
+        make_scripts_executable
         install_git_hooks
         sync_hooks || true  # Hook verification failure is non-fatal during install
         echo ""

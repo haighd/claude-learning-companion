@@ -69,10 +69,10 @@ Defined in `~/.claude/clc/agents/`:
 ## Query Conductor
 
 ```bash
-python ~/.claude/clc/conductor/query_conductor.py --workflows
-python ~/.claude/clc/conductor/query_conductor.py --failures
-python ~/.claude/clc/conductor/query_conductor.py --hotspots
-python ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
+~/.claude/clc/conductor/query_conductor.py --workflows
+~/.claude/clc/conductor/query_conductor.py --failures
+~/.claude/clc/conductor/query_conductor.py --hotspots
+~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
 ```
 
 ## When to Use Swarm

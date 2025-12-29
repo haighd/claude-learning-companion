@@ -2,6 +2,8 @@
 
 Complete setup guide - from zero to running.
 
+> **Note for Windows users:** Commands shown as `~/.claude/clc/query/query.py` work on macOS/Linux where scripts have executable permissions. On Windows, use `python3 ~/.claude/clc/query/query.py` instead.
+
 ---
 
 ## Step 0: Prerequisites
@@ -101,7 +103,7 @@ chmod +x install.sh
 Run this to check everything is working:
 
 ```bash
-python ~/.claude/clc/query/query.py --validate
+~/.claude/clc/query/query.py --validate
 ```
 
 You should see:
@@ -148,13 +150,13 @@ Then open: http://localhost:3001
 
 ```bash
 # See what Claude sees before tasks
-python ~/.claude/clc/query/query.py --context
+~/.claude/clc/query/query.py --context
 
 # Search by domain
-python ~/.claude/clc/query/query.py --domain testing
+~/.claude/clc/query/query.py --domain testing
 
 # View statistics
-python ~/.claude/clc/query/query.py --stats
+~/.claude/clc/query/query.py --stats
 ```
 
 ---
@@ -237,7 +239,7 @@ See `UNINSTALL.md` for clean removal instructions.
 
 | Task | Command |
 |------|---------|
-| Query CLC | `python ~/.claude/clc/query/query.py --context` |
-| View stats | `python ~/.claude/clc/query/query.py --stats` |
+| Query CLC | `~/.claude/clc/query/query.py --context` |
+| View stats | `~/.claude/clc/query/query.py --stats` |
 | Start dashboard | `cd ~/.claude/clc/dashboard-app && ./run-dashboard.sh` |
-| Validate install | `python ~/.claude/clc/query/query.py --validate` |
+| Validate install | `~/.claude/clc/query/query.py --validate` |

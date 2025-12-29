@@ -1,32 +1,34 @@
 # CLI Reference
 
+> **Note for Windows users:** The direct script execution syntax shown below (e.g., `~/.claude/clc/query/query.py`) works on macOS and Linux where scripts are made executable with proper shebangs. On Windows, use `python3 ~/.claude/clc/query/query.py` instead.
+
 ## Query Commands
 
 ```bash
 # Build full context (what agents see)
-python -m query --context
+~/.claude/clc/query/query.py --context
 
 # Query by domain
-python -m query --domain testing
+~/.claude/clc/query/query.py --domain testing
 
 # Query by tags
-python -m query --tags api,error
+~/.claude/clc/query/query.py --tags api,error
 
 # Get recent learnings
-python -m query --recent 10
+~/.claude/clc/query/query.py --recent 10
 
 # View statistics
-python -m query --stats
+~/.claude/clc/query/query.py --stats
 
 # Validate database
-python -m query --validate
+~/.claude/clc/query/query.py --validate
 
 # Health check (meta-observer)
-python -m query --health-check
+~/.claude/clc/query/query.py --health-check
 
 # Output formats
-python -m query --stats --format json
-python -m query --recent 20 --format csv
+~/.claude/clc/query/query.py --stats --format json
+~/.claude/clc/query/query.py --recent 20 --format csv
 ```
 
 ## Programmatic Usage (v0.2.0+)
@@ -103,20 +105,20 @@ Type `/search` followed by any question in plain English. Claude will search you
 
 ```bash
 # List workflow runs
-python ~/.claude/clc/conductor/query_conductor.py --workflows
+~/.claude/clc/conductor/query_conductor.py --workflows
 
 # Show specific run
-python ~/.claude/clc/conductor/query_conductor.py --workflow 123
+~/.claude/clc/conductor/query_conductor.py --workflow 123
 
 # Show failures
-python ~/.claude/clc/conductor/query_conductor.py --failures
+~/.claude/clc/conductor/query_conductor.py --failures
 
 # Show hotspots
-python ~/.claude/clc/conductor/query_conductor.py --hotspots
+~/.claude/clc/conductor/query_conductor.py --hotspots
 
 # Show trails by scent
-python ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
+~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
 
 # Statistics
-python ~/.claude/clc/conductor/query_conductor.py --stats
+~/.claude/clc/conductor/query_conductor.py --stats
 ```

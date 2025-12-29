@@ -85,7 +85,7 @@ cat ~/.claude/settings.json | grep learning-loop
 **Database errors:**
 ```bash
 # Validate database
-python ~/.claude/clc/query/query.py --validate
+~/.claude/clc/query/query.py --validate
 ```
 
 **Dashboard won't start:**
