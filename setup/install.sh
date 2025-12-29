@@ -107,18 +107,26 @@ PYTHON_SCRIPT
 make_scripts_executable() {
     # Make Python scripts executable so they can be called directly
     # This allows calling ~/.claude/clc/query/query.py instead of python3 ~/.claude/clc/query/query.py
+    # Note: Scripts must have proper shebang (#!/usr/bin/env python3) for direct execution to work
     local scripts=(
         "$CLC_DIR/query/query.py"
         "$CLC_DIR/conductor/conductor.py"
         "$CLC_DIR/conductor/query_conductor.py"
     )
 
+    local made_count=0
     for script in "${scripts[@]}"; do
         if [ -f "$script" ]; then
             chmod +x "$script"
+            made_count=$((made_count + 1))
         fi
     done
-    echo "[CLC] Python scripts made executable"
+
+    if [ "$made_count" -gt 0 ]; then
+        echo "[CLC] Made $made_count Python script(s) executable"
+    else
+        echo "[CLC] No Python scripts found to make executable"
+    fi
 }
 
 install_git_hooks() {
