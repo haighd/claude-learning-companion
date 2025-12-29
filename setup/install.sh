@@ -110,6 +110,7 @@ make_scripts_executable() {
     local scripts=(
         "$CLC_DIR/query/query.py"
         "$CLC_DIR/conductor/conductor.py"
+        "$CLC_DIR/conductor/query_conductor.py"
     )
 
     for script in "${scripts[@]}"; do

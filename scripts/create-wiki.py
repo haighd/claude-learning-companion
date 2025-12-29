@@ -335,10 +335,10 @@ Defined in `~/.claude/clc/agents/`:
 ## Query Conductor
 
 ```bash
-python3 ~/.claude/clc/conductor/query_conductor.py --workflows
-python3 ~/.claude/clc/conductor/query_conductor.py --failures
-python3 ~/.claude/clc/conductor/query_conductor.py --hotspots
-python3 ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
+~/.claude/clc/conductor/query_conductor.py --workflows
+~/.claude/clc/conductor/query_conductor.py --failures
+~/.claude/clc/conductor/query_conductor.py --hotspots
+~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
 ```
 
 ## When to Use Swarm
@@ -393,22 +393,22 @@ cli_ref = """# CLI Reference
 
 ```bash
 # List workflow runs
-python3 ~/.claude/clc/conductor/query_conductor.py --workflows
+~/.claude/clc/conductor/query_conductor.py --workflows
 
 # Show specific run
-python3 ~/.claude/clc/conductor/query_conductor.py --workflow 123
+~/.claude/clc/conductor/query_conductor.py --workflow 123
 
 # Show failures
-python3 ~/.claude/clc/conductor/query_conductor.py --failures
+~/.claude/clc/conductor/query_conductor.py --failures
 
 # Show hotspots
-python3 ~/.claude/clc/conductor/query_conductor.py --hotspots
+~/.claude/clc/conductor/query_conductor.py --hotspots
 
 # Show trails by scent
-python3 ~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
+~/.claude/clc/conductor/query_conductor.py --trails --scent blocker
 
 # Statistics
-python3 ~/.claude/clc/conductor/query_conductor.py --stats
+~/.claude/clc/conductor/query_conductor.py --stats
 ```
 """
 
