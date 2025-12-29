@@ -38,8 +38,8 @@ asyncio.run(main())
 
 The CLI handles async internally - no changes needed:
 ```bash
-python -m query --context
-python -m query --stats
+~/.claude/clc/query/query.py --context
+~/.claude/clc/query/query.py --stats
 ```
 
 ### Performance
