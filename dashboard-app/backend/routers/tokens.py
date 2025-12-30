@@ -324,9 +324,7 @@ def _filter_sessions_by_days(sessions: List[Dict[str, Any]], days: int) -> List[
             # Compare ISO format timestamps
             if ts >= cutoff_str:
                 filtered.append(s)
-        else:
-            # Include sessions without timestamp (can't determine age)
-            filtered.append(s)
+        # Exclude sessions without timestamp - cannot verify they fall within time window
 
     return filtered
 
@@ -340,9 +338,9 @@ async def get_token_summary(days: int = Query(30), project: Optional[str] = Quer
     # Filter by days first
     filtered_sessions = _filter_sessions_by_days(usage_data["sessions"], days)
 
-    # Then filter by project if specified
+    # Then filter by project if specified (match against project directory name)
     if project:
-        filtered_sessions = [s for s in filtered_sessions if project in s["project_path"]]
+        filtered_sessions = [s for s in filtered_sessions if Path(s["project_path"]).name == project]
 
     # Recalculate totals based on filtered sessions
     total = {
@@ -463,27 +461,23 @@ async def create_alert(alert: TokenAlertCreate):
 async def update_alert(alert_id: int, alert: TokenAlertUpdate):
     """Update an existing token usage alert."""
     ensure_tables_exist()
+
+    # Use Pydantic's model_dump to get only set fields
+    update_data = alert.model_dump(exclude_unset=True)
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    # Convert is_enabled to integer for SQLite
+    if "is_enabled" in update_data:
+        update_data["is_enabled"] = 1 if update_data["is_enabled"] else 0
+
+    # Build dynamic update query
+    updates = [f"{field} = ?" for field in update_data.keys()]
+    values = list(update_data.values())
+    values.append(alert_id)
+
     with get_db() as conn:
         cursor = conn.cursor()
-        updates, values = [], []
-        if alert.alert_type is not None:
-            updates.append("alert_type = ?")
-            values.append(alert.alert_type)
-        if alert.threshold_value is not None:
-            updates.append("threshold_value = ?")
-            values.append(alert.threshold_value)
-        if alert.threshold_unit is not None:
-            updates.append("threshold_unit = ?")
-            values.append(alert.threshold_unit)
-        if alert.time_window is not None:
-            updates.append("time_window = ?")
-            values.append(alert.time_window)
-        if alert.is_enabled is not None:
-            updates.append("is_enabled = ?")
-            values.append(1 if alert.is_enabled else 0)
-        if not updates:
-            raise HTTPException(status_code=400, detail="No fields to update")
-        values.append(alert_id)
         cursor.execute(f"UPDATE token_alerts SET {', '.join(updates)} WHERE id = ?", values)
         conn.commit()
         if cursor.rowcount == 0:
