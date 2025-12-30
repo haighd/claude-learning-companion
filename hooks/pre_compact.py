@@ -149,8 +149,9 @@ def save_checkpoint(checkpoint_data: dict) -> str:
         json.dump(checkpoint_data, f, indent=2, default=str)
 
     # Update "latest" symlink
+    # Check is_symlink() first to handle broken symlinks (target deleted)
     latest_link = checkpoint_dir / "latest.json"
-    if latest_link.exists():
+    if latest_link.is_symlink() or latest_link.exists():
         latest_link.unlink()
     latest_link.symlink_to(checkpoint_file.name)
 

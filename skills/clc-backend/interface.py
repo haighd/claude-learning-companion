@@ -286,6 +286,10 @@ class CLCBackend:
         """
         Record a learned heuristic.
 
+        Note: Uses bash shell scripts for recording. This is Unix-only.
+        CLC is primarily designed for macOS/Linux environments where Claude
+        Code runs. Windows support would require Python-based alternatives.
+
         Args:
             domain: Domain this heuristic applies to
             rule: The heuristic rule
