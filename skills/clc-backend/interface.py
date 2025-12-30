@@ -149,7 +149,7 @@ class CLCBackend:
         golden_rules = []
         rules_file = self.clc_path / "golden-rules" / "RULES.md"
         if rules_file.exists():
-            golden_rules = [rules_file.read_text()]
+            golden_rules = [rules_file.read_text(encoding="utf-8")]
 
         return QueryResult(
             context="CLC query fallback - check query.py",
@@ -187,7 +187,7 @@ class CLCBackend:
             golden_rules = ""
             rules_file = self.clc_path / "golden-rules" / "RULES.md"
             if rules_file.exists():
-                golden_rules = rules_file.read_text()
+                golden_rules = rules_file.read_text(encoding="utf-8")
 
             # Load heuristics
             heuristics = self._load_heuristics()
@@ -226,7 +226,7 @@ class CLCBackend:
 
         if heuristics_dir.exists():
             for f in heuristics_dir.glob("*.md"):
-                content = f.read_text()
+                content = f.read_text(encoding="utf-8")
                 # Parse basic heuristic structure
                 # Note: Using file mtime as 'created_at' is intentional for this
                 # lightweight interface. For heuristics stored as markdown files,
@@ -256,7 +256,7 @@ class CLCBackend:
         if learnings_dir.exists():
             for f in learnings_dir.rglob("*.json"):
                 try:
-                    with open(f) as fp:
+                    with open(f, encoding="utf-8") as fp:
                         data = json.load(fp)
                         learnings.append(data)
                 except (json.JSONDecodeError, IOError):

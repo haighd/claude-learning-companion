@@ -157,7 +157,7 @@ def write_to_env_file(content: str, env_file: str) -> bool:
         return False
 
     try:
-        with open(env_file, "a") as f:
+        with open(env_file, "a", encoding="utf-8") as f:
             f.write(f"\n# CLC_CONTEXT_START\n")
             f.write(f"CLC_CONTEXT_LOADED=true\n")
             f.write(f"CLC_LOAD_TIME={datetime.now(timezone.utc).isoformat()}\n")

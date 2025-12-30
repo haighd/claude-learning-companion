@@ -169,9 +169,14 @@ class RelevanceScorer:
                 if 'T' in timestamp:
                     timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
                 else:
-                    # Handle simpler 'YYYY-MM-DD HH:MM:SS' format (e.g., from SQLite)
-                    # Note: strptime returns naive datetime, UTC tz added at line 181
-                    timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+                    # Handle 'YYYY-MM-DD HH:MM:SS' format (e.g., from SQLite)
+                    # Note: strptime returns naive datetime, UTC tz added below
+                    try:
+                        # Handle format with microseconds first (Peewee default)
+                        timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
+                    except ValueError:
+                        # Fallback to format without microseconds
+                        timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
             except ValueError:
                 return 0.5
         if not isinstance(timestamp, datetime):

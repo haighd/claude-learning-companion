@@ -98,7 +98,7 @@ def load_parties() -> Dict:
     parties_file = get_clc_path() / "agents" / "parties.yaml"
     if parties_file.exists():
         try:
-            with open(parties_file) as f:
+            with open(parties_file, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
                 return data.get("parties", {}) if isinstance(data, dict) else {}
         except yaml.YAMLError as e:
@@ -116,7 +116,7 @@ def load_persona(persona_name: str) -> Optional[Dict]:
     if not personality_file.exists():
         return None
 
-    content = personality_file.read_text()
+    content = personality_file.read_text(encoding="utf-8")
 
     # Extract key sections from markdown
     persona = {

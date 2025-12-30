@@ -150,7 +150,7 @@ def save_checkpoint(checkpoint_data: dict) -> str:
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S")
     checkpoint_file = checkpoint_dir / f"{timestamp}.json"
 
-    with open(checkpoint_file, "w") as f:
+    with open(checkpoint_file, "w", encoding="utf-8") as f:
         json.dump(checkpoint_data, f, indent=2, default=str)
 
     # Update "latest" symlink

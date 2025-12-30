@@ -73,7 +73,7 @@ def record_learnings(learnings: list) -> dict:
         filepath = learnings_dir / filename
 
         learning['recorded_at'] = datetime.now(timezone.utc).isoformat()
-        with open(filepath, 'w') as f:
+        with open(filepath, 'w', encoding="utf-8") as f:
             json.dump(learning, f, indent=2)
         recorded.append(learning['title'])
 

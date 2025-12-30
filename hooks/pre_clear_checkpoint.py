@@ -105,7 +105,7 @@ def save_checkpoint(conversation: str, analysis: dict, session_id: str) -> str:
         "context_summary": conversation[:5000] if conversation else ""
     }
 
-    with open(checkpoint_file, "w") as f:
+    with open(checkpoint_file, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
     latest = checkpoint_dir / "latest.json"
