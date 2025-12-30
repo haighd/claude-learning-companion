@@ -115,7 +115,7 @@ def init_tokens_router():
     ensure_tables_exist()
 
 
-def _read_last_lines(filepath: Path, num_lines: int = 10) -> List[str]:
+def read_last_lines(filepath: Path, num_lines: int = JSONL_TAIL_LINES) -> List[str]:
     """Read last N lines from file without loading entire file into memory."""
     lines = []
     try:
@@ -169,7 +169,7 @@ def parse_jsonl_for_tokens(project_dir: Path) -> List[Dict[str, Any]]:
 
     for jsonl_file in project_dir.glob("*.jsonl"):
         try:
-            lines = _read_last_lines(jsonl_file, num_lines=JSONL_TAIL_LINES)
+            lines = read_last_lines(jsonl_file, num_lines=JSONL_TAIL_LINES)
             if not lines:
                 continue
 
@@ -236,6 +236,20 @@ def aggregate_sessions_by_model(sessions: List[Dict[str, Any]]) -> Dict[str, Dic
     return dict(by_model)
 
 
+def aggregate_totals(sessions: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Aggregate total token counts across all sessions. Reusable helper for DRY."""
+    total = {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
+             "cache_creation_tokens": 0, "web_searches": 0, "cost_usd": 0.0}
+    for s in sessions:
+        total["input_tokens"] += s["input_tokens"]
+        total["output_tokens"] += s["output_tokens"]
+        total["cache_read_tokens"] += s["cache_read_tokens"]
+        total["cache_creation_tokens"] += s["cache_creation_tokens"]
+        total["web_searches"] += s["web_search_requests"]
+        total["cost_usd"] += s["cost_usd"]
+    return total
+
+
 def compute_token_usage() -> Dict[str, Any]:
     """Compute token usage from JSONL files.
 
@@ -257,24 +271,17 @@ def compute_token_usage() -> Dict[str, Any]:
         if project_dir.is_dir():
             all_records.extend(parse_jsonl_for_tokens(project_dir))
 
-    total = {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
-             "cache_creation_tokens": 0, "web_searches": 0, "cost_usd": 0.0}
+    # Use shared helper for totals (DRY)
+    total = aggregate_totals(all_records)
 
     by_project: Dict[str, Dict[str, Any]] = defaultdict(
         lambda: {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "session_count": 0}
     )
 
-    # Build sessions_by_id for O(1) lookups
+    # Build sessions_by_id for O(1) lookups and aggregate by_project
     sessions_by_id: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
 
     for record in all_records:
-        total["input_tokens"] += record["input_tokens"]
-        total["output_tokens"] += record["output_tokens"]
-        total["cache_read_tokens"] += record["cache_read_tokens"]
-        total["cache_creation_tokens"] += record["cache_creation_tokens"]
-        total["web_searches"] += record["web_search_requests"]
-        total["cost_usd"] += record["cost_usd"]
-
         project = record["project_path"]
         by_project[project]["input_tokens"] += record["input_tokens"]
         by_project[project]["output_tokens"] += record["output_tokens"]
@@ -327,7 +334,7 @@ async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
     usage_data = get_all_token_usage()
 
     if not usage_data["sessions"]:
-        return {"session_id": None, "models": {}, "total_input_tokens": 0,
+        return {"session_id": None, "project_path": None, "models": {}, "total_input_tokens": 0,
                 "total_output_tokens": 0, "total_cost_usd": 0.0}
 
     if session_id:
@@ -341,11 +348,9 @@ async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
             latest_session = max(sessions_with_ts, key=lambda r: r["timestamp"])
             latest_session_id = latest_session["session_id"]
             session_records = usage_data["sessions_by_id"].get(latest_session_id, [])
-        elif usage_data["sessions"]:
-            # Fallback: if no sessions have timestamps, use first available session
-            latest_session_id = usage_data["sessions"][0]["session_id"]
-            session_records = usage_data["sessions_by_id"].get(latest_session_id, [])
         else:
+            # If no sessions have timestamps, we cannot determine the latest one.
+            # Return empty to trigger 404 - better than returning arbitrary session.
             session_records = []
 
     if not session_records:
@@ -434,18 +439,8 @@ async def get_token_summary(days: int = Query(30), project: Optional[str] = Quer
         filtered_sessions = [s for s in filtered_sessions
                              if Path(s["project_path"]).name == project]
 
-    # Calculate totals in single loop for better performance
-    total = {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
-             "cache_creation_tokens": 0, "web_searches": 0, "cost_usd": 0.0}
-    for s in filtered_sessions:
-        total["input_tokens"] += s["input_tokens"]
-        total["output_tokens"] += s["output_tokens"]
-        total["cache_read_tokens"] += s["cache_read_tokens"]
-        total["cache_creation_tokens"] += s["cache_creation_tokens"]
-        total["web_searches"] += s["web_search_requests"]
-        total["cost_usd"] += s["cost_usd"]
-
-    # Use shared helper for model aggregation (DRY)
+    # Use shared helpers for aggregation (DRY)
+    total = aggregate_totals(filtered_sessions)
     by_model = aggregate_sessions_by_model(filtered_sessions)
 
     return {"period_days": days,
