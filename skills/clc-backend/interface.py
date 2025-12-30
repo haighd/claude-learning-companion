@@ -33,6 +33,7 @@ Usage:
 
 import json
 import os
+import re
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -228,15 +229,15 @@ class CLCBackend:
         if heuristics_dir.exists():
             for f in heuristics_dir.glob("*.md"):
                 content = f.read_text(encoding="utf-8")
-                # Parse basic heuristic structure
-                # Note: Using file mtime as 'created_at' is intentional for this
-                # lightweight interface. For heuristics stored as markdown files,
-                # mtime approximates recency. For validation timestamps with full
-                # confidence scoring, use query.py which reads from the database.
+                # Parse heuristic rule from markdown content
+                # Use regex to find the line starting with '## H-X: '
+                rule_match = re.search(r"##\s+H-\d+:\s*(.*)", content)
+                rule = rule_match.group(1).strip() if rule_match else content.split('\n')[0]
+
                 heuristics.append({
                     "file": f.name,
                     "domain": f.stem,  # Filename without extension as domain (e.g., "ci-workflow", "hooks")
-                    "rule": content[:200],
+                    "rule": rule,
                     # Use 'created_at' key for compatibility with progressive.py RelevanceScorer
                     # which uses this field for recency scoring. The mtime is the best available
                     # approximation for heuristic freshness when loading from markdown files.

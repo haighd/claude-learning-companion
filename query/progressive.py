@@ -163,30 +163,35 @@ class RelevanceScorer:
     def _recency_score(self, timestamp: Any) -> float:
         if timestamp is None:
             return 0.5
-        if isinstance(timestamp, str):
+
+        parsed_ts = None
+        if isinstance(timestamp, datetime):
+            parsed_ts = timestamp
+        elif isinstance(timestamp, str):
             try:
-                # Handle ISO 8601 format (with 'T' separator)
-                if 'T' in timestamp:
-                    timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-                else:
-                    # Handle 'YYYY-MM-DD HH:MM:SS' format (e.g., from SQLite)
-                    # Note: strptime returns naive datetime, UTC tz added below
-                    try:
-                        # Handle format with microseconds first (Peewee default)
-                        timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
-                    except ValueError:
-                        # Fallback to format without microseconds
-                        timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+                # Handles ISO 8601 format with 'T' separator and Z, e.g., 2025-12-29T15:15:00Z
+                parsed_ts = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
             except ValueError:
-                return 0.5
-        if not isinstance(timestamp, datetime):
+                # Fallback for other formats like 'YYYY-MM-DD HH:MM:SS.ffffff'
+                formats_to_try = [
+                    '%Y-%m-%d %H:%M:%S.%f',
+                    '%Y-%m-%d %H:%M:%S',
+                ]
+                for fmt in formats_to_try:
+                    try:
+                        parsed_ts = datetime.strptime(timestamp, fmt)
+                        break
+                    except ValueError:
+                        continue
+
+        if not parsed_ts:
             return 0.5
 
         now = datetime.now(timezone.utc)
-        if timestamp.tzinfo is None:
-            timestamp = timestamp.replace(tzinfo=timezone.utc)
+        if parsed_ts.tzinfo is None:
+            parsed_ts = parsed_ts.replace(tzinfo=timezone.utc)
 
-        age_hours = (now - timestamp).total_seconds() / 3600
+        age_hours = (now - parsed_ts).total_seconds() / 3600
         if age_hours < self.HOURS_VERY_RECENT:
             return 1.0
         elif age_hours < self.HOURS_IN_DAY:
