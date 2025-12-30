@@ -118,26 +118,21 @@ def extract_modified_files(conversation_context: str) -> list:
     false positives (e.g., paths in string literals). The extracted paths are
     used only for checkpoint context, not for critical operations.
     """
-    files = []
-    file_extensions = [".py", ".ts", ".js", ".md", ".json", ".yaml", ".yml", ".sh"]
+    files = set()
+    file_extensions = (".py", ".ts", ".js", ".md", ".json", ".yaml", ".yml", ".sh")
 
     lines = conversation_context.split("\n") if conversation_context else []
     for line in lines:
-        for ext in file_extensions:
-            if ext in line:
-                # Try to extract file path
-                words = line.split()
-                for word in words:
-                    if ext in word and "/" in word:
-                        # Clean up the path using defined character set
-                        path = word.strip(PATH_STRIP_CHARS)
-                        # Basic validation: must look like a real path
-                        # (starts with / or ./ or ~/ or contains multiple path segments)
-                        if path.startswith(("/", "./", "~/")) or path.count("/") >= 2:
-                            if path not in files:
-                                files.append(path)
+        words = line.split()
+        for word in words:
+            # Check if a word looks like a file path with a valid extension
+            if "/" in word and word.strip(PATH_STRIP_CHARS).endswith(file_extensions):
+                path = word.strip(PATH_STRIP_CHARS)
+                # Basic validation to reduce false positives
+                if path.startswith(("/", "./", "~/")) or path.count("/") >= 2:
+                    files.add(path)
 
-    return files[:20]
+    return list(files)[:20]
 
 
 def save_checkpoint(checkpoint_data: dict) -> str:

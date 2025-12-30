@@ -126,24 +126,23 @@ def load_persona(persona_name: str) -> Optional[Dict]:
         "behaviors": []
     }
 
-    # Extract triggers and behaviors sections
-    # Use startswith for more robust header matching
-    current_section = None
-    for line in content.split("\n"):
-        stripped = line.strip()
-        if stripped.startswith("## Triggers"):
-            current_section = "triggers"
-            continue
-        elif stripped.startswith("## Behaviors") or stripped.startswith("## Key Behaviors"):
-            current_section = "behaviors"
-            continue
-        elif stripped.startswith("##"):
-            current_section = None
-            continue
+    # Extract triggers and behaviors sections using regex for robustness
+    # This handles multi-line list items and various markdown formatting
+    triggers_match = re.search(r'##\s+Triggers\s*\n(.*?)(?=\n##|\Z)', content, re.S | re.I)
+    if triggers_match:
+        # Find all list items in the matched section
+        persona['triggers'] = [
+            item.strip().strip('"')
+            for item in re.findall(r'^\s*-\s+(.*)', triggers_match.group(1), re.M)
+        ]
 
-        if current_section and stripped.startswith("-"):
-            item = stripped.lstrip("- ").strip('"')
-            persona[current_section].append(item)
+    behaviors_match = re.search(r'##\s+(?:Key\s+)?Behaviors\s*\n(.*?)(?=\n##|\Z)', content, re.S | re.I)
+    if behaviors_match:
+        # Find all list items in the matched section
+        persona['behaviors'] = [
+            item.strip().strip('"')
+            for item in re.findall(r'^\s*-\s+(.*)', behaviors_match.group(1), re.M)
+        ]
 
     return persona
 

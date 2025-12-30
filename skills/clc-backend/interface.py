@@ -79,16 +79,17 @@ class CLCBackend:
         self.clc_path = clc_path or CLC_PATH
         self._validate_installation()
 
-    def _validate_installation(self) -> bool:
-        """Check if CLC is properly installed."""
-        required_files = [
-            self.clc_path / "query" / "query.py",
-            self.clc_path / "golden-rules" / "RULES.md"
-        ]
-        for f in required_files:
-            if not f.exists():
-                return False
-        return True
+    def _validate_installation(self) -> None:
+        """Check if CLC is properly installed. Raises FileNotFoundError on failure."""
+        required_files = {
+            "query script": self.clc_path / "query" / "query.py",
+            "golden rules": self.clc_path / "golden-rules" / "RULES.md",
+        }
+        for name, path in required_files.items():
+            if not path.exists():
+                raise FileNotFoundError(
+                    f"CLC installation is incomplete. Missing {name}: {path}"
+                )
 
     def query(
         self,
