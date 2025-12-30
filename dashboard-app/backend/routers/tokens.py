@@ -32,6 +32,9 @@ CLAUDE_PROJECTS_PATH = Path.home() / ".claude" / "projects"
 # Must be large enough to find lastModelUsage entry past trailing empty lines,
 # non-usage log entries, and potential file corruption. 200 provides good margin
 # while staying memory-efficient (8KB typical for 200 JSON lines).
+# Edge case: If no lastModelUsage is found within this limit (extremely verbose
+# sessions), that session's tokens won't be counted - this is acceptable as such
+# sessions are rare and the performance cost of reading more would be prohibitive.
 JSONL_TAIL_LINES = 200
 
 # Whitelist of allowed fields for alert updates (SQL injection protection).
@@ -250,6 +253,26 @@ def aggregate_totals(sessions: List[Dict[str, Any]]) -> Dict[str, Any]:
     return total
 
 
+def parse_timestamp(ts: Optional[str]) -> Optional[datetime]:
+    """Parse ISO 8601 timestamp string to datetime.
+
+    Handles various ISO 8601 formats including:
+    - Standard: 2024-01-15T10:30:00
+    - With Z suffix: 2024-01-15T10:30:00Z
+    - With timezone offset: 2024-01-15T10:30:00+00:00
+
+    Returns None if timestamp is None or unparseable.
+    """
+    if not ts:
+        return None
+    try:
+        # Handle Z suffix (UTC indicator) by converting to +00:00 format
+        normalized = ts.replace("Z", "+00:00") if ts.endswith("Z") else ts
+        return datetime.fromisoformat(normalized)
+    except (ValueError, TypeError):
+        return None
+
+
 def compute_token_usage() -> Dict[str, Any]:
     """Compute token usage from JSONL files.
 
@@ -342,14 +365,18 @@ async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
         session_records = usage_data["sessions_by_id"].get(session_id, [])
     else:
         # Find latest session by timestamp using max() O(N) instead of sort O(N log N)
-        # Filter to sessions with timestamps to avoid empty string comparison issues
-        sessions_with_ts = [s for s in usage_data["sessions"] if s.get("timestamp")]
-        if sessions_with_ts:
-            latest_session = max(sessions_with_ts, key=lambda r: r["timestamp"])
+        # Filter to sessions with parseable timestamps for proper chronological comparison
+        sessions_with_dt = [
+            (s, parse_timestamp(s.get("timestamp")))
+            for s in usage_data["sessions"]
+        ]
+        sessions_with_dt = [(s, dt) for s, dt in sessions_with_dt if dt is not None]
+        if sessions_with_dt:
+            latest_session, _ = max(sessions_with_dt, key=lambda x: x[1])
             latest_session_id = latest_session["session_id"]
             session_records = usage_data["sessions_by_id"].get(latest_session_id, [])
         else:
-            # If no sessions have timestamps, we cannot determine the latest one.
+            # If no sessions have parseable timestamps, we cannot determine the latest one.
             # Return empty to trigger 404 - better than returning arbitrary session.
             session_records = []
 
@@ -409,17 +436,16 @@ def _filter_sessions_by_days(sessions: List[Dict[str, Any]], days: int) -> List[
 
     filtered = []
     for s in sessions:
-        ts = s.get("timestamp")
-        if ts:
-            # Parse timestamp to datetime for reliable comparison across formats
-            try:
-                session_dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-                if session_dt >= cutoff:
-                    filtered.append(s)
-            except (ValueError, TypeError) as e:
-                # Log unparseable timestamps for debugging, but don't fail the request
-                logger.debug(f"Skipping session {s.get('session_id', 'unknown')}: unparseable timestamp '{ts}': {e}")
-        # Exclude sessions without timestamp - cannot verify they fall within time window
+        session_dt = parse_timestamp(s.get("timestamp"))
+        if session_dt is not None:
+            if session_dt >= cutoff:
+                filtered.append(s)
+        else:
+            # Log sessions with unparseable/missing timestamps for debugging
+            ts = s.get("timestamp")
+            if ts:  # Only log if timestamp exists but failed to parse
+                logger.debug(f"Skipping session {s.get('session_id', 'unknown')}: unparseable timestamp '{ts}'")
+        # Sessions without timestamps are excluded - cannot verify time window
 
     return filtered
 
@@ -567,9 +593,14 @@ async def update_alert(alert_id: int, alert: TokenAlertUpdate):
         update_data["is_enabled"] = 1 if update_data["is_enabled"] else 0
 
     # Build dynamic update query using only validated field names.
-    # SECURITY: Field names are safe to interpolate because:
-    # 1. They're validated against ALERT_UPDATE_ALLOWED_FIELDS whitelist above
-    # 2. Values use parameterized placeholders (?) - never interpolated
+    # ┌──────────────────────────────────────────────────────────────────────────┐
+    # │ SECURITY: Why f-string interpolation of field names is safe here:        │
+    # │ 1. Field names come ONLY from update_data.keys()                         │
+    # │ 2. update_data is validated against ALERT_UPDATE_ALLOWED_FIELDS (line ~564) │
+    # │ 3. ALERT_UPDATE_ALLOWED_FIELDS is a hardcoded whitelist of safe names    │
+    # │ 4. Values use parameterized placeholders (?) - never interpolated        │
+    # │ This is NOT the same as interpolating user input into SQL.               │
+    # └──────────────────────────────────────────────────────────────────────────┘
     set_clauses = [f"{field} = ?" for field in update_data.keys()]
     values = list(update_data.values())
     values.append(alert_id)
