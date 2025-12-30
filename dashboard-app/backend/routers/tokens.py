@@ -7,10 +7,10 @@ import logging
 import threading
 import time
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any
 
 from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel
@@ -193,7 +193,7 @@ def parse_jsonl_for_tokens(project_dir: Path) -> List[Dict[str, Any]]:
                 break  # Only need the most recent entry (cumulative totals)
 
             if not found_usage:
-                logger.debug(f"No token usage found in last 10 lines of {jsonl_file}")
+                logger.debug(f"No token usage found in last 100 lines of {jsonl_file}")
 
         except Exception as e:
             logger.warning(f"Error parsing {jsonl_file}: {e}")
@@ -374,7 +374,8 @@ def _filter_sessions_by_days(sessions: List[Dict[str, Any]], days: int) -> List[
     if days <= 0:
         return sessions
 
-    cutoff = datetime.now() - timedelta(days=days)
+    # Use timezone-aware UTC datetime for consistent comparison
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     cutoff_str = cutoff.isoformat()
 
     filtered = []
@@ -434,16 +435,28 @@ async def get_model_breakdown():
     models = []
     for model, data in usage_data["by_model"].items():
         total_tokens = data["input_tokens"] + data["output_tokens"]
-        cache_efficiency = (data["cache_read_tokens"] / data["input_tokens"]) * 100 if data["input_tokens"] > 0 else 0.0
-        models.append({"model": model, "input_tokens": data["input_tokens"],
-                       "output_tokens": data["output_tokens"], "total_tokens": total_tokens,
-                       "cache_read_tokens": data["cache_read_tokens"],
-                       "cache_creation_tokens": data["cache_creation_tokens"],
-                       "cache_efficiency_percent": round(cache_efficiency, 1),
-                       "web_searches": data["web_searches"],
-                       "cost_usd": round(data["cost_usd"], 4),
-                       "session_count": data["session_count"],
-                       "avg_cost_per_session": round(data["cost_usd"] / data["session_count"], 4) if data["session_count"] > 0 else 0})
+        # Check before division to avoid division by zero
+        if data["input_tokens"] > 0:
+            cache_efficiency = (data["cache_read_tokens"] / data["input_tokens"]) * 100
+        else:
+            cache_efficiency = 0.0
+        if data["session_count"] > 0:
+            avg_cost = data["cost_usd"] / data["session_count"]
+        else:
+            avg_cost = 0.0
+        models.append({
+            "model": model,
+            "input_tokens": data["input_tokens"],
+            "output_tokens": data["output_tokens"],
+            "total_tokens": total_tokens,
+            "cache_read_tokens": data["cache_read_tokens"],
+            "cache_creation_tokens": data["cache_creation_tokens"],
+            "cache_efficiency_percent": round(cache_efficiency, 1),
+            "web_searches": data["web_searches"],
+            "cost_usd": round(data["cost_usd"], 4),
+            "session_count": data["session_count"],
+            "avg_cost_per_session": round(avg_cost, 4)
+        })
     models.sort(key=lambda x: x["cost_usd"], reverse=True)
     return {"models": models, "total_models": len(models)}
 
@@ -527,15 +540,14 @@ async def update_alert(alert_id: int, alert: TokenAlertUpdate):
         update_data["is_enabled"] = 1 if update_data["is_enabled"] else 0
 
     # Build dynamic update query using only validated field names.
-    # Use explicit field list to ensure field-value correspondence is clear.
-    fields = list(update_data.keys())
-    updates = [f"{field} = ?" for field in fields]
-    values = [update_data[field] for field in fields]
+    set_clauses = [f"{field} = ?" for field in update_data.keys()]
+    values = list(update_data.values())
     values.append(alert_id)
 
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute(f"UPDATE token_alerts SET {', '.join(updates)} WHERE id = ?", values)
+        query = f"UPDATE token_alerts SET {', '.join(set_clauses)} WHERE id = ?"
+        cursor.execute(query, values)
         conn.commit()
         if cursor.rowcount == 0:
             raise HTTPException(status_code=404, detail="Alert not found")
