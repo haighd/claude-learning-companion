@@ -60,7 +60,12 @@ def ensure_tables_exist():
 
     Note: token_metrics table is provisioned for future persistent storage.
     Currently, token data is computed from JSONL files and cached in memory.
-    Future enhancement: populate token_metrics from JSONL for persistent queries.
+    The table is NOT populated in this sprint - this is intentional.
+
+    Future enhancement (separate sprint):
+    - Add source='historical' when populating from JSONL files
+    - Add source='realtime' for webhook-based live capture
+    - Migrate endpoints to query DB instead of in-memory cache
     """
     with get_db() as conn:
         cursor = conn.cursor()
