@@ -54,8 +54,13 @@ class TokenAlertUpdate(BaseModel):
 def ensure_tables_exist():
     """Ensure token tables exist - only runs once per application lifecycle.
 
-    Uses @lru_cache for thread-safe one-time initialization instead of a global flag,
-    which could cause race conditions in multi-worker environments.
+    Uses @lru_cache for thread-safe one-time initialization. While lru_cache
+    isn't atomic, CREATE TABLE IF NOT EXISTS is idempotent, so concurrent
+    calls during initial startup are harmless.
+
+    Note: token_metrics table is provisioned for future persistent storage.
+    Currently, token data is computed from JSONL files and cached in memory.
+    Future enhancement: populate token_metrics from JSONL for persistent queries.
     """
     with get_db() as conn:
         cursor = conn.cursor()
@@ -379,15 +384,19 @@ def _filter_sessions_by_days(sessions: List[Dict[str, Any]], days: int) -> List[
 
     # Use timezone-aware UTC datetime for consistent comparison
     cutoff = datetime.now(timezone.utc) - timedelta(days=days)
-    cutoff_str = cutoff.isoformat()
 
     filtered = []
     for s in sessions:
         ts = s.get("timestamp")
         if ts:
-            # Compare ISO format timestamps
-            if ts >= cutoff_str:
-                filtered.append(s)
+            # Parse timestamp to datetime for reliable comparison across formats
+            try:
+                session_dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                if session_dt >= cutoff:
+                    filtered.append(s)
+            except (ValueError, TypeError):
+                # Skip sessions with unparseable timestamps
+                pass
         # Exclude sessions without timestamp - cannot verify they fall within time window
 
     return filtered
@@ -403,10 +412,10 @@ async def get_token_summary(days: int = Query(30), project: Optional[str] = Quer
     filtered_sessions = _filter_sessions_by_days(usage_data["sessions"], days)
 
     # Then filter by project if specified (match against project directory name)
-    # Use string split instead of Path() for efficiency with large session lists
+    # Use Path().name for cross-platform compatibility (Windows uses backslashes)
     if project:
         filtered_sessions = [s for s in filtered_sessions
-                             if s["project_path"].rsplit("/", 1)[-1] == project]
+                             if Path(s["project_path"]).name == project]
 
     # Calculate totals in single loop for better performance
     total = {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
@@ -547,6 +556,9 @@ async def update_alert(alert_id: int, alert: TokenAlertUpdate):
         update_data["is_enabled"] = 1 if update_data["is_enabled"] else 0
 
     # Build dynamic update query using only validated field names.
+    # SECURITY: Field names are safe to interpolate because:
+    # 1. They're validated against ALERT_UPDATE_ALLOWED_FIELDS whitelist above
+    # 2. Values use parameterized placeholders (?) - never interpolated
     set_clauses = [f"{field} = ?" for field in update_data.keys()]
     values = list(update_data.values())
     values.append(alert_id)

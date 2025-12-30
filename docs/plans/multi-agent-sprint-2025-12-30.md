@@ -35,7 +35,7 @@
 ### Success Criteria
 - [x] All groups complete assigned issues
 - [x] All commits pass review
-- [ ] All tests pass (pytest) - N/A: no pytest tests configured
+- [ ] All tests pass (pytest) - N/A: no pytest tests configured yet; tokens.py tests planned for future sprint
 - [x] Changes pushed to sprint branch
 - [x] No critical bugs introduced
 
