@@ -39,6 +39,7 @@ from routers import (
     workflows_router,
     graph_router,
 )
+from routers.tokens import router as tokens_router
 
 # Import router setup functions
 from routers.heuristics import set_manager as set_heuristics_manager
@@ -150,6 +151,7 @@ app.include_router(admin_router)
 app.include_router(fraud_router)
 app.include_router(workflows_router)
 app.include_router(graph_router)
+app.include_router(tokens_router)
 
 
 # ==============================================================================
