@@ -74,27 +74,34 @@ def detect_project_domain(project_dir: str) -> str | None:
     Detect the domain based on project files.
 
     Returns domain string or None if no specific domain detected.
+    For monorepos with multiple project types, uses priority ordering
+    to return the most relevant domain.
     """
     if not project_dir:
         return None
 
     project_path = Path(project_dir)
 
-    # Domain detection heuristics
-    domain_indicators = {
-        "frontend": ["package.json", "tsconfig.json", "vite.config.ts", "next.config.js"],
-        "backend": ["requirements.txt", "pyproject.toml", "go.mod", "Cargo.toml"],
-        "infrastructure": ["terraform", "docker-compose.yml", "Dockerfile", "k8s"],
-        "database": ["schema.prisma", "migrations", "alembic"],
-        "testing": ["tests", "test", "__tests__", "cypress", "playwright"],
-    }
+    # Domain detection heuristics with priority (lower index = higher priority)
+    # Priority: database > backend > frontend > infrastructure > testing
+    # Rationale: More specific domains take precedence
+    domain_indicators = [
+        ("database", ["schema.prisma", "migrations", "alembic"]),
+        ("backend", ["requirements.txt", "pyproject.toml", "go.mod", "Cargo.toml"]),
+        ("frontend", ["package.json", "tsconfig.json", "vite.config.ts", "next.config.js"]),
+        ("infrastructure", ["terraform", "docker-compose.yml", "Dockerfile", "k8s"]),
+        ("testing", ["tests", "test", "__tests__", "cypress", "playwright"]),
+    ]
 
-    for domain, indicators in domain_indicators.items():
+    detected_domains = []
+    for domain, indicators in domain_indicators:
         for indicator in indicators:
             if (project_path / indicator).exists():
-                return domain
+                detected_domains.append(domain)
+                break  # Found this domain, check next
 
-    return None
+    # Return highest priority detected domain, or None
+    return detected_domains[0] if detected_domains else None
 
 
 def format_context_for_injection(context: dict) -> str:

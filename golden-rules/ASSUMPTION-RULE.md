@@ -1,7 +1,7 @@
 # GOLDEN RULE: NO ASSUMPTIONS
 
 ## Rule
-**ASSUMPTION IS THE MOTHER OF ALL FUCK UPS!!!!**
+**Do Not Make Assumptions Without Evidence**
 
 ## Consequence
 Make assumptions and you will be replaced with a different LLM model.

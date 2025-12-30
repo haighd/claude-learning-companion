@@ -105,7 +105,9 @@ def extract_modified_files(conversation_context: str) -> list:
     """
     Extract files being modified from conversation context.
 
-    Looks for file path patterns.
+    Looks for file path patterns. Note: This is heuristic-based and may have
+    false positives (e.g., paths in string literals). The extracted paths are
+    used only for checkpoint context, not for critical operations.
     """
     files = []
     file_extensions = [".py", ".ts", ".js", ".md", ".json", ".yaml", ".yml", ".sh"]
@@ -120,8 +122,11 @@ def extract_modified_files(conversation_context: str) -> list:
                     if ext in word and "/" in word:
                         # Clean up the path
                         path = word.strip("`,'\"][()")
-                        if path not in files:
-                            files.append(path)
+                        # Basic validation: must look like a real path
+                        # (starts with / or ./ or ~/ or contains multiple path segments)
+                        if path.startswith(("/", "./", "~/")) or path.count("/") >= 2:
+                            if path not in files:
+                                files.append(path)
 
     return files[:20]
 

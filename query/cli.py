@@ -147,13 +147,11 @@ async def _async_main(args: argparse.Namespace) -> int:
             result = await query_system.build_context(
                 task, domain, tags, args.max_tokens, args.timeout, depth=args.depth
             )
-            print(result)
-            return exit_code
+            # Fall through to format_output below
 
         elif args.golden_rules:
             result = await query_system.get_golden_rules()
-            print(result)
-            return exit_code
+            # Fall through to format_output below
 
         elif args.decisions:
             # Handle decisions query (must come before --domain check)

@@ -39,7 +39,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# Add CLC paths
+# Add CLC paths for imports
+# Note: sys.path manipulation is intentional here. CLC is designed as a
+# user-installed CLI tool in ~/.claude/clc, not a pip-installable package.
+# This allows the interface to import from the CLC installation regardless
+# of where this script is invoked from. The alternative (making CLC a proper
+# package) would require pip install which conflicts with the git-based
+# update mechanism and user customization workflow.
 CLC_PATH = Path.home() / ".claude" / "clc"
 sys.path.insert(0, str(CLC_PATH / "query"))
 sys.path.insert(0, str(CLC_PATH / "agents"))

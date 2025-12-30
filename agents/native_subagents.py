@@ -190,9 +190,11 @@ def get_task_subagent(task_keyword: str) -> str:
     if keyword in TASK_TO_SUBAGENT:
         return TASK_TO_SUBAGENT[keyword]
 
-    # Partial match
+    # Partial match - only match if keyword contains the full key as a substring
+    # Avoid reverse matching (key in keyword only, not keyword in key)
+    # to prevent false positives like 'end' matching 'frontend'
     for key, value in TASK_TO_SUBAGENT.items():
-        if key in keyword or keyword in key:
+        if key in keyword:
             return value
 
     return "general-purpose"
