@@ -234,7 +234,7 @@ class CLCBackend:
                 # confidence scoring, use query.py which reads from the database.
                 heuristics.append({
                     "file": f.name,
-                    "domain": f.stem,  # Full filename as domain (e.g., "ci-workflow", "hooks")
+                    "domain": f.stem,  # Filename without extension as domain (e.g., "ci-workflow", "hooks")
                     "rule": content[:200],
                     # Use 'created_at' key for compatibility with progressive.py RelevanceScorer
                     # which uses this field for recency scoring. The mtime is the best available

@@ -170,6 +170,7 @@ class RelevanceScorer:
                     timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
                 else:
                     # Handle simpler 'YYYY-MM-DD HH:MM:SS' format (e.g., from SQLite)
+                    # Note: strptime returns naive datetime, UTC tz added at line 181
                     timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
             except ValueError:
                 return 0.5

@@ -79,7 +79,7 @@ TASK_TO_SUBAGENT = {
 # Compiled once at module load rather than on each function call
 _TASK_PATTERNS = {
     key: re.compile(rf'\b{re.escape(key)}\b')
-    for key in TASK_TO_SUBAGENT.keys()
+    for key in TASK_TO_SUBAGENT
 }
 
 
