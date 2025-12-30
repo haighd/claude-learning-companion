@@ -4,8 +4,11 @@ Tokens Router - Token accounting, usage tracking, cost analysis, and alerts.
 
 import json
 import logging
+import time
+from datetime import datetime, timedelta
+from functools import lru_cache
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Tuple
 
 from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel
@@ -15,6 +18,11 @@ from utils import get_db, dict_from_row
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/tokens", tags=["tokens"])
+
+# Cache TTL in seconds (5 minutes)
+_CACHE_TTL = 300
+_cache_timestamp: float = 0
+_tables_initialized: bool = False
 
 CLAUDE_PROJECTS_PATH = Path.home() / ".claude" / "projects"
 
@@ -36,6 +44,11 @@ class TokenAlertUpdate(BaseModel):
 
 
 def ensure_tables_exist():
+    """Ensure token tables exist - only runs once per application lifecycle."""
+    global _tables_initialized
+    if _tables_initialized:
+        return
+
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -68,22 +81,69 @@ def ensure_tables_exist():
         """)
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_token_metrics_session ON token_metrics(session_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_token_metrics_model ON token_metrics(model)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_token_metrics_captured ON token_metrics(captured_at)")
         conn.commit()
+        _tables_initialized = True
+        logger.info("Token tables initialized")
+
+
+def init_tokens_router():
+    """Initialize the tokens router - call at application startup."""
+    ensure_tables_exist()
+
+
+def _read_last_lines(filepath: Path, num_lines: int = 10) -> List[str]:
+    """Read last N lines from file without loading entire file into memory."""
+    lines = []
+    try:
+        with open(filepath, 'rb') as f:
+            # Seek to end
+            f.seek(0, 2)
+            file_size = f.tell()
+            if file_size == 0:
+                return []
+
+            # Read chunks from end
+            chunk_size = 8192
+            remaining = file_size
+            buffer = b''
+
+            while remaining > 0 and len(lines) < num_lines:
+                read_size = min(chunk_size, remaining)
+                remaining -= read_size
+                f.seek(remaining)
+                chunk = f.read(read_size)
+                buffer = chunk + buffer
+
+                # Split into lines
+                split_lines = buffer.split(b'\n')
+                if remaining > 0:
+                    # Keep incomplete first line in buffer
+                    buffer = split_lines[0]
+                    lines = [l.decode('utf-8', errors='replace') for l in split_lines[1:] if l] + lines
+                else:
+                    lines = [l.decode('utf-8', errors='replace') for l in split_lines if l] + lines
+
+            return lines[-num_lines:]
+    except Exception as e:
+        logger.warning(f"Error reading last lines from {filepath}: {e}")
+        return []
 
 
 def parse_jsonl_for_tokens(project_dir: Path) -> List[Dict[str, Any]]:
+    """Parse JSONL files for token usage data."""
     records = []
     if not project_dir.exists():
         return records
 
     for jsonl_file in project_dir.glob("*.jsonl"):
         try:
-            with open(jsonl_file, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
+            # Use memory-efficient tail reading instead of readlines()
+            lines = _read_last_lines(jsonl_file, num_lines=10)
             if not lines:
                 continue
 
-            for line in reversed(lines[-10:]):
+            for line in reversed(lines):
                 if not line.strip():
                     continue
                 try:
@@ -116,7 +176,12 @@ def parse_jsonl_for_tokens(project_dir: Path) -> List[Dict[str, Any]]:
     return records
 
 
-def get_all_token_usage() -> Dict[str, Any]:
+# Module-level cache for token usage data
+_usage_cache: Optional[Dict[str, Any]] = None
+
+
+def _compute_token_usage() -> Dict[str, Any]:
+    """Internal function to compute token usage (called by cached wrapper)."""
     if not CLAUDE_PROJECTS_PATH.exists():
         return {
             "total": {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
@@ -167,6 +232,25 @@ def get_all_token_usage() -> Dict[str, Any]:
     return {"total": total, "by_model": by_model, "by_project": by_project, "sessions": all_records}
 
 
+def get_all_token_usage() -> Dict[str, Any]:
+    """Get token usage with TTL-based caching to avoid repeated file parsing."""
+    global _usage_cache, _cache_timestamp
+
+    current_time = time.time()
+    if _usage_cache is None or (current_time - _cache_timestamp) > _CACHE_TTL:
+        _usage_cache = _compute_token_usage()
+        _cache_timestamp = current_time
+
+    return _usage_cache
+
+
+def invalidate_token_cache():
+    """Invalidate the token usage cache (call after new data is added)."""
+    global _usage_cache, _cache_timestamp
+    _usage_cache = None
+    _cache_timestamp = 0
+
+
 @router.get("/current")
 async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
     """Get token usage for current or specified session."""
@@ -180,7 +264,17 @@ async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
     if session_id:
         session_records = [r for r in usage_data["sessions"] if r["session_id"] == session_id]
     else:
-        session_records = usage_data["sessions"][:1]
+        # Sort by timestamp to find the most recent session
+        sorted_sessions = sorted(
+            usage_data["sessions"],
+            key=lambda r: r.get("timestamp") or "",
+            reverse=True
+        )
+        if sorted_sessions:
+            latest_session_id = sorted_sessions[0]["session_id"]
+            session_records = [r for r in usage_data["sessions"] if r["session_id"] == latest_session_id]
+        else:
+            session_records = []
 
     if not session_records:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -209,32 +303,75 @@ async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
             "total_output_tokens": total_output, "total_cost_usd": round(total_cost, 6)}
 
 
+def _filter_sessions_by_days(sessions: List[Dict[str, Any]], days: int) -> List[Dict[str, Any]]:
+    """Filter sessions to only include those within the specified number of days."""
+    if days <= 0:
+        return sessions
+
+    cutoff = datetime.now() - timedelta(days=days)
+    cutoff_str = cutoff.isoformat()
+
+    filtered = []
+    for s in sessions:
+        ts = s.get("timestamp")
+        if ts:
+            # Compare ISO format timestamps
+            if ts >= cutoff_str:
+                filtered.append(s)
+        else:
+            # Include sessions without timestamp (can't determine age)
+            filtered.append(s)
+
+    return filtered
+
+
 @router.get("/summary")
 async def get_token_summary(days: int = Query(30), project: Optional[str] = Query(None)):
     """Get aggregated token summary across all sessions."""
     ensure_tables_exist()
     usage_data = get_all_token_usage()
 
+    # Filter by days first
+    filtered_sessions = _filter_sessions_by_days(usage_data["sessions"], days)
+
+    # Then filter by project if specified
     if project:
-        usage_data["sessions"] = [s for s in usage_data["sessions"] if project in s["project_path"]]
-        usage_data["total"] = {
-            "input_tokens": sum(s["input_tokens"] for s in usage_data["sessions"]),
-            "output_tokens": sum(s["output_tokens"] for s in usage_data["sessions"]),
-            "cache_read_tokens": sum(s["cache_read_tokens"] for s in usage_data["sessions"]),
-            "cache_creation_tokens": sum(s["cache_creation_tokens"] for s in usage_data["sessions"]),
-            "web_searches": sum(s["web_search_requests"] for s in usage_data["sessions"]),
-            "cost_usd": sum(s["cost_usd"] for s in usage_data["sessions"])
-        }
+        filtered_sessions = [s for s in filtered_sessions if project in s["project_path"]]
+
+    # Recalculate totals based on filtered sessions
+    total = {
+        "input_tokens": sum(s["input_tokens"] for s in filtered_sessions),
+        "output_tokens": sum(s["output_tokens"] for s in filtered_sessions),
+        "cache_read_tokens": sum(s["cache_read_tokens"] for s in filtered_sessions),
+        "cache_creation_tokens": sum(s["cache_creation_tokens"] for s in filtered_sessions),
+        "web_searches": sum(s["web_search_requests"] for s in filtered_sessions),
+        "cost_usd": sum(s["cost_usd"] for s in filtered_sessions)
+    }
+
+    # Recalculate model breakdown for filtered sessions
+    by_model: Dict[str, Dict[str, Any]] = {}
+    for s in filtered_sessions:
+        model = s["model"]
+        if model not in by_model:
+            by_model[model] = {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
+                              "cache_creation_tokens": 0, "web_searches": 0, "cost_usd": 0.0, "session_count": 0}
+        by_model[model]["input_tokens"] += s["input_tokens"]
+        by_model[model]["output_tokens"] += s["output_tokens"]
+        by_model[model]["cache_read_tokens"] += s["cache_read_tokens"]
+        by_model[model]["cache_creation_tokens"] += s["cache_creation_tokens"]
+        by_model[model]["web_searches"] += s["web_search_requests"]
+        by_model[model]["cost_usd"] += s["cost_usd"]
+        by_model[model]["session_count"] += 1
 
     return {"period_days": days,
-            "total_input_tokens": usage_data["total"]["input_tokens"],
-            "total_output_tokens": usage_data["total"]["output_tokens"],
-            "total_cache_read_tokens": usage_data["total"]["cache_read_tokens"],
-            "total_cache_creation_tokens": usage_data["total"]["cache_creation_tokens"],
-            "total_web_searches": usage_data["total"]["web_searches"],
-            "total_cost_usd": round(usage_data["total"]["cost_usd"], 2),
-            "session_count": len(usage_data["sessions"]),
-            "model_breakdown": usage_data["by_model"]}
+            "total_input_tokens": total["input_tokens"],
+            "total_output_tokens": total["output_tokens"],
+            "total_cache_read_tokens": total["cache_read_tokens"],
+            "total_cache_creation_tokens": total["cache_creation_tokens"],
+            "total_web_searches": total["web_searches"],
+            "total_cost_usd": round(total["cost_usd"], 2),
+            "session_count": len(filtered_sessions),
+            "model_breakdown": by_model}
 
 
 @router.get("/models")

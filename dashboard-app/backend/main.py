@@ -39,7 +39,7 @@ from routers import (
     workflows_router,
     graph_router,
 )
-from routers.tokens import router as tokens_router
+from routers.tokens import router as tokens_router, init_tokens_router
 
 # Import router setup functions
 from routers.heuristics import set_manager as set_heuristics_manager
@@ -292,6 +292,9 @@ async def monitor_changes():
 
 @app.on_event("startup")
 async def startup_event():
+    # Initialize tokens router tables
+    init_tokens_router()
+
     # Initial session index scan
     try:
         session_count = session_index.scan()
