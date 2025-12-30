@@ -1,12 +1,33 @@
 # Project: CLC (Claude Learning Companion)
 
-**Last Updated**: 2025-12-29 15:15
+**Last Updated**: 2025-12-30 18:45
 
 ## Current Status
 
-**Current Focus**: Sprint 2025-12-29 COMPLETE - All 11 issues implemented and committed
+**Current Focus**: Sprint 2025-12-30 COMPLETE - PR #80 ready for merge. PR workflow hooks implemented.
 
 ## Change Log
+
+**2025-12-30 18:45** - Implemented PR workflow enforcement hooks
+  - Created `~/.claude/scripts/pr-workflow-reminder.sh` - Auto-injects workflow reminder after `gh pr create`
+  - Created `~/.claude/scripts/check-unresolved-threads.sh` - Blocks `/run-ci` if critical/high severity threads unresolved
+  - Updated `~/.claude/settings.json` - Added PostToolUse hooks for PR workflow enforcement
+  - Purpose: Stop all Claude agents from forgetting to resolve reviewer conversations
+
+**2025-12-30 18:30** - Sprint 2025-12-30 CI passed
+  - PR #80 ready for merge
+  - 4 rounds of Gemini review feedback addressed
+  - All critical/high issues resolved
+
+**2025-12-30 17:30** - Sprint 2025-12-30 execution complete
+  - hooks-fixes: #78 (matcher fix), #79 (Base→Bash typo) - MERGED
+  - skills-commands: #77 (/resume project.md priority) - MERGED
+  - dashboard-features: #67 (token accounting API) - MERGED
+  - All changes on sprint/2025-12-30 branch
+
+**2025-12-30 16:00** - Sprint 2025-12-30 initialized
+  - 4 issues across 3 groups
+  - Worktrees created for parallel execution
 
 **2025-12-29 14:45** - Direct implementation of remaining hooks-query issues
   - Created `hooks/subagent_learning.py` - Issue #71 (subagent learning-before-summary)
@@ -58,23 +79,23 @@
 
 ## Next Steps
 
-1. ~~**Implement #64**: Optimize CLAUDE.md~~ - DONE (147 lines)
-2. ~~**Implement #68, #69**: Agent personas and skills~~ - DONE
-3. ~~**Commit all work**~~ - DONE
-4. **Push to origin**: Push sprint branch
-5. **Create PR**: Open PR for review
-6. **Run integration tests**: Verify hooks work with Claude Code
+1. ~~**Sprint 2025-12-30**~~: COMPLETE - PR #80 ready for merge
+2. **Merge PR #80**: Dan to merge sprint/2025-12-30 into main
+3. **Clean up worktrees**: Remove sprint-2025-12-30-* worktrees after merge
+4. **Test PR workflow hooks**: Verify hooks fire correctly on next PR creation
+5. **Propagate hooks to other projects**: Copy pr-workflow-reminder.sh and check-unresolved-threads.sh
 
 ## New Files Created This Session
 
-- `/Users/danhaight/.claude/clc/query/progressive.py` - Full progressive disclosure implementation
-- `/Users/danhaight/.claude/clc/hooks/subagent_learning.py` - Subagent learning hook
-- `/Users/danhaight/.claude/clc/hooks/pre_clear_checkpoint.py` - Pre-clear checkpoint hook
+- `~/.claude/scripts/pr-workflow-reminder.sh` - PR workflow reminder hook script
+- `~/.claude/scripts/check-unresolved-threads.sh` - Unresolved thread checker/blocker
+- `dashboard-app/backend/routers/tokens.py` - Token accounting API (9 endpoints)
 
 ## Sprint Details
 
-- **Sprint Plan**: `docs/plans/multi-agent-sprint-2025-12-29.md`
-- **Worktrees**:
-  - `~/.claude/clc-worktrees/sprint-2025-12-29-hooks-query`
-  - `~/.claude/clc-worktrees/sprint-2025-12-29-skills-agents`
-  - `~/.claude/clc-worktrees/sprint-2025-12-29-infra-commands`
+- **Sprint Plan**: `docs/plans/multi-agent-sprint-2025-12-30.md`
+- **PR**: https://github.com/haighd/claude-learning-companion/pull/80
+- **Worktrees** (to be cleaned up after merge):
+  - `~/.claude/clc-worktrees/sprint-2025-12-30-hooks-fixes`
+  - `~/.claude/clc-worktrees/sprint-2025-12-30-skills-commands`
+  - `~/.claude/clc-worktrees/sprint-2025-12-30-dashboard-features`
