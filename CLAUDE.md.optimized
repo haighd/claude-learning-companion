@@ -1,0 +1,146 @@
+# Claude Learning Companion (CLC)
+
+**Location:** `~/.claude/clc/` | **Query:** `~/.claude/clc/query/query.py --context`
+
+---
+
+## CRITICAL: Query Before Acting
+
+**ALWAYS query CLC before investigations, debugging, or complex tasks:**
+
+```bash
+~/.claude/clc/query/query.py --context           # Standard query
+~/.claude/clc/query/query.py --domain [domain]   # Domain-specific
+```
+
+This loads golden rules, heuristics, and recent learnings relevant to your task.
+
+---
+
+## Git Remotes
+
+- `origin` = **PUBLIC REPO** - Push here by default
+- `private-backup` = private only - DO NOT push unless explicitly asked
+
+---
+
+## Core Philosophy
+
+You are **temporary** (no memory between sessions). CLC is **permanent** (accumulates knowledge).
+
+**Learning Cycle:** TRY → BREAK → ANALYZE → LEARN → NEXT
+
+Your responsibilities:
+1. **Query** - Load context before working
+2. **Apply** - Use patterns and rules
+3. **Record** - Document failures and successes
+4. **Improve** - Propose better patterns
+
+---
+
+## Recording Knowledge
+
+### Failures (Record Immediately)
+```bash
+~/.claude/clc/scripts/record-failure.sh
+```
+Or create: `failure-analysis/YYYY-MM-DD-description.md`
+
+### Successes
+Create: `memory/successes/YYYY-MM-DD-description.md`
+
+### Heuristics (Learned Patterns)
+```bash
+~/.claude/clc/scripts/record-heuristic.sh
+```
+
+### Experiments
+```bash
+~/.claude/clc/scripts/start-experiment.sh
+```
+
+---
+
+## CEO Escalation
+
+Escalate to human (create file in `ceo-inbox/`) when:
+- High risk (production, data loss)
+- Multiple valid approaches with significant tradeoffs
+- Ethical considerations or resource commitments
+- Uncertainty on important decisions
+
+Template: `ceo-inbox/TEMPLATE.md`
+
+---
+
+## Agent Perspectives
+
+Use these lenses for complex analysis (files in `agents/`):
+
+| Agent | When to Use | Asks |
+|-------|-------------|------|
+| **Researcher** | Need evidence, best practices | "What's proven?" |
+| **Architect** | System design, structure | "How does this scale?" |
+| **Creative** | Stuck, need fresh ideas | "What if we tried...?" |
+| **Skeptic** | Validation, finding flaws | "What could go wrong?" |
+
+---
+
+## Golden Rules
+
+Located in `golden-rules/RULES.md`. These are **constitutional principles**:
+
+1. **Query before acting** - Always query CLC first
+2. **Document failures immediately** - While details are fresh
+3. **Extract heuristics, not just outcomes** - Document the WHY
+4. **Break it before shipping it** - Test destructively
+5. **Escalate uncertainty to CEO** - When in doubt, ask
+
+---
+
+## File Structure
+
+```
+clc/
+├── query/query.py          ← Context loader (USE THIS)
+├── golden-rules/RULES.md   ← Universal lessons
+├── memory/
+│   ├── heuristics/         ← Learned patterns
+│   ├── learnings/          ← Captured insights
+│   └── successes/          ← What worked
+├── failure-analysis/       ← What broke and why
+├── ceo-inbox/              ← Pending decisions
+├── agents/                 ← Perspective files
+├── hooks/                  ← Claude Code hooks
+└── scripts/                ← Helper scripts
+```
+
+---
+
+## First-Time Setup
+
+Setup is automatic when you query CLC. If you see `[CLC_NEEDS_USER_CHOICE]`:
+
+Use `AskUserQuestion` with options:
+1. **Merge** (Recommended) - Keep existing config, add CLC
+2. **Replace** - Use CLC only (backs up existing)
+3. **Skip** - Don't modify (CLC features won't work)
+
+Then run: `bash ~/.claude/clc/setup/install.sh --mode [choice]`
+
+---
+
+## Quick Reference
+
+| Action | Command/Location |
+|--------|------------------|
+| Query context | `query/query.py --context` |
+| Record failure | `scripts/record-failure.sh` |
+| Record heuristic | `scripts/record-heuristic.sh` |
+| Start experiment | `scripts/start-experiment.sh` |
+| Escalate to CEO | Create file in `ceo-inbox/` |
+| Check golden rules | `golden-rules/RULES.md` |
+
+---
+
+**Remember:** This framework is memory, not bureaucracy. Query it. Use it. Feed it. Improve it.

@@ -16,6 +16,7 @@ Welcome to the CLC documentation. This wiki contains detailed guides for all fea
 | [Architecture](Architecture) | Database schema, hooks system |
 | [Token Costs](Token-Costs) | Usage breakdown, optimization tips |
 | [Auto-Claude Integration](Auto-Claude-Integration) | Using CLC with Auto-Claude |
+| [Framework Analysis (Dec 2025)](Framework-Analysis-Dec-2025) | CLC vs Claude Code 2.0.76 research |
 
 ## The Core Concept
 
