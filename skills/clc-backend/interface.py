@@ -225,7 +225,7 @@ class CLCBackend:
                     "file": f.name,
                     "domain": f.stem.split("-")[0] if "-" in f.stem else "general",
                     "rule": content[:200],
-                    "created_at": datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc).isoformat()
+                    "last_modified": datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc).isoformat()
                 })
 
         return heuristics

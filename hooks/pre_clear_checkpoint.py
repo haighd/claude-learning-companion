@@ -37,7 +37,10 @@ def analyze_session_state(conversation: str) -> dict:
 
     lines = conversation.split('\n') if conversation else []
 
-    # Detect uncommitted changes
+    # Detect uncommitted changes - heuristic approach
+    # Note: May have false positives (e.g., discussions about git).
+    # This is intentional - we prefer to warn on false positives rather
+    # than miss real uncommitted changes before a /clear command.
     uncommitted_patterns = ['git add', 'modified:', 'staged:', 'uncommitted']
     for line in lines:
         if any(p in line.lower() for p in uncommitted_patterns):

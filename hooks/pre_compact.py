@@ -120,8 +120,11 @@ def extract_modified_files(conversation_context: str) -> list:
                 words = line.split()
                 for word in words:
                     if ext in word and "/" in word:
-                        # Clean up the path
-                        path = word.strip("`,'\"][()")
+                        # Clean up the path - strip common quote/bracket chars
+                        # Note: This heuristic approach may miss some edge cases
+                        # but is acceptable since extracted paths are only used
+                        # for checkpoint context, not for file operations
+                        path = word.strip("`,'\"][(){}|<>")
                         # Basic validation: must look like a real path
                         # (starts with / or ./ or ~/ or contains multiple path segments)
                         if path.startswith(("/", "./", "~/")) or path.count("/") >= 2:
