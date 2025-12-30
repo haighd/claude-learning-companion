@@ -364,6 +364,8 @@ async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
 def _filter_sessions_by_days(sessions: List[Dict[str, Any]], days: int) -> List[Dict[str, Any]]:
     """Filter sessions to only include those within the specified number of days.
 
+    Uses UTC timezone-aware datetimes for consistent cross-timezone comparisons.
+
     Args:
         sessions: List of session records to filter.
         days: Number of days to look back. If <= 0, no time-based filtering
@@ -533,8 +535,9 @@ async def update_alert(alert_id: int, alert: TokenAlertUpdate):
     # Validate fields against whitelist to prevent SQL injection via column names.
     # While Pydantic model fields are predefined, this explicit check ensures safety
     # if the model is modified and guards against any potential manipulation.
-    invalid_fields = [field for field in update_data.keys() if field not in ALERT_UPDATE_ALLOWED_FIELDS]
-    if invalid_fields:
+    # Use any() with generator for early exit on first invalid field.
+    if any(field not in ALERT_UPDATE_ALLOWED_FIELDS for field in update_data.keys()):
+        invalid_fields = [f for f in update_data.keys() if f not in ALERT_UPDATE_ALLOWED_FIELDS]
         raise HTTPException(status_code=400, detail=f"Invalid fields for update: {invalid_fields}")
 
     # Convert is_enabled to integer for SQLite
