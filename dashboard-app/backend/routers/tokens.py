@@ -146,9 +146,9 @@ def read_last_lines(filepath: Path, num_lines: int = JSONL_TAIL_LINES) -> List[s
                 if remaining > 0:
                     # Keep incomplete first line in buffer
                     buffer = split_lines[0]
-                    lines = [l.decode('utf-8', errors='replace') for l in split_lines[1:] if l] + lines
+                    lines = [l.decode('utf-8') for l in split_lines[1:] if l] + lines
                 else:
-                    lines = [l.decode('utf-8', errors='replace') for l in split_lines if l] + lines
+                    lines = [l.decode('utf-8') for l in split_lines if l] + lines
 
             return lines[-num_lines:]
     except (OSError, UnicodeDecodeError) as e:
