@@ -4,6 +4,7 @@ Tokens Router - Token accounting, usage tracking, cost analysis, and alerts.
 
 import json
 import logging
+import threading
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -23,6 +24,7 @@ router = APIRouter(prefix="/api/tokens", tags=["tokens"])
 # Cache TTL in seconds (5 minutes)
 _CACHE_TTL = 300
 _cache_timestamp: float = 0
+_cache_lock = threading.Lock()  # Thread-safe cache access
 
 CLAUDE_PROJECTS_PATH = Path.home() / ".claude" / "projects"
 
@@ -151,8 +153,9 @@ def parse_jsonl_for_tokens(project_dir: Path) -> List[Dict[str, Any]]:
 
     for jsonl_file in project_dir.glob("*.jsonl"):
         try:
-            # Use memory-efficient tail reading - start with 10 lines
-            lines = _read_last_lines(jsonl_file, num_lines=10)
+            # Use memory-efficient tail reading with 100 lines for robustness
+            # (handles trailing empty lines or non-usage log entries)
+            lines = _read_last_lines(jsonl_file, num_lines=100)
             if not lines:
                 continue
 
@@ -283,19 +286,21 @@ def get_all_token_usage() -> Dict[str, Any]:
     """Get token usage with TTL-based caching to avoid repeated file parsing."""
     global _usage_cache, _cache_timestamp
 
-    current_time = time.time()
-    if _usage_cache is None or (current_time - _cache_timestamp) > _CACHE_TTL:
-        _usage_cache = compute_token_usage()
-        _cache_timestamp = current_time
+    with _cache_lock:
+        current_time = time.time()
+        if _usage_cache is None or (current_time - _cache_timestamp) > _CACHE_TTL:
+            _usage_cache = compute_token_usage()
+            _cache_timestamp = current_time
 
-    return _usage_cache
+        return _usage_cache
 
 
 def invalidate_token_cache():
     """Invalidate the token usage cache (call after new data is added)."""
     global _usage_cache, _cache_timestamp
-    _usage_cache = None
-    _cache_timestamp = 0
+    with _cache_lock:
+        _usage_cache = None
+        _cache_timestamp = 0
 
 
 @router.get("/current")
