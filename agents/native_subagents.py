@@ -78,9 +78,13 @@ def load_parties() -> Dict:
     """Load party definitions from parties.yaml."""
     parties_file = get_clc_path() / "agents" / "parties.yaml"
     if parties_file.exists():
-        with open(parties_file) as f:
-            data = yaml.safe_load(f)
-            return data.get("parties", {})
+        try:
+            with open(parties_file) as f:
+                data = yaml.safe_load(f)
+                return data.get("parties", {}) if isinstance(data, dict) else {}
+        except yaml.YAMLError:
+            # Return empty if YAML is malformed
+            return {}
     return {}
 
 
@@ -103,15 +107,17 @@ def load_persona(persona_name: str) -> Optional[Dict]:
     }
 
     # Extract triggers and behaviors sections
+    # Use startswith for more robust header matching
     current_section = None
     for line in content.split("\n"):
-        if "## Triggers" in line:
+        stripped = line.strip()
+        if stripped.startswith("## Triggers"):
             current_section = "triggers"
             continue
-        elif "## Behaviors" in line or "## Key Behaviors" in line:
+        elif stripped.startswith("## Behaviors") or stripped.startswith("## Key Behaviors"):
             current_section = "behaviors"
             continue
-        elif line.startswith("##"):
+        elif stripped.startswith("##"):
             current_section = None
             continue
 

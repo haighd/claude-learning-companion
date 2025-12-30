@@ -213,7 +213,13 @@ class CLCBackend:
             }
 
     def _load_heuristics(self) -> List[Dict]:
-        """Load heuristics from memory directory."""
+        """Load heuristics from memory directory.
+
+        Note: This uses file-based loading rather than the SQLite database.
+        This is intentional for the native skills interface - it provides a
+        lightweight read-only view without requiring database initialization.
+        For full query capabilities with confidence scores, use query.py.
+        """
         heuristics = []
         heuristics_dir = self.clc_path / "memory" / "heuristics"
 
@@ -231,7 +237,11 @@ class CLCBackend:
         return heuristics
 
     def _load_learnings(self) -> List[Dict]:
-        """Load learnings from memory directory."""
+        """Load learnings from memory directory.
+
+        Note: Uses file-based loading for lightweight read-only access.
+        See _load_heuristics for design rationale.
+        """
         learnings = []
         learnings_dir = self.clc_path / "memory" / "learnings"
 
