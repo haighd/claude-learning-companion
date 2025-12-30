@@ -16,10 +16,14 @@ Usage:
 
     # Get subagent configs for a party
     party_configs = get_party_subagents("code-review")
+
+Environment Variables:
+    CLC_PATH: Override the default CLC installation path (~/.claude/clc)
 """
 
 import argparse
 import json
+import os
 import re
 import sys
 import yaml
@@ -71,9 +75,21 @@ TASK_TO_SUBAGENT = {
     "refactor": "refactoring-specialist"
 }
 
+# Pre-compiled regex patterns for task matching (performance optimization)
+# Compiled once at module load rather than on each function call
+_TASK_PATTERNS = {
+    key: re.compile(rf'\b{re.escape(key)}\b')
+    for key in TASK_TO_SUBAGENT.keys()
+}
+
 
 def get_clc_path() -> Path:
-    """Get CLC installation path."""
+    """Get CLC installation path.
+
+    Can be overridden via CLC_PATH environment variable.
+    """
+    if env_path := os.environ.get("CLC_PATH"):
+        return Path(env_path)
     return Path.home() / ".claude" / "clc"
 
 
@@ -205,12 +221,11 @@ def get_task_subagent(task_keyword: str) -> str:
     if keyword in TASK_TO_SUBAGENT:
         return TASK_TO_SUBAGENT[keyword]
 
-    # Partial match with word boundary - key must be a complete word in keyword
+    # Partial match with word boundary using pre-compiled patterns
     # Uses regex word boundaries to prevent 'end' matching 'frontend'
-    for key, value in TASK_TO_SUBAGENT.items():
-        # Match key as complete word (bounded by non-word chars or start/end)
-        if re.search(rf'\b{re.escape(key)}\b', keyword):
-            return value
+    for key, pattern in _TASK_PATTERNS.items():
+        if pattern.search(keyword):
+            return TASK_TO_SUBAGENT[key]
 
     return "general-purpose"
 

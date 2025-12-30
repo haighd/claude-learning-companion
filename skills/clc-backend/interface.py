@@ -32,6 +32,7 @@ Usage:
 """
 
 import json
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -227,6 +228,10 @@ class CLCBackend:
             for f in heuristics_dir.glob("*.md"):
                 content = f.read_text()
                 # Parse basic heuristic structure
+                # Note: Using file mtime as last_modified is intentional.
+                # For heuristics stored as markdown files, mtime reflects the
+                # last edit (creation or update). For validation timestamps,
+                # use the full query.py which reads from the database.
                 heuristics.append({
                     "file": f.name,
                     "domain": f.stem.split("-")[0] if "-" in f.stem else "general",
@@ -282,12 +287,14 @@ class CLCBackend:
                 message="record-heuristic.sh not found"
             )
 
-        env = {
+        # Inherit current environment and add required vars
+        # This ensures HOME, USER, and other critical vars are available
+        env = os.environ.copy()
+        env.update({
             "HEURISTIC_DOMAIN": domain,
             "HEURISTIC_RULE": rule,
             "HEURISTIC_EXPLANATION": explanation,
-            "PATH": "/usr/bin:/bin:/usr/local/bin"
-        }
+        })
 
         try:
             result = subprocess.run(
@@ -346,13 +353,14 @@ class CLCBackend:
                 message="record-failure.sh not found"
             )
 
-        env = {
+        # Inherit current environment and add required vars
+        env = os.environ.copy()
+        env.update({
             "FAILURE_TITLE": title,
             "FAILURE_ROOT_CAUSE": root_cause,
             "FAILURE_LESSON": lesson,
             "FAILURE_DOMAIN": domain,
-            "PATH": "/usr/bin:/bin:/usr/local/bin"
-        }
+        })
 
         try:
             result = subprocess.run(

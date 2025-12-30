@@ -22,6 +22,13 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Characters to strip from extracted file paths
+# These are common quoting/bracketing chars that surround paths in text:
+# - Quotes: ` ' "
+# - Brackets: [ ] ( ) { } < >
+# - Punctuation: , |
+PATH_STRIP_CHARS = "`,'\"][(){}|<>"
+
 
 def get_clc_path() -> Path:
     """Get the CLC installation path."""
@@ -120,11 +127,8 @@ def extract_modified_files(conversation_context: str) -> list:
                 words = line.split()
                 for word in words:
                     if ext in word and "/" in word:
-                        # Clean up the path - strip common quote/bracket chars
-                        # Note: This heuristic approach may miss some edge cases
-                        # but is acceptable since extracted paths are only used
-                        # for checkpoint context, not for file operations
-                        path = word.strip("`,'\"][(){}|<>")
+                        # Clean up the path using defined character set
+                        path = word.strip(PATH_STRIP_CHARS)
                         # Basic validation: must look like a real path
                         # (starts with / or ./ or ~/ or contains multiple path segments)
                         if path.startswith(("/", "./", "~/")) or path.count("/") >= 2:

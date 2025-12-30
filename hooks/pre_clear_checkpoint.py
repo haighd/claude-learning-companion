@@ -32,10 +32,12 @@ def analyze_session_state(conversation: str) -> dict:
         'has_active_debugging': False,
         'has_unrecorded_learnings': False,
         'modified_files': [],
-        'criticality': 'low'
+        'criticality': 'low',
+        'confidence': 0.0  # 0.0-1.0 confidence in criticality assessment
     }
 
     lines = conversation.split('\n') if conversation else []
+    match_counts = {'uncommitted': 0, 'decisions': 0, 'debugging': 0, 'learnings': 0}
 
     # Detect uncommitted changes - heuristic approach
     # Note: May have false positives (e.g., discussions about git).
@@ -44,29 +46,29 @@ def analyze_session_state(conversation: str) -> dict:
     uncommitted_patterns = ['git add', 'modified:', 'staged:', 'uncommitted']
     for line in lines:
         if any(p in line.lower() for p in uncommitted_patterns):
+            match_counts['uncommitted'] += 1
             analysis['has_uncommitted_code'] = True
-            break
 
     # Detect pending decisions
     decision_patterns = ['should we', 'what do you think', 'decision:', 'need to decide']
     for line in lines:
         if any(p in line.lower() for p in decision_patterns):
+            match_counts['decisions'] += 1
             analysis['has_pending_decisions'] = True
-            break
 
     # Detect debugging
     debug_patterns = ['error:', 'exception:', 'traceback', 'debugging']
     for line in lines:
         if any(p in line.lower() for p in debug_patterns):
+            match_counts['debugging'] += 1
             analysis['has_active_debugging'] = True
-            break
 
     # Detect unrecorded learnings
     learning_patterns = ['found that', 'discovered', 'realized', 'learned']
     for line in lines:
         if any(p in line.lower() for p in learning_patterns):
+            match_counts['learnings'] += 1
             analysis['has_unrecorded_learnings'] = True
-            break
 
     # Calculate criticality
     if analysis['has_uncommitted_code'] or analysis['has_active_debugging']:
@@ -74,6 +76,19 @@ def analyze_session_state(conversation: str) -> dict:
     elif analysis['has_pending_decisions'] or analysis['has_unrecorded_learnings']:
         analysis['criticality'] = 'medium'
 
+    # Calculate confidence based on match counts
+    # More matches = higher confidence this isn't a false positive
+    total_matches = sum(match_counts.values())
+    if total_matches == 0:
+        analysis['confidence'] = 1.0  # High confidence in "nothing found"
+    elif total_matches == 1:
+        analysis['confidence'] = 0.5  # Single match could be false positive
+    elif total_matches <= 3:
+        analysis['confidence'] = 0.7  # Few matches - moderate confidence
+    else:
+        analysis['confidence'] = 0.9  # Many matches - high confidence
+
+    analysis['match_counts'] = match_counts
     return analysis
 
 
@@ -137,6 +152,8 @@ def main():
         "metadata": {
             "checkpoint_file": checkpoint_file,
             "criticality": analysis['criticality'],
+            "confidence": analysis['confidence'],
+            "match_counts": analysis.get('match_counts', {}),
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
     }

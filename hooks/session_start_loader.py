@@ -20,6 +20,7 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 
 def get_clc_path() -> Path:
@@ -69,7 +70,7 @@ def query_clc_context(domain: str = None) -> dict:
         return {"error": str(e)}
 
 
-def detect_project_domain(project_dir: str) -> str | None:
+def detect_project_domain(project_dir: str) -> Optional[str]:
     """
     Detect the domain based on project files.
 

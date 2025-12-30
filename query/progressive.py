@@ -79,6 +79,12 @@ class RelevanceScorer:
     CONFIDENCE_WEIGHT = 0.15
     VALIDATION_WEIGHT = 0.10
 
+    # Recency thresholds (in hours) for scoring
+    HOURS_VERY_RECENT = 1       # Last hour - highest recency score
+    HOURS_IN_DAY = 24           # Within 24 hours
+    HOURS_IN_WEEK = 168         # 7 * 24 = 168 hours
+    HOURS_IN_MONTH = 720        # ~30 * 24 = 720 hours
+
     STOPWORDS = {
         'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 'being',
         'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could',
@@ -170,13 +176,13 @@ class RelevanceScorer:
             timestamp = timestamp.replace(tzinfo=timezone.utc)
 
         age_hours = (now - timestamp).total_seconds() / 3600
-        if age_hours < 1:
+        if age_hours < self.HOURS_VERY_RECENT:
             return 1.0
-        elif age_hours < 24:
+        elif age_hours < self.HOURS_IN_DAY:
             return 0.8
-        elif age_hours < 168:
+        elif age_hours < self.HOURS_IN_WEEK:
             return 0.5
-        elif age_hours < 720:
+        elif age_hours < self.HOURS_IN_MONTH:
             return 0.2
         return 0.1
 
