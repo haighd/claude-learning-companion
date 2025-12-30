@@ -132,18 +132,28 @@ def _read_last_lines(filepath: Path, num_lines: int = 10) -> List[str]:
 
 
 def parse_jsonl_for_tokens(project_dir: Path) -> List[Dict[str, Any]]:
-    """Parse JSONL files for token usage data."""
+    """Parse JSONL files for token usage data.
+
+    Claude Code JSONL logs contain cumulative token usage in the 'lastModelUsage'
+    field. The most recent entry with this field contains the final totals for
+    the session, so we only need to find and process that one entry per file.
+
+    We scan backwards from the end of the file to find the first valid entry
+    with 'lastModelUsage', skipping empty lines and entries without usage data.
+    """
     records = []
     if not project_dir.exists():
         return records
 
     for jsonl_file in project_dir.glob("*.jsonl"):
         try:
-            # Use memory-efficient tail reading instead of readlines()
+            # Use memory-efficient tail reading - start with 10 lines
             lines = _read_last_lines(jsonl_file, num_lines=10)
             if not lines:
                 continue
 
+            found_usage = False
+            # Scan backwards through lines to find the most recent entry with usage data
             for line in reversed(lines):
                 if not line.strip():
                     continue
@@ -154,6 +164,7 @@ def parse_jsonl_for_tokens(project_dir: Path) -> List[Dict[str, Any]]:
                 if "lastModelUsage" not in data:
                     continue
 
+                # Found valid entry with cumulative usage - extract data
                 session_id = data.get("sessionId", jsonl_file.stem)
                 model_usage = data.get("lastModelUsage", {})
                 timestamp = data.get("timestamp")
@@ -171,7 +182,12 @@ def parse_jsonl_for_tokens(project_dir: Path) -> List[Dict[str, Any]]:
                         "cost_usd": usage.get("costUSD", 0.0),
                         "timestamp": timestamp
                     })
-                break
+                found_usage = True
+                break  # Only need the most recent entry (cumulative totals)
+
+            if not found_usage:
+                logger.debug(f"No token usage found in last 10 lines of {jsonl_file}")
+
         except Exception as e:
             logger.warning(f"Error parsing {jsonl_file}: {e}")
     return records
