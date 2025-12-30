@@ -234,7 +234,7 @@ class CLCBackend:
                 # use the full query.py which reads from the database.
                 heuristics.append({
                     "file": f.name,
-                    "domain": f.stem.split("-")[0] if "-" in f.stem else "general",
+                    "domain": f.stem,  # Full filename as domain (e.g., "ci-workflow", "hooks")
                     "rule": content[:200],
                     "last_modified": datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc).isoformat()
                 })
