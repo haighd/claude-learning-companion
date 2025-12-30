@@ -35,7 +35,7 @@ CLAUDE_PROJECTS_PATH = Path.home() / ".claude" / "projects"
 # Edge case: If no lastModelUsage is found within this limit (extremely verbose
 # sessions), that session's tokens won't be counted - this is acceptable as such
 # sessions are rare and the performance cost of reading more would be prohibitive.
-JSONL_TAIL_LINES = 200
+JSONL_TAIL_LINES = 200  # Balance: large enough to find usage, small enough for memory efficiency
 
 # Whitelist of allowed fields for alert updates (SQL injection protection).
 # Defense-in-depth: Pydantic validates field types/values at the model layer,
@@ -366,7 +366,8 @@ async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
     else:
         # Find latest session by timestamp using max() O(N) instead of sort O(N log N)
         # Filter to sessions with parseable timestamps for proper chronological comparison
-        # Use walrus operator to parse and filter in single comprehension
+        # Walrus operator (:=) parses timestamp and assigns to 'dt' in one expression,
+        # then filters out None results - avoids parsing twice (once to check, once to use)
         sessions_with_dt = [
             (s, dt)
             for s in usage_data["sessions"]
@@ -598,7 +599,7 @@ async def update_alert(alert_id: int, alert: TokenAlertUpdate):
     # ┌──────────────────────────────────────────────────────────────────────────┐
     # │ SECURITY: Why f-string interpolation of field names is safe here:        │
     # │ 1. Field names come ONLY from update_data.keys()                         │
-    # │ 2. update_data is validated against ALERT_UPDATE_ALLOWED_FIELDS (line ~564) │
+    # │ 2. update_data is validated against ALERT_UPDATE_ALLOWED_FIELDS (line 589)   │
     # │ 3. ALERT_UPDATE_ALLOWED_FIELDS is a hardcoded whitelist of safe names    │
     # │ 4. Values use parameterized placeholders (?) - never interpolated        │
     # │ This is NOT the same as interpolating user input into SQL.               │

@@ -64,10 +64,13 @@ done || echo "  (none found)"
 
 If no argument provided, automatically select the best checkpoint:
 
-1. **project.md** - if exists in `$PWD/project.md` or `$PWD/.claude/project.md` and < 7 days old (HIGHEST PRIORITY)
-2. **Most recent project-local checkpoint** - if exists and < 7 days old
-3. **Most recent global checkpoint for current project** - if exists and < 7 days old
+1. **project.md** - if exists in `$PWD/project.md` or `$PWD/.claude/project.md` (HIGHEST PRIORITY)
+2. **Most recent project-local checkpoint** - if exists
+3. **Most recent global checkpoint for current project** - if exists
 4. **Present all options** - if no recent match or multiple candidates
+
+Note: Age validation (e.g., 7-day staleness check) is not currently implemented.
+Future enhancement could warn if checkpoint is stale based on Last Updated timestamp.
 
 If argument provided:
 - Search term matches against all discovered checkpoints
