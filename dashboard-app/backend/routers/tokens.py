@@ -26,7 +26,9 @@ _cache_timestamp: float = 0
 
 CLAUDE_PROJECTS_PATH = Path.home() / ".claude" / "projects"
 
-# Whitelist of allowed fields for alert updates (SQL injection protection)
+# Whitelist of allowed fields for alert updates (SQL injection protection).
+# Defense-in-depth: Pydantic validates field types/values at the model layer,
+# this whitelist validates field names before SQL construction.
 ALERT_UPDATE_ALLOWED_FIELDS = {"alert_type", "threshold_value", "threshold_unit", "time_window", "is_enabled"}
 
 
@@ -354,7 +356,16 @@ async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
 
 
 def _filter_sessions_by_days(sessions: List[Dict[str, Any]], days: int) -> List[Dict[str, Any]]:
-    """Filter sessions to only include those within the specified number of days."""
+    """Filter sessions to only include those within the specified number of days.
+
+    Args:
+        sessions: List of session records to filter.
+        days: Number of days to look back. If <= 0, no time-based filtering
+              is applied and the original sessions list is returned unchanged.
+
+    Returns:
+        Filtered list of sessions within the time window, or all sessions if days <= 0.
+    """
     if days <= 0:
         return sessions
 
@@ -418,12 +429,12 @@ async def get_model_breakdown():
     models = []
     for model, data in usage_data["by_model"].items():
         total_tokens = data["input_tokens"] + data["output_tokens"]
-        cache_eff = (data["cache_read_tokens"] / data["input_tokens"]) * 100 if data["input_tokens"] > 0 else 0.0
+        cache_efficiency = (data["cache_read_tokens"] / data["input_tokens"]) * 100 if data["input_tokens"] > 0 else 0.0
         models.append({"model": model, "input_tokens": data["input_tokens"],
                        "output_tokens": data["output_tokens"], "total_tokens": total_tokens,
                        "cache_read_tokens": data["cache_read_tokens"],
                        "cache_creation_tokens": data["cache_creation_tokens"],
-                       "cache_efficiency_percent": round(cache_eff, 1),
+                       "cache_efficiency_percent": round(cache_efficiency, 1),
                        "web_searches": data["web_searches"],
                        "cost_usd": round(data["cost_usd"], 4),
                        "session_count": data["session_count"],
@@ -510,9 +521,11 @@ async def update_alert(alert_id: int, alert: TokenAlertUpdate):
     if "is_enabled" in update_data:
         update_data["is_enabled"] = 1 if update_data["is_enabled"] else 0
 
-    # Build dynamic update query using only validated field names
-    updates = [f"{field} = ?" for field in update_data.keys()]
-    values = list(update_data.values())
+    # Build dynamic update query using only validated field names.
+    # Use explicit field list to ensure field-value correspondence is clear.
+    fields = list(update_data.keys())
+    updates = [f"{field} = ?" for field in fields]
+    values = [update_data[field] for field in fields]
     values.append(alert_id)
 
     with get_db() as conn:
