@@ -14,7 +14,7 @@ Implementation Date: December 29, 2025
 import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -76,11 +76,11 @@ def analyze_session_state(conversation: str) -> dict:
 
 def save_checkpoint(conversation: str, analysis: dict, session_id: str) -> str:
     checkpoint_dir = get_checkpoint_dir()
-    timestamp = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S")
     checkpoint_file = checkpoint_dir / f"{timestamp}.json"
 
     data = {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "session_id": session_id,
         "trigger": "pre_clear",
         "analysis": analysis,
@@ -130,7 +130,7 @@ def main():
         "metadata": {
             "checkpoint_file": checkpoint_file,
             "criticality": analysis['criticality'],
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     }
     print(json.dumps(result))

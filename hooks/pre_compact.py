@@ -19,7 +19,7 @@ GitHub Issue: #66
 import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -138,7 +138,7 @@ def save_checkpoint(checkpoint_data: dict) -> str:
     Returns the checkpoint file path.
     """
     checkpoint_dir = get_checkpoint_dir()
-    timestamp = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S")
     checkpoint_file = checkpoint_dir / f"{timestamp}.json"
 
     with open(checkpoint_file, "w") as f:
@@ -181,7 +181,7 @@ def main():
 
     # Build checkpoint data
     checkpoint_data = {
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "session_id": session_id,
         "project_dir": project_dir,
         "trigger": "pre_compact",

@@ -102,17 +102,22 @@ def load_persona(persona_name: str) -> Optional[Dict]:
         "behaviors": []
     }
 
-    # Simple extraction of triggers section
-    in_triggers = False
+    # Extract triggers and behaviors sections
+    current_section = None
     for line in content.split("\n"):
         if "## Triggers" in line:
-            in_triggers = True
+            current_section = "triggers"
             continue
-        if in_triggers:
-            if line.startswith("##"):
-                in_triggers = False
-            elif line.strip().startswith("-"):
-                persona["triggers"].append(line.strip().lstrip("- ").strip('"'))
+        elif "## Behaviors" in line or "## Key Behaviors" in line:
+            current_section = "behaviors"
+            continue
+        elif line.startswith("##"):
+            current_section = None
+            continue
+
+        if current_section and line.strip().startswith("-"):
+            item = line.strip().lstrip("- ").strip('"')
+            persona[current_section].append(item)
 
     return persona
 

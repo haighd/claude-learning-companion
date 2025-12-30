@@ -35,7 +35,7 @@ import json
 import subprocess
 import sys
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -225,7 +225,7 @@ class CLCBackend:
                     "file": f.name,
                     "domain": f.stem.split("-")[0] if "-" in f.stem else "general",
                     "rule": content[:200],
-                    "created_at": datetime.fromtimestamp(f.stat().st_mtime).isoformat()
+                    "created_at": datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc).isoformat()
                 })
 
         return heuristics
@@ -410,7 +410,7 @@ class CLCBackend:
             Dict with component status
         """
         status = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "clc_path": str(self.clc_path),
             "components": {}
         }

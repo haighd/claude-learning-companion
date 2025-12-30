@@ -18,7 +18,7 @@ import json
 import os
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -112,7 +112,7 @@ def format_context_for_injection(context: dict) -> str:
     """
     lines = []
     lines.append("# CLC Context (Auto-Loaded)")
-    lines.append(f"# Session: {datetime.now().isoformat()}")
+    lines.append(f"# Session: {datetime.now(timezone.utc).isoformat()}")
     lines.append("")
 
     # Golden Rules (always include)
@@ -159,7 +159,7 @@ def write_to_env_file(content: str, env_file: str) -> bool:
         with open(env_file, "a") as f:
             f.write(f"\n# CLC_CONTEXT_START\n")
             f.write(f"CLC_CONTEXT_LOADED=true\n")
-            f.write(f"CLC_LOAD_TIME={datetime.now().isoformat()}\n")
+            f.write(f"CLC_LOAD_TIME={datetime.now(timezone.utc).isoformat()}\n")
             f.write(f"# CLC_CONTEXT_END\n")
         return True
     except Exception:
@@ -205,7 +205,7 @@ def main():
             "env_file_written": env_written,
             "context_loaded": "error" not in context,
             "is_remote": is_remote,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     }
 

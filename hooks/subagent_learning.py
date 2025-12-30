@@ -14,7 +14,7 @@ Implementation Date: December 29, 2025
 import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -68,11 +68,11 @@ def record_learnings(learnings: list) -> dict:
 
     recorded = []
     for learning in learnings:
-        timestamp = datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S")
         filename = f"{timestamp}-{learning['type']}.json"
         filepath = learnings_dir / filename
 
-        learning['recorded_at'] = datetime.now().isoformat()
+        learning['recorded_at'] = datetime.now(timezone.utc).isoformat()
         with open(filepath, 'w') as f:
             json.dump(learning, f, indent=2)
         recorded.append(learning['title'])
@@ -106,7 +106,7 @@ def main():
             "agent_id": agent_id,
             "learnings_extracted": len(learnings),
             "learnings_recorded": record_result['recorded_count'],
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     }
     print(json.dumps(result))

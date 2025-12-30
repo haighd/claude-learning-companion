@@ -631,7 +631,7 @@ Level 3 (on-demand): Full documentation (unlimited)
 - Migration should be incremental, not breaking
 - Provide fallback/hybrid mode during transition
 
-### 7.3 Feature Gaps in Native Claude Code
+### 8.3 Feature Gaps in Native Claude Code
 - No structured learning cycle (TRY→BREAK→ANALYZE→LEARN→NEXT)
 - No CEO escalation inbox
 - No confidence-scored heuristics
@@ -642,7 +642,7 @@ These remain **CLC value-adds** that should be enhanced, not deprecated.
 
 ---
 
-## 8. Next Steps
+## 9. Next Steps
 
 1. **Immediate (This Week):**
    - Implement PreCompact hook
