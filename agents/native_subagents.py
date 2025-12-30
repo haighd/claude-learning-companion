@@ -18,7 +18,10 @@ Usage:
     party_configs = get_party_subagents("code-review")
 """
 
+import argparse
 import json
+import re
+import sys
 import yaml
 from pathlib import Path
 from typing import Dict, List, Optional, Any
@@ -82,8 +85,9 @@ def load_parties() -> Dict:
             with open(parties_file) as f:
                 data = yaml.safe_load(f)
                 return data.get("parties", {}) if isinstance(data, dict) else {}
-        except yaml.YAMLError:
-            # Return empty if YAML is malformed
+        except yaml.YAMLError as e:
+            # Log error but don't crash - return empty
+            print(f"Warning: Failed to parse parties.yaml: {e}", file=sys.stderr)
             return {}
     return {}
 
@@ -203,7 +207,6 @@ def get_task_subagent(task_keyword: str) -> str:
 
     # Partial match with word boundary - key must be a complete word in keyword
     # Uses regex word boundaries to prevent 'end' matching 'frontend'
-    import re
     for key, value in TASK_TO_SUBAGENT.items():
         # Match key as complete word (bounded by non-word chars or start/end)
         if re.search(rf'\b{re.escape(key)}\b', keyword):
@@ -288,8 +291,6 @@ def list_available_parties() -> List[Dict]:
 
 def main():
     """CLI interface for native subagent discovery."""
-    import argparse
-
     parser = argparse.ArgumentParser(description="CLC Native Subagent Interface")
     parser.add_argument("--personas", action="store_true", help="List all personas")
     parser.add_argument("--parties", action="store_true", help="List all parties")

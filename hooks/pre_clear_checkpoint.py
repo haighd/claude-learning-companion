@@ -127,9 +127,13 @@ def main():
         if analysis['has_unrecorded_learnings']:
             guidance.append("- Learnings detected - run /capture-learnings")
 
+    # Build output message
+    checkpoint_msg = f"[CLC] Checkpoint saved: {checkpoint_file}"
+    output_msg = "\n".join(guidance) + "\n" + checkpoint_msg if guidance else checkpoint_msg
+
     result = {
         "continue": True,
-        "outputToStdout": "\n".join(guidance) + f"\n[CLC] Checkpoint saved: {checkpoint_file}" if guidance else f"[CLC] Checkpoint saved: {checkpoint_file}",
+        "outputToStdout": output_msg,
         "metadata": {
             "checkpoint_file": checkpoint_file,
             "criticality": analysis['criticality'],
