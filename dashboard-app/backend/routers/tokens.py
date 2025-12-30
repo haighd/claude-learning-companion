@@ -47,7 +47,7 @@ class TokenAlertCreate(BaseModel):
     alert_type: str
     threshold_value: float
     threshold_unit: Literal["tokens", "usd", "percent"]
-    time_window: str = "daily"
+    time_window: Literal["daily", "weekly", "monthly"] = "daily"
     is_enabled: bool = True
 
 
@@ -55,7 +55,7 @@ class TokenAlertUpdate(BaseModel):
     alert_type: Optional[str] = None
     threshold_value: Optional[float] = None
     threshold_unit: Optional[Literal["tokens", "usd", "percent"]] = None
-    time_window: Optional[str] = None
+    time_window: Optional[Literal["daily", "weekly", "monthly"]] = None
     is_enabled: Optional[bool] = None
 
 
@@ -100,7 +100,7 @@ def ensure_tables_exist():
                 alert_type TEXT NOT NULL,
                 threshold_value REAL NOT NULL,
                 threshold_unit TEXT NOT NULL CHECK(threshold_unit IN ('tokens', 'usd', 'percent')),
-                time_window TEXT DEFAULT 'daily',
+                time_window TEXT DEFAULT 'daily' CHECK(time_window IN ('daily', 'weekly', 'monthly')),
                 is_enabled INTEGER DEFAULT 1,
                 last_triggered_at DATETIME,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
