@@ -23,9 +23,11 @@ router = APIRouter(prefix="/api/tokens", tags=["tokens"])
 # Cache TTL in seconds (5 minutes)
 _CACHE_TTL = 300
 _cache_timestamp: float = 0
-_tables_initialized: bool = False
 
 CLAUDE_PROJECTS_PATH = Path.home() / ".claude" / "projects"
+
+# Whitelist of allowed fields for alert updates (SQL injection protection)
+ALERT_UPDATE_ALLOWED_FIELDS = {"alert_type", "threshold_value", "threshold_unit", "time_window", "is_enabled"}
 
 
 class TokenAlertCreate(BaseModel):
@@ -44,12 +46,13 @@ class TokenAlertUpdate(BaseModel):
     is_enabled: Optional[bool] = None
 
 
+@lru_cache(maxsize=None)
 def ensure_tables_exist():
-    """Ensure token tables exist - only runs once per application lifecycle."""
-    global _tables_initialized
-    if _tables_initialized:
-        return
+    """Ensure token tables exist - only runs once per application lifecycle.
 
+    Uses @lru_cache for thread-safe one-time initialization instead of a global flag,
+    which could cause race conditions in multi-worker environments.
+    """
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("""
@@ -84,7 +87,6 @@ def ensure_tables_exist():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_token_metrics_model ON token_metrics(model)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_token_metrics_captured ON token_metrics(captured_at)")
         conn.commit()
-        _tables_initialized = True
         logger.info("Token tables initialized")
 
 
@@ -197,15 +199,38 @@ def parse_jsonl_for_tokens(project_dir: Path) -> List[Dict[str, Any]]:
 _usage_cache: Optional[Dict[str, Any]] = None
 
 
-def _compute_token_usage() -> Dict[str, Any]:
-    """Internal function to compute token usage (called by cached wrapper)."""
+def aggregate_sessions_by_model(sessions: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+    """Aggregate session data by model. Reusable helper to avoid DRY violations."""
+    by_model: Dict[str, Dict[str, Any]] = defaultdict(
+        lambda: {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
+                 "cache_creation_tokens": 0, "web_searches": 0, "cost_usd": 0.0, "session_count": 0}
+    )
+    for s in sessions:
+        model = s["model"]
+        by_model[model]["input_tokens"] += s["input_tokens"]
+        by_model[model]["output_tokens"] += s["output_tokens"]
+        by_model[model]["cache_read_tokens"] += s["cache_read_tokens"]
+        by_model[model]["cache_creation_tokens"] += s["cache_creation_tokens"]
+        by_model[model]["web_searches"] += s["web_search_requests"]
+        by_model[model]["cost_usd"] += s["cost_usd"]
+        by_model[model]["session_count"] += 1
+    return dict(by_model)
+
+
+def compute_token_usage() -> Dict[str, Any]:
+    """Compute token usage from JSONL files.
+
+    Returns a dict with total, by_model, by_project, sessions list, and
+    sessions_by_id dict for O(1) session lookups.
+    """
     if not CLAUDE_PROJECTS_PATH.exists():
         return {
             "total": {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
                       "cache_creation_tokens": 0, "web_searches": 0, "cost_usd": 0.0},
             "by_model": {},
             "by_project": {},
-            "sessions": []
+            "sessions": [],
+            "sessions_by_id": {}
         }
 
     all_records = []
@@ -216,14 +241,12 @@ def _compute_token_usage() -> Dict[str, Any]:
     total = {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
              "cache_creation_tokens": 0, "web_searches": 0, "cost_usd": 0.0}
 
-    # Use defaultdict for cleaner aggregation
-    by_model: Dict[str, Dict[str, Any]] = defaultdict(
-        lambda: {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
-                 "cache_creation_tokens": 0, "web_searches": 0, "cost_usd": 0.0, "session_count": 0}
-    )
     by_project: Dict[str, Dict[str, Any]] = defaultdict(
         lambda: {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "session_count": 0}
     )
+
+    # Build sessions_by_id for O(1) lookups
+    sessions_by_id: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
 
     for record in all_records:
         total["input_tokens"] += record["input_tokens"]
@@ -233,22 +256,25 @@ def _compute_token_usage() -> Dict[str, Any]:
         total["web_searches"] += record["web_search_requests"]
         total["cost_usd"] += record["cost_usd"]
 
-        model = record["model"]
-        by_model[model]["input_tokens"] += record["input_tokens"]
-        by_model[model]["output_tokens"] += record["output_tokens"]
-        by_model[model]["cache_read_tokens"] += record["cache_read_tokens"]
-        by_model[model]["cache_creation_tokens"] += record["cache_creation_tokens"]
-        by_model[model]["web_searches"] += record["web_search_requests"]
-        by_model[model]["cost_usd"] += record["cost_usd"]
-        by_model[model]["session_count"] += 1
-
         project = record["project_path"]
         by_project[project]["input_tokens"] += record["input_tokens"]
         by_project[project]["output_tokens"] += record["output_tokens"]
         by_project[project]["cost_usd"] += record["cost_usd"]
         by_project[project]["session_count"] += 1
 
-    return {"total": total, "by_model": dict(by_model), "by_project": dict(by_project), "sessions": all_records}
+        # Index by session_id for O(1) lookups
+        sessions_by_id[record["session_id"]].append(record)
+
+    # Use shared helper for model aggregation
+    by_model = aggregate_sessions_by_model(all_records)
+
+    return {
+        "total": total,
+        "by_model": by_model,
+        "by_project": dict(by_project),
+        "sessions": all_records,
+        "sessions_by_id": dict(sessions_by_id)
+    }
 
 
 def get_all_token_usage() -> Dict[str, Any]:
@@ -257,7 +283,7 @@ def get_all_token_usage() -> Dict[str, Any]:
 
     current_time = time.time()
     if _usage_cache is None or (current_time - _cache_timestamp) > _CACHE_TTL:
-        _usage_cache = _compute_token_usage()
+        _usage_cache = compute_token_usage()
         _cache_timestamp = current_time
 
     return _usage_cache
@@ -284,17 +310,19 @@ async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
                 "total_output_tokens": 0, "total_cost_usd": 0.0}
 
     if session_id:
-        session_records = [r for r in usage_data["sessions"] if r["session_id"] == session_id]
+        # O(1) lookup using sessions_by_id dict
+        session_records = usage_data["sessions_by_id"].get(session_id, [])
     else:
-        # Sort by timestamp to find the most recent session
-        sorted_sessions = sorted(
+        # Use max() instead of sorting O(N log N) -> O(N)
+        latest_session = max(
             usage_data["sessions"],
             key=lambda r: r.get("timestamp") or "",
-            reverse=True
+            default=None
         )
-        if sorted_sessions:
-            latest_session_id = sorted_sessions[0]["session_id"]
-            session_records = [r for r in usage_data["sessions"] if r["session_id"] == latest_session_id]
+        if latest_session:
+            latest_session_id = latest_session["session_id"]
+            # O(1) lookup using sessions_by_id dict
+            session_records = usage_data["sessions_by_id"].get(latest_session_id, [])
         else:
             session_records = []
 
@@ -368,20 +396,8 @@ async def get_token_summary(days: int = Query(30), project: Optional[str] = Quer
         "cost_usd": sum(s["cost_usd"] for s in filtered_sessions)
     }
 
-    # Recalculate model breakdown for filtered sessions
-    by_model: Dict[str, Dict[str, Any]] = {}
-    for s in filtered_sessions:
-        model = s["model"]
-        if model not in by_model:
-            by_model[model] = {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
-                              "cache_creation_tokens": 0, "web_searches": 0, "cost_usd": 0.0, "session_count": 0}
-        by_model[model]["input_tokens"] += s["input_tokens"]
-        by_model[model]["output_tokens"] += s["output_tokens"]
-        by_model[model]["cache_read_tokens"] += s["cache_read_tokens"]
-        by_model[model]["cache_creation_tokens"] += s["cache_creation_tokens"]
-        by_model[model]["web_searches"] += s["web_search_requests"]
-        by_model[model]["cost_usd"] += s["cost_usd"]
-        by_model[model]["session_count"] += 1
+    # Use shared helper for model aggregation (DRY)
+    by_model = aggregate_sessions_by_model(filtered_sessions)
 
     return {"period_days": days,
             "total_input_tokens": total["input_tokens"],
@@ -483,11 +499,18 @@ async def update_alert(alert_id: int, alert: TokenAlertUpdate):
     if not update_data:
         raise HTTPException(status_code=400, detail="No fields to update")
 
+    # Validate fields against whitelist to prevent SQL injection via column names.
+    # While Pydantic model fields are predefined, this explicit check ensures safety
+    # if the model is modified and guards against any potential manipulation.
+    invalid_fields = [field for field in update_data.keys() if field not in ALERT_UPDATE_ALLOWED_FIELDS]
+    if invalid_fields:
+        raise HTTPException(status_code=400, detail=f"Invalid fields for update: {invalid_fields}")
+
     # Convert is_enabled to integer for SQLite
     if "is_enabled" in update_data:
         update_data["is_enabled"] = 1 if update_data["is_enabled"] else 0
 
-    # Build dynamic update query
+    # Build dynamic update query using only validated field names
     updates = [f"{field} = ?" for field in update_data.keys()]
     values = list(update_data.values())
     values.append(alert_id)
