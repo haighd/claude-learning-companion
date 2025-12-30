@@ -27,6 +27,8 @@ from pathlib import Path
 # - Quotes: ` ' "
 # - Brackets: [ ] ( ) { } < >
 # - Punctuation: , |
+# Note: Order doesn't matter for str.strip(). The \" is an escaped quote
+# inside the double-quoted string - this is standard Python string syntax.
 PATH_STRIP_CHARS = "`,'\"][(){}|<>"
 
 
