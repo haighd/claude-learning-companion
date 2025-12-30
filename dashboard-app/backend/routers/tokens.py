@@ -212,8 +212,8 @@ def parse_jsonl_for_tokens(project_dir: Path) -> List[Dict[str, Any]]:
             if not found_usage:
                 logger.debug(f"No token usage found in last {JSONL_TAIL_LINES} lines of {jsonl_file}")
 
-        except Exception as e:
-            logger.warning(f"Error parsing {jsonl_file}: {e}")
+        except (OSError, KeyError, TypeError) as e:
+            logger.warning(f"Error parsing {jsonl_file}: {type(e).__name__}: {e}")
     return records
 
 
@@ -366,11 +366,12 @@ async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
     else:
         # Find latest session by timestamp using max() O(N) instead of sort O(N log N)
         # Filter to sessions with parseable timestamps for proper chronological comparison
+        # Use walrus operator to parse and filter in single comprehension
         sessions_with_dt = [
-            (s, parse_timestamp(s.get("timestamp")))
+            (s, dt)
             for s in usage_data["sessions"]
+            if (dt := parse_timestamp(s.get("timestamp"))) is not None
         ]
-        sessions_with_dt = [(s, dt) for s, dt in sessions_with_dt if dt is not None]
         if sessions_with_dt:
             latest_session, _ = max(sessions_with_dt, key=lambda x: x[1])
             latest_session_id = latest_session["session_id"]
@@ -584,9 +585,10 @@ async def update_alert(alert_id: int, alert: TokenAlertUpdate):
     # Validate fields against whitelist to prevent SQL injection via column names.
     # While Pydantic model fields are predefined, this explicit check ensures safety
     # if the model is modified and guards against any potential manipulation.
-    invalid_fields = [f for f in update_data if f not in ALERT_UPDATE_ALLOWED_FIELDS]
+    # Use set difference for idiomatic field validation
+    invalid_fields = set(update_data.keys()) - ALERT_UPDATE_ALLOWED_FIELDS
     if invalid_fields:
-        raise HTTPException(status_code=400, detail=f"Invalid fields for update: {invalid_fields}")
+        raise HTTPException(status_code=400, detail=f"Invalid fields for update: {sorted(invalid_fields)}")
 
     # Convert is_enabled to integer for SQLite
     if "is_enabled" in update_data:
