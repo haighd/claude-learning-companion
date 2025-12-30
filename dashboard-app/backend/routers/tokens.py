@@ -403,8 +403,10 @@ async def get_token_summary(days: int = Query(30), project: Optional[str] = Quer
     filtered_sessions = _filter_sessions_by_days(usage_data["sessions"], days)
 
     # Then filter by project if specified (match against project directory name)
+    # Use string split instead of Path() for efficiency with large session lists
     if project:
-        filtered_sessions = [s for s in filtered_sessions if Path(s["project_path"]).name == project]
+        filtered_sessions = [s for s in filtered_sessions
+                             if s["project_path"].rsplit("/", 1)[-1] == project]
 
     # Calculate totals in single loop for better performance
     total = {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,

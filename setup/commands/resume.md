@@ -89,7 +89,7 @@ ls .claude/codex-review/approvals 2>/dev/null || true
 # Check for project-specific learnings
 if [ -d ".claude/learnings" ]; then
   echo "=== Recent Learnings for this project ==="
-  ls -t .claude/learnings/*.md 2>/dev/null | head -5 | while read f; do
+  ls -t .claude/learnings/*.md 2>/dev/null | head -5 | while IFS= read -r f; do
     title=$(grep -m1 "^# Learning:" "$f" 2>/dev/null | sed 's/^# Learning: //')
     category=$(grep -m1 "^\*\*Category:\*\*" "$f" 2>/dev/null | sed 's/\*\*Category:\*\* //')
     echo "- $title ($category)"
@@ -100,7 +100,7 @@ fi
 if [ -d "$HOME/.claude/learnings" ]; then
   echo ""
   echo "=== Recent Global Learnings ==="
-  ls -t ~/.claude/learnings/*.md 2>/dev/null | grep -v index.md | head -3 | while read f; do
+  ls -t ~/.claude/learnings/*.md 2>/dev/null | grep -v index.md | head -3 | while IFS= read -r f; do
     title=$(grep -m1 "^# Learning:" "$f" 2>/dev/null | sed 's/^# Learning: //')
     category=$(grep -m1 "^\*\*Category:\*\*" "$f" 2>/dev/null | sed 's/\*\*Category:\*\* //')
     echo "- $title ($category)"
