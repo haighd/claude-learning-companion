@@ -228,15 +228,18 @@ class CLCBackend:
             for f in heuristics_dir.glob("*.md"):
                 content = f.read_text()
                 # Parse basic heuristic structure
-                # Note: Using file mtime as last_modified is intentional.
-                # For heuristics stored as markdown files, mtime reflects the
-                # last edit (creation or update). For validation timestamps,
-                # use the full query.py which reads from the database.
+                # Note: Using file mtime as 'created_at' is intentional for this
+                # lightweight interface. For heuristics stored as markdown files,
+                # mtime approximates recency. For validation timestamps with full
+                # confidence scoring, use query.py which reads from the database.
                 heuristics.append({
                     "file": f.name,
                     "domain": f.stem,  # Full filename as domain (e.g., "ci-workflow", "hooks")
                     "rule": content[:200],
-                    "last_modified": datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc).isoformat()
+                    # Use 'created_at' key for compatibility with progressive.py RelevanceScorer
+                    # which uses this field for recency scoring. The mtime is the best available
+                    # approximation for heuristic freshness when loading from markdown files.
+                    "created_at": datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc).isoformat()
                 })
 
         return heuristics

@@ -165,7 +165,12 @@ class RelevanceScorer:
             return 0.5
         if isinstance(timestamp, str):
             try:
-                timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                # Handle ISO 8601 format (with 'T' separator)
+                if 'T' in timestamp:
+                    timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                else:
+                    # Handle simpler 'YYYY-MM-DD HH:MM:SS' format (e.g., from SQLite)
+                    timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
             except ValueError:
                 return 0.5
         if not isinstance(timestamp, datetime):

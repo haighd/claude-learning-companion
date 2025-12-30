@@ -141,8 +141,8 @@ def load_persona(persona_name: str) -> Optional[Dict]:
             current_section = None
             continue
 
-        if current_section and line.strip().startswith("-"):
-            item = line.strip().lstrip("- ").strip('"')
+        if current_section and stripped.startswith("-"):
+            item = stripped.lstrip("- ").strip('"')
             persona[current_section].append(item)
 
     return persona
