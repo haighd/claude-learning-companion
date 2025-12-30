@@ -40,21 +40,22 @@ fi
 
 echo ""
 echo "Project-local ($LOCAL_CHECKPOINTS_PATH):"
-ls -t "$LOCAL_CHECKPOINTS_PATH"/*checkpoint*.md 2>/dev/null | head -5 | while read f; do
+# Use IFS= and -r for robust filename handling (spaces, special chars)
+ls -t "$LOCAL_CHECKPOINTS_PATH"/*checkpoint*.md 2>/dev/null | head -5 | while IFS= read -r f; do
   echo "  $(basename "$f")"
 done || echo "  (none found)"
 
 # 2. Global checkpoints for current project
 echo ""
 echo "Global checkpoints for $CURRENT_PROJECT:"
-ls -t ~/.claude/checkpoints/*"$CURRENT_PROJECT"*.md 2>/dev/null | head -5 | while read f; do
+ls -t ~/.claude/checkpoints/*"$CURRENT_PROJECT"*.md 2>/dev/null | head -5 | while IFS= read -r f; do
   echo "  $(basename "$f")"
 done || echo "  (none found)"
 
 # 3. Other recent global checkpoints
 echo ""
 echo "Other recent global checkpoints:"
-ls -t ~/.claude/checkpoints/*.md 2>/dev/null | grep -v "$CURRENT_PROJECT" | head -5 | while read f; do
+ls -t ~/.claude/checkpoints/*.md 2>/dev/null | grep -v "$CURRENT_PROJECT" | head -5 | while IFS= read -r f; do
   echo "  $(basename "$f")"
 done || echo "  (none found)"
 ```

@@ -336,15 +336,16 @@ async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
     if not session_records:
         raise HTTPException(status_code=404, detail="Session not found")
 
-    models: Dict[str, Dict[str, Any]] = {}
+    # Use defaultdict to avoid if-check on each iteration
+    models: Dict[str, Dict[str, Any]] = defaultdict(
+        lambda: {"input_tokens": 0, "output_tokens": 0,
+                 "cache_read_tokens": 0, "cache_creation_tokens": 0, "cost_usd": 0.0}
+    )
     total_input = total_output = 0
     total_cost = 0.0
 
     for record in session_records:
         model = record["model"]
-        if model not in models:
-            models[model] = {"input_tokens": 0, "output_tokens": 0,
-                            "cache_read_tokens": 0, "cache_creation_tokens": 0, "cost_usd": 0.0}
         models[model]["input_tokens"] += record["input_tokens"]
         models[model]["output_tokens"] += record["output_tokens"]
         models[model]["cache_read_tokens"] += record["cache_read_tokens"]
@@ -356,7 +357,7 @@ async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
 
     return {"session_id": session_records[0]["session_id"],
             "project_path": session_records[0]["project_path"],
-            "models": models, "total_input_tokens": total_input,
+            "models": dict(models), "total_input_tokens": total_input,
             "total_output_tokens": total_output, "total_cost_usd": round(total_cost, 6)}
 
 
@@ -403,15 +404,16 @@ async def get_token_summary(days: int = Query(30), project: Optional[str] = Quer
     if project:
         filtered_sessions = [s for s in filtered_sessions if Path(s["project_path"]).name == project]
 
-    # Recalculate totals based on filtered sessions
-    total = {
-        "input_tokens": sum(s["input_tokens"] for s in filtered_sessions),
-        "output_tokens": sum(s["output_tokens"] for s in filtered_sessions),
-        "cache_read_tokens": sum(s["cache_read_tokens"] for s in filtered_sessions),
-        "cache_creation_tokens": sum(s["cache_creation_tokens"] for s in filtered_sessions),
-        "web_searches": sum(s["web_search_requests"] for s in filtered_sessions),
-        "cost_usd": sum(s["cost_usd"] for s in filtered_sessions)
-    }
+    # Calculate totals in single loop for better performance
+    total = {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
+             "cache_creation_tokens": 0, "web_searches": 0, "cost_usd": 0.0}
+    for s in filtered_sessions:
+        total["input_tokens"] += s["input_tokens"]
+        total["output_tokens"] += s["output_tokens"]
+        total["cache_read_tokens"] += s["cache_read_tokens"]
+        total["cache_creation_tokens"] += s["cache_creation_tokens"]
+        total["web_searches"] += s["web_search_requests"]
+        total["cost_usd"] += s["cost_usd"]
 
     # Use shared helper for model aggregation (DRY)
     by_model = aggregate_sessions_by_model(filtered_sessions)
