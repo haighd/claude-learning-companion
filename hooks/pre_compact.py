@@ -27,9 +27,9 @@ from pathlib import Path
 # - Quotes: ` ' "
 # - Brackets: [ ] ( ) { } < >
 # - Punctuation: , |
-# Note: Order doesn't matter for str.strip(). The \" is an escaped quote
-# inside the double-quoted string - this is standard Python string syntax.
-PATH_STRIP_CHARS = "`,'\"][(){}|<>"
+# Note: Order doesn't matter for str.strip(). The double quote is included
+# directly in this single-quoted string; the single quote is escaped.
+PATH_STRIP_CHARS = '`,"\'\"][(){}|<>'
 
 
 def get_clc_path() -> Path:
