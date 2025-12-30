@@ -5,6 +5,7 @@ Tokens Router - Token accounting, usage tracking, cost analysis, and alerts.
 import json
 import logging
 import time
+from collections import defaultdict
 from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
@@ -198,8 +199,15 @@ def _compute_token_usage() -> Dict[str, Any]:
 
     total = {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
              "cache_creation_tokens": 0, "web_searches": 0, "cost_usd": 0.0}
-    by_model: Dict[str, Dict[str, Any]] = {}
-    by_project: Dict[str, Dict[str, Any]] = {}
+
+    # Use defaultdict for cleaner aggregation
+    by_model: Dict[str, Dict[str, Any]] = defaultdict(
+        lambda: {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
+                 "cache_creation_tokens": 0, "web_searches": 0, "cost_usd": 0.0, "session_count": 0}
+    )
+    by_project: Dict[str, Dict[str, Any]] = defaultdict(
+        lambda: {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "session_count": 0}
+    )
 
     for record in all_records:
         total["input_tokens"] += record["input_tokens"]
@@ -210,9 +218,6 @@ def _compute_token_usage() -> Dict[str, Any]:
         total["cost_usd"] += record["cost_usd"]
 
         model = record["model"]
-        if model not in by_model:
-            by_model[model] = {"input_tokens": 0, "output_tokens": 0, "cache_read_tokens": 0,
-                               "cache_creation_tokens": 0, "web_searches": 0, "cost_usd": 0.0, "session_count": 0}
         by_model[model]["input_tokens"] += record["input_tokens"]
         by_model[model]["output_tokens"] += record["output_tokens"]
         by_model[model]["cache_read_tokens"] += record["cache_read_tokens"]
@@ -222,14 +227,12 @@ def _compute_token_usage() -> Dict[str, Any]:
         by_model[model]["session_count"] += 1
 
         project = record["project_path"]
-        if project not in by_project:
-            by_project[project] = {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "session_count": 0}
         by_project[project]["input_tokens"] += record["input_tokens"]
         by_project[project]["output_tokens"] += record["output_tokens"]
         by_project[project]["cost_usd"] += record["cost_usd"]
         by_project[project]["session_count"] += 1
 
-    return {"total": total, "by_model": by_model, "by_project": by_project, "sessions": all_records}
+    return {"total": total, "by_model": dict(by_model), "by_project": dict(by_project), "sessions": all_records}
 
 
 def get_all_token_usage() -> Dict[str, Any]:
@@ -255,6 +258,9 @@ def invalidate_token_cache():
 async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
     """Get token usage for current or specified session."""
     ensure_tables_exist()
+    # Note: get_all_token_usage() uses TTL-based caching (5 min) to avoid
+    # repeated file parsing. For single-session lookups, caching provides
+    # adequate performance. Future optimization could add session-specific queries.
     usage_data = get_all_token_usage()
 
     if not usage_data["sessions"]:
