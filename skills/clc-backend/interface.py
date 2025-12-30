@@ -48,7 +48,7 @@ from typing import Any, Dict, List, Optional
 # of where this script is invoked from. The alternative (making CLC a proper
 # package) would require pip install which conflicts with the git-based
 # update mechanism and user customization workflow.
-CLC_PATH = Path.home() / ".claude" / "clc"
+CLC_PATH = Path(os.environ.get("CLC_PATH", Path.home() / ".claude" / "clc"))
 sys.path.insert(0, str(CLC_PATH / "query"))
 sys.path.insert(0, str(CLC_PATH / "agents"))
 
@@ -100,6 +100,13 @@ class CLCBackend:
     ) -> QueryResult:
         """
         Query CLC for context.
+
+        Note: Uses subprocess to call query.py rather than direct import.
+        This is intentional - query.py has complex initialization (database,
+        config loading) that benefits from isolation. The subprocess approach
+        also ensures consistent behavior with CLI usage and avoids potential
+        import conflicts. For lightweight queries, use progressive_query()
+        which uses direct imports.
 
         Args:
             domain: Optional domain filter
@@ -232,7 +239,11 @@ class CLCBackend:
                 # Parse heuristic rule from markdown content
                 # Use regex to find the line starting with '## H-X: '
                 rule_match = re.search(r"##\s+H-\d+:\s*(.*)", content)
-                rule = rule_match.group(1).strip() if rule_match else content.split('\n')[0]
+                rule = rule_match.group(1).strip() if rule_match else ""
+
+                # Skip files that don't have a parseable rule
+                if not rule:
+                    continue
 
                 heuristics.append({
                     "file": f.name,

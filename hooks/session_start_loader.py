@@ -42,7 +42,7 @@ def query_clc_context(domain: str = None) -> dict:
         return {"error": "CLC query.py not found"}
 
     try:
-        cmd = ["python3", str(query_script), "--context", "--format", "json"]
+        cmd = [sys.executable, str(query_script), "--context", "--format", "json"]
         if domain:
             cmd.extend(["--domain", domain])
 
