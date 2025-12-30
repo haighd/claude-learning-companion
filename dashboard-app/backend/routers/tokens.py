@@ -10,7 +10,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 
 from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel
@@ -28,6 +28,12 @@ _cache_lock = threading.Lock()  # Thread-safe cache access
 
 CLAUDE_PROJECTS_PATH = Path.home() / ".claude" / "projects"
 
+# Number of lines to read from end of JSONL files when scanning for token usage.
+# Must be large enough to find lastModelUsage entry past trailing empty lines,
+# non-usage log entries, and potential file corruption. 200 provides good margin
+# while staying memory-efficient (8KB typical for 200 JSON lines).
+JSONL_TAIL_LINES = 200
+
 # Whitelist of allowed fields for alert updates (SQL injection protection).
 # Defense-in-depth: Pydantic validates field types/values at the model layer,
 # this whitelist validates field names before SQL construction.
@@ -37,7 +43,7 @@ ALERT_UPDATE_ALLOWED_FIELDS = {"alert_type", "threshold_value", "threshold_unit"
 class TokenAlertCreate(BaseModel):
     alert_type: str
     threshold_value: float
-    threshold_unit: str
+    threshold_unit: Literal["tokens", "usd", "percent"]
     time_window: str = "daily"
     is_enabled: bool = True
 
@@ -45,7 +51,7 @@ class TokenAlertCreate(BaseModel):
 class TokenAlertUpdate(BaseModel):
     alert_type: Optional[str] = None
     threshold_value: Optional[float] = None
-    threshold_unit: Optional[str] = None
+    threshold_unit: Optional[Literal["tokens", "usd", "percent"]] = None
     time_window: Optional[str] = None
     is_enabled: Optional[bool] = None
 
@@ -142,8 +148,8 @@ def _read_last_lines(filepath: Path, num_lines: int = 10) -> List[str]:
                     lines = [l.decode('utf-8', errors='replace') for l in split_lines if l] + lines
 
             return lines[-num_lines:]
-    except Exception as e:
-        logger.warning(f"Error reading last lines from {filepath}: {e}")
+    except (OSError, UnicodeDecodeError) as e:
+        logger.warning(f"Error reading last lines from {filepath}: {type(e).__name__}: {e}")
         return []
 
 
@@ -163,9 +169,7 @@ def parse_jsonl_for_tokens(project_dir: Path) -> List[Dict[str, Any]]:
 
     for jsonl_file in project_dir.glob("*.jsonl"):
         try:
-            # Use memory-efficient tail reading with 100 lines for robustness
-            # (handles trailing empty lines or non-usage log entries)
-            lines = _read_last_lines(jsonl_file, num_lines=100)
+            lines = _read_last_lines(jsonl_file, num_lines=JSONL_TAIL_LINES)
             if not lines:
                 continue
 
@@ -203,7 +207,7 @@ def parse_jsonl_for_tokens(project_dir: Path) -> List[Dict[str, Any]]:
                 break  # Only need the most recent entry (cumulative totals)
 
             if not found_usage:
-                logger.debug(f"No token usage found in last 100 lines of {jsonl_file}")
+                logger.debug(f"No token usage found in last {JSONL_TAIL_LINES} lines of {jsonl_file}")
 
         except Exception as e:
             logger.warning(f"Error parsing {jsonl_file}: {e}")
@@ -330,15 +334,16 @@ async def get_current_session_tokens(session_id: Optional[str] = Query(None)):
         # O(1) lookup using sessions_by_id dict
         session_records = usage_data["sessions_by_id"].get(session_id, [])
     else:
-        # Use max() instead of sorting O(N log N) -> O(N)
-        latest_session = max(
-            usage_data["sessions"],
-            key=lambda r: r.get("timestamp") or "",
-            default=None
-        )
-        if latest_session:
+        # Find latest session by timestamp using max() O(N) instead of sort O(N log N)
+        # Filter to sessions with timestamps to avoid empty string comparison issues
+        sessions_with_ts = [s for s in usage_data["sessions"] if s.get("timestamp")]
+        if sessions_with_ts:
+            latest_session = max(sessions_with_ts, key=lambda r: r["timestamp"])
             latest_session_id = latest_session["session_id"]
-            # O(1) lookup using sessions_by_id dict
+            session_records = usage_data["sessions_by_id"].get(latest_session_id, [])
+        elif usage_data["sessions"]:
+            # Fallback: if no sessions have timestamps, use first available session
+            latest_session_id = usage_data["sessions"][0]["session_id"]
             session_records = usage_data["sessions_by_id"].get(latest_session_id, [])
         else:
             session_records = []
@@ -378,17 +383,24 @@ def _filter_sessions_by_days(sessions: List[Dict[str, Any]], days: int) -> List[
 
     Args:
         sessions: List of session records to filter.
-        days: Number of days to look back. If <= 0, no time-based filtering
-              is applied and the original sessions list is returned unchanged.
+        days: Number of days to look back:
+              - days < 0: no time-based filtering, returns all sessions
+              - days = 0: returns sessions from today (since midnight UTC)
+              - days > 0: returns sessions from the last N days
 
     Returns:
-        Filtered list of sessions within the time window, or all sessions if days <= 0.
+        Filtered list of sessions within the time window, or all sessions if days < 0.
     """
-    if days <= 0:
+    if days < 0:
         return sessions
 
     # Use timezone-aware UTC datetime for consistent comparison
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    if days == 0:
+        # Today only: midnight UTC today
+        now = datetime.now(timezone.utc)
+        cutoff = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    else:
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
 
     filtered = []
     for s in sessions:
@@ -399,9 +411,9 @@ def _filter_sessions_by_days(sessions: List[Dict[str, Any]], days: int) -> List[
                 session_dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
                 if session_dt >= cutoff:
                     filtered.append(s)
-            except (ValueError, TypeError):
-                # Skip sessions with unparseable timestamps
-                pass
+            except (ValueError, TypeError) as e:
+                # Log unparseable timestamps for debugging, but don't fail the request
+                logger.debug(f"Skipping session {s.get('session_id', 'unknown')}: unparseable timestamp '{ts}': {e}")
         # Exclude sessions without timestamp - cannot verify they fall within time window
 
     return filtered
@@ -551,9 +563,8 @@ async def update_alert(alert_id: int, alert: TokenAlertUpdate):
     # Validate fields against whitelist to prevent SQL injection via column names.
     # While Pydantic model fields are predefined, this explicit check ensures safety
     # if the model is modified and guards against any potential manipulation.
-    # Use any() with generator for early exit on first invalid field.
-    if any(field not in ALERT_UPDATE_ALLOWED_FIELDS for field in update_data.keys()):
-        invalid_fields = [f for f in update_data.keys() if f not in ALERT_UPDATE_ALLOWED_FIELDS]
+    invalid_fields = [f for f in update_data if f not in ALERT_UPDATE_ALLOWED_FIELDS]
+    if invalid_fields:
         raise HTTPException(status_code=400, detail=f"Invalid fields for update: {invalid_fields}")
 
     # Convert is_enabled to integer for SQLite
